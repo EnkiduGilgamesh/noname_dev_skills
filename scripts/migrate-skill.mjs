@@ -15,7 +15,7 @@
  *   node .dsh/skills/noname-general-extension/scripts/build-index.mjs
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync, copyFileSync } from "node:fs";
-import { join, dirname, resolve, relative } from "node:path";
+import { join, dirname, resolve, relative, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
@@ -216,9 +216,14 @@ function cmdCheck() {
 
     // 1b. 检查代码里把 skill 自身位置写死成 <ROOT>/.dsh/skills/...
     //     这类写法在「技能位于独立仓库、项目在别处」时会指向错误位置。
+    //
+    //     例外：install.mjs 的职责就是往【目标项目】的 .dsh/skills/ 里写，
+    //     它用 join(ROOT, ".dsh/...") 是正确行为，不能算位置假设。
     console.log(`\n〔1b〕技能自身位置是否自定位`);
+    const SELF_LOCATE_EXEMPT = new Set(["install.mjs"]);
     let selfLocated = true;
     for (const f of files.filter(f => f.endsWith(".mjs"))) {
+        if (SELF_LOCATE_EXEMPT.has(basename(f))) continue;
         const text = readFileSync(join(SKILL_DIR, f), "utf8")
             .replace(/`(?:[^`\\]|\\.)*`/gs, "``")      // 去模板串
             .replace(/\/\/[^\n]*/g, "");               // 去行注释
