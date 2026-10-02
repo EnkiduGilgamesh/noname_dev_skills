@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-02T13:41:26.121Z",
+  "updatedAt": "2026-10-02T13:54:23.861Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -393,6 +393,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-02T13:41:26.119Z",
       "updatedAt": "2026-10-02T13:41:26.119Z"
+    },
+    {
+      "id": "kb-git-push-sandbox",
+      "kind": "pitfall",
+      "title": "沙箱内 git push 会因 ssh 管道失败，且 $env:TEMP 会随沙箱模式变化",
+      "body": "两个在 DSH 沙箱里踩到的坑，都与 git 推送/临时目录有关。坑 1 —— ssh 建管道被拒：workspace-write 模式下执行 git push 到 git@github.com 会报「sh.exe: *** fatal error - couldn't create signal pipe, Win32 error 5」随后 git 输出「Could not read from remote repository」，看起来像权限/仓库不存在，实际是沙箱禁止创建管道（同 spawn EPERM 一类限制）。判断方法：用 ssh -T git@github.com 测试，若认证成功（Hi <用户>!）说明是沙箱限制而非凭证问题，应以 danger-full-access 重试该条命令。坑 2 —— $env:TEMP 随模式变化：提权后 $env:TEMP 从 ...\\Temp\\dsh-XXXX 变成 ...\\Temp，于是先前在低权限下创建的仓库路径在提权命令里「找不到」，Set-Location 失败但后续 git 命令仍会在【当前目录】执行，可能对错误仓库操作并返回误导性的「Everything up-to-date」。对策：临时仓库一律用【绝对路径】并先校验路径存在，推送后必须用 git ls-remote <url> 核对远端 refs 与本地 HEAD 是否一致，不要相信 push 的退出码或「up-to-date」字样。",
+      "keywords": [
+        "git",
+        "push",
+        "ssh",
+        "沙箱",
+        "TEMP",
+        "EPERM",
+        "Win32 error 5",
+        "管道",
+        "ls-remote",
+        "提权"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-02T13:54:23.860Z",
+      "updatedAt": "2026-10-02T13:54:23.860Z"
     }
   ]
 }
