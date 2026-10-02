@@ -1,0 +1,398 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-02T13:41:26.121Z",
+  "entries": [
+    {
+      "id": "kb-abafd679",
+      "kind": "pattern",
+      "title": "判定并取结果用 judge().forResult()",
+      "body": "现代写法：const result = await player.judge().forResult(); 然后读 result.color（red/black）、result.suit、result.number、result.card。不要用旧的 callback 写法（judgeEvent.callback = fn 配合 event.getParent(2) 反查），后者依赖脆弱的事件树路径。",
+      "keywords": [
+        "判定",
+        "judge",
+        "结果",
+        "红黑",
+        "颜色",
+        "forResult",
+        "callback"
+      ],
+      "refs": [
+        "rin_baoqiu @ apps/core/character/key/skill.js:9876-9929"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/key/skill.js",
+          "start": 9876,
+          "end": 9929,
+          "hash": "7fda80372312"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T14:09:01.037Z",
+      "updatedAt": "2026-10-01T14:09:01.037Z"
+    },
+    {
+      "id": "kb-dc16fad5",
+      "kind": "pattern",
+      "title": "令角色放弃摸牌用 trigger.changeToZero()",
+      "body": "在摸牌阶段开始时修改摸牌数：trigger.changeToZero() 会把 num 设为 0 并设 numFixed=true，摸牌阶段因 event.num > 0 判定为假而不摸牌。监听时机应选 phaseDrawBegin1（phaseDraw 的第 1 步），早于第 3 步的摸牌判定，因此能生效；选 phaseDrawBegin2 或更晚也能改 num，但 Begin1 最稳妥。",
+      "keywords": [
+        "放弃摸牌",
+        "跳过摸牌",
+        "changeToZero",
+        "num",
+        "摸牌阶段",
+        "phaseDraw"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T14:09:06.507Z",
+      "updatedAt": "2026-10-01T14:09:06.507Z"
+    },
+    {
+      "id": "kb-902a0f89",
+      "kind": "pitfall",
+      "title": "限定技必须在 content 中调用 awakenSkill",
+      "body": "限定技（limited: true）发动后必须执行 player.awakenSkill(event.name)，否则技能可以无限发动。用 event.name 而非硬编码字符串，因为技能可能通过 addTempSkill 改名。这是限定技最常见的 bug，且不会报错。",
+      "keywords": [
+        "限定技",
+        "limited",
+        "awakenSkill",
+        "无限发动",
+        "觉醒"
+      ],
+      "refs": [
+        "ns_chuanshu @ apps/core/character/diy/skill.js:5403-5428"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/diy/skill.js",
+          "start": 5403,
+          "end": 5428,
+          "hash": "0bb5d0cdb6ee"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T14:09:06.711Z",
+      "updatedAt": "2026-10-01T14:09:06.711Z"
+    },
+    {
+      "id": "kb-60cd23f7",
+      "kind": "pitfall",
+      "title": "不要用游戏内「新建扩展」，会覆盖 extension.js",
+      "body": "游戏内 选项→扩展→新建扩展 会无提示地覆盖同名扩展的 extension.js、info.json、README.md，生成空白模板（character:{} 空对象，precontent 是空函数）。表现：扩展能打开，但选将界面找不到该扩展包——因为 precontent 不会 import 武将包，武将从未注册。注意 character/ 目录下的文件不会被删除，数据仍在，只需恢复 extension.js（关键是必须 import { precontent } from './main/precontent.js'）与 info.json。新建扩展请手动复制目录结构。",
+      "keywords": [
+        "新建扩展",
+        "覆盖",
+        "extension.js",
+        "找不到",
+        "选将",
+        "空白模板",
+        "precontent"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T14:09:14.929Z",
+      "updatedAt": "2026-10-01T14:09:14.929Z"
+    },
+    {
+      "id": "kb-de48afdf",
+      "kind": "fact",
+      "title": "判定主公身份用 player.isZhu（属性非方法）",
+      "body": "player.isZhu 是布尔属性（player.js:389），不是方法，不要写成 isZhu()。另有两个相关方法：isZhu2() 会额外检查模式与身份是否明置；hasZhuSkill(skill, player) 判断某主公技在当前模式下是否可用。判断是否为当前主公应同时检查 get.mode() == 'identity'。",
+      "keywords": [
+        "主公",
+        "isZhu",
+        "zhuSkill",
+        "身份模式",
+        "主公技"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T14:09:15.107Z",
+      "updatedAt": "2026-10-01T14:09:15.107Z"
+    },
+    {
+      "id": "kb-3bbe229d",
+      "kind": "pattern",
+      "title": "刷新身份显示用 player.setIdentity()",
+      "body": "无名杀没有现成的「交换身份牌」API。交换身份需自行修改 isZhu 与 identity 两个字段，然后调用 player.setIdentity() 刷新 UI 上的身份标识显示（player.js:5728）。该方法会读取 this.identity 并更新 node.identity 的文本与颜色。",
+      "keywords": [
+        "身份",
+        "setIdentity",
+        "交换",
+        "刷新UI",
+        "identity",
+        "isZhu"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T14:09:15.327Z",
+      "updatedAt": "2026-10-01T14:09:15.327Z"
+    },
+    {
+      "id": "kb-b2d09f5c",
+      "kind": "pattern",
+      "title": "无来源伤害必须传 nosource: true",
+      "body": "player.damage({num:1, nosource:true}) —— 省略 source 字段并不会产生「无来源」伤害，必须显式传 nosource: true（player.js:8886-8889 会消费该字段并 delete 它）。另有 nocard: true 表示无牌来源。",
+      "keywords": [
+        "无来源",
+        "damage",
+        "nosource",
+        "伤害",
+        "自伤"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T14:56:00.688Z",
+      "updatedAt": "2026-10-01T14:56:00.688Z"
+    },
+    {
+      "id": "kb-cd95630e",
+      "kind": "pattern",
+      "title": "useCard 会自动调用 get.autoViewAs",
+      "body": "player.useCard({card:{name:'sha'}, targets:[t]}) 即可，不需要手动 get.autoViewAs 包装——useCard 内部会执行 next.card = get.autoViewAs(next.card, next.cards)（player.js:7712）。用过的牌名会自动查 lib.card 得到完整定义。",
+      "keywords": [
+        "useCard",
+        "autoViewAs",
+        "视为",
+        "虚拟牌",
+        "使用牌"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T14:56:00.946Z",
+      "updatedAt": "2026-10-01T14:56:00.946Z"
+    },
+    {
+      "id": "kb-5462854a",
+      "kind": "pattern",
+      "title": "intro.content 支持函数形式动态显示",
+      "body": "技能的 intro.content 可以是字符串（支持 # 计数 / & 中文数字 / \\$ 翻译 占位符），也可以是函数 (storage, player, skill) => string（Skill.d.ts:778）。函数形式更灵活，可自定义完整文案。配合 markAuto 写标记即可在武将牌上动态显示。",
+      "keywords": [
+        "intro",
+        "content",
+        "标记",
+        "markAuto",
+        "动态描述",
+        "技能简介"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T14:56:12.196Z",
+      "updatedAt": "2026-10-01T14:56:12.196Z"
+    },
+    {
+      "id": "kb-c27aef21",
+      "kind": "fact",
+      "title": "知识库检索可能命中无关条目",
+      "body": "当查询词与某条知识的 keywords 有交集但不相关时，知识库会误命中（例如搜『随机使用一张牌』会命中『不要用游戏内新建扩展』）。这是分词+子串匹配的局限。缓解方式：① 查看命中结果时判断是否真的相关；② 用 --no-kb 跳过知识库；③ 写 learn 时 keywords 要精准，不要用过于通用的词。",
+      "keywords": [
+        "知识库",
+        "检索",
+        "噪声",
+        "误命中",
+        "keywords",
+        "精准"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T14:56:12.313Z",
+      "updatedAt": "2026-10-01T14:56:12.313Z"
+    },
+    {
+      "id": "kb-564aeb64",
+      "kind": "fact",
+      "title": "扩展必须登记到 config.extensions 才显示",
+      "body": "写了扩展目录但游戏里看不到，是因为扩展需要被登记到配置的 extensions 数组（apps/core/noname/init/index.ts:635-661）。玩家配置存于浏览器 localStorage['noname_0.9_config']（configprefix 定义于 library/index.js:30），服务端无法直接写入。三条登记路径：① 开启游戏内「自动导入扩展」开关，boot() 时会自动发现磁盘新扩展并登记；② URL 参数 ?importExtensionName=<名>；③ 手动在选项→扩展中添加。推荐用 register-extension.mjs guideall 生成 Console 脚本一次性解决，脚本会顺带开启自动导入。",
+      "keywords": [
+        "扩展",
+        "登记",
+        "extensions",
+        "localStorage",
+        "看不到",
+        "自动导入",
+        "configprefix"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T15:07:18.180Z",
+      "updatedAt": "2026-10-01T15:07:18.180Z"
+    },
+    {
+      "id": "kb-d3b253ca",
+      "kind": "pitfall",
+      "title": "游戏内「制作扩展」会覆盖 extension.js（含修复方法）",
+      "body": "游戏内 选项→扩展→制作扩展 会无提示地覆盖同名扩展的 extension.js / info.json / README.md，生成空白模板：export default function(){...character:{character:{}}...}，且 precontent 是空函数，不会 import 武将包。表现：扩展能打开但选将界面找不到武将包。关键：character/ 目录下的文件【不会被删除】，武将数据完好。修复：node register-extension.mjs fix 可自动检测并重建 extension.js（检测特征为 export default function() + character:{character:{}}）。预防：新建扩展请手动复制目录结构，不要用游戏内「制作扩展」。",
+      "keywords": [
+        "制作扩展",
+        "覆盖",
+        "extension.js",
+        "找不到武将",
+        "空白模板",
+        "修复",
+        "fix"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T15:07:18.343Z",
+      "updatedAt": "2026-10-01T15:07:18.343Z"
+    },
+    {
+      "id": "kb-52b4d04a",
+      "kind": "pattern",
+      "title": "判定卡牌能否在出牌阶段使用：看 info.enable",
+      "body": "lib.filter.cardEnabled（library/index.js:11230-11266）的判定逻辑：get.info(card).enable 为空则不可主动使用；为 boolean 直接返回；为 function 则调用 filter(card, player, event)。注意 enable 为函数时结果依赖玩家状态（如需特定装备），因此『某牌能否在当前使用』的集合不能跨玩家缓存，应按玩家实时构建。另外 lib.filter.filterTrigger 与技能的 enable 是另一套逻辑（player.js:3059-3073），别混淆。",
+      "keywords": [
+        "enable",
+        "cardEnabled",
+        "出牌阶段",
+        "可用",
+        "牌池",
+        "缓存"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T15:43:32.567Z",
+      "updatedAt": "2026-10-01T15:43:32.567Z"
+    },
+    {
+      "id": "kb-db346b41",
+      "kind": "pitfall",
+      "title": "用 get.tag 判定伤害标签时必须传完整 VCard（旧结论已修正）",
+      "body": "⚠️ 本条修正旧结论。get.tag(item, tag) 会通过 get.info(item) 查表后读 ai.tag[tag]（get/index.js:4626-4635）。关键坑：tag.damage 可能是【函数】而非常量。例如【杀】用方法简写 damage(card) { if (game.hasNature(card,'poison')) return; return 1; }（card/standard.js:463-471），此时 get.tag 会执行 result(item,item2)，传 {name:'sha'} 会因缺少 nature 字段而出错，导致【杀】被误判为无伤害标签。正确做法：判断 info.ai.tag.damage 是否为函数，是则用 get.autoViewAs({name}) 构造完整 VCard 再求值；求值失败时按『有定义即算有标签』处理。实测修正后牌池从 14 张（漏掉杀）增至 18 张。",
+      "keywords": [
+        "get.tag",
+        "damage",
+        "标签",
+        "函数",
+        "VCard",
+        "autoViewAs",
+        "杀",
+        "sha",
+        "牌池",
+        "hasNature"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T15:56:19.663Z",
+      "updatedAt": "2026-10-01T15:56:19.663Z"
+    },
+    {
+      "id": "kb-54ffdfef",
+      "kind": "pattern",
+      "title": "主动技限制次数用 usable（回合结束重置）",
+      "body": "技能的 usable 字段控制使用次数上限。拦截逻辑：player.js:3080-3088 用 get.skillCount(skill, player) >= usable 判断，超过则 continue（技能不可用）。get.skillCount 读取 player.getStat('skill')[skill]（get/index.js:4562-4570），主动技每次发动累加，回合结束时重置（player.js:11457-11458）。usable 可为 number 或函数 (skill, player) => number。注意：触发技的 usable 是另一套（content.ts:4206-4209 累加 getStat('triggerSkill')）。",
+      "keywords": [
+        "usable",
+        "限一次",
+        "次数",
+        "skillCount",
+        "主动技",
+        "回合重置"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T15:56:19.808Z",
+      "updatedAt": "2026-10-01T15:56:19.808Z"
+    },
+    {
+      "id": "kb-af6ab758",
+      "kind": "pitfall",
+      "title": "取牌池要用 lib.card.list，不能用 lib.card",
+      "body": "想获取『当前游戏实际存在的牌』时，不能用 lib.card——它包含所有已加载卡包的牌定义，即使玩家未启用那些卡包（例如扩展带来的『大军压境』『雷公』）。正确数据源：lib.card.list，格式为 [suit, number, name][]，是最终牌堆列表。依据 init/loading.ts:40-57：lib.cardPile[包名] 与 lib.card.list 只在 lib.config.cards.includes(包名) 时才被填充，因此天然只含启用卡包的牌。兜底可用 lib.cardPile。实测：玩家启用 [standard, extra] 时，lib.card 筛出 18 张伤害牌（含大量扩展牌），lib.card.list 只筛出 5 张（杀/决斗/南蛮/万箭/火攻），全部属于已启用卡包。注意 list 字段在卡包文件中是 1 个 Tab 缩进的顶层字段。",
+      "keywords": [
+        "牌池",
+        "card.list",
+        "cardPile",
+        "卡包",
+        "启用",
+        "扩展牌",
+        "牌堆",
+        "lib.card"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T16:01:51.907Z",
+      "updatedAt": "2026-10-01T16:01:51.907Z"
+    },
+    {
+      "id": "kb-24ad9809",
+      "kind": "pitfall",
+      "title": "useCard 传空 targets 会播音效但无目标（与 chooseUseTarget 不同）",
+      "body": "player.useCard({card}) 不传 targets 时【不会】自动填充全体——它会照常播放出牌音效（content.ts:9719-9727 在 content 第 1 步就播音）但没有任何目标结算，表现为『有音效无目标』。而 player.chooseUseTarget 有空 targets 兜底：if (!next.targets) next.targets = game.players.slice(0)（player.js:6673-6675）。因此使用全体牌（南蛮/万箭，selectTarget: -1）时必须显式收集并传入 targets：const allTargets = game.filterPlayer(cur => cur !== player && cur.isAlive() && player.canUse(vcard, cur)); await player.useCard({card: vcard, targets: allTargets})。注意南蛮的 filterTarget 是 target !== player，即不含自己。",
+      "keywords": [
+        "useCard",
+        "targets",
+        "空目标",
+        "音效",
+        "chooseUseTarget",
+        "全体牌",
+        "南蛮",
+        "万箭",
+        "selectTarget"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T16:10:57.365Z",
+      "updatedAt": "2026-10-01T16:10:57.365Z"
+    },
+    {
+      "id": "kb-32b6ccfb",
+      "kind": "pattern",
+      "title": "全体牌（selectTarget: -1）可裁剪 targets 实现距离限制",
+      "body": "想让南蛮入侵/万箭齐发这类全体牌只作用于『距离 X 以内』的角色时，做法是自行收集目标列表并显式传入：const targets = game.filterPlayer(cur => cur !== player && cur.isAlive() && player.distanceTo(cur) <= X && player.canUse(vcard, cur)); await player.useCard({card: vcard, targets})。注意两点：① 必须显式传 targets，useCard 无空 targets 兜底；② 传入的 targets 会覆盖牌本身的 selectTarget 语义（南蛮的 filterTarget 是 target !== player，故不含自己）。若 targets 为空则不应调用 useCard，否则会播放音效但无目标。",
+      "keywords": [
+        "全体牌",
+        "selectTarget",
+        "targets",
+        "距离裁剪",
+        "南蛮",
+        "万箭",
+        "距离限制"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-01T16:14:21.890Z",
+      "updatedAt": "2026-10-01T16:14:21.890Z"
+    },
+    {
+      "id": "kb-migrate-selflocate",
+      "kind": "pitfall",
+      "title": "可移植脚本必须用自身所在目录定位，不能用推导出的项目根",
+      "body": "把工具脚本放进独立仓库分发时，「自身位置」与「项目根」是两个不同概念，混淆会导致静默写错位置。反例：build-index.mjs 曾写 OUT = join(ROOT, '.dsh/skills/<name>/scripts/skill-index.json')，且只用 findRoot(process.cwd()) 推导 ROOT。当技能位于项目外、用户传 --root <项目> 时，ROOT 是项目根，于是索引被写回【项目】的 .dsh 目录，而不是脚本所在的仓库目录 —— 仓库里永远没有索引，而命令行却打印「索引已写入 …」看似成功。正确做法：① const HERE = dirname(fileURLToPath(import.meta.url))；② 输出路径默认 join(HERE, ...) 而非 join(ROOT, ...)；③ 项目根解析顺序：--root 显式参数 → 从 cwd 向上找 → 从 HERE 向上找；④ --root 需校验含 apps/core/noname，否则报错退出而不是静默降级。检测手段：先剥掉模板字符串与行注释，再扫描正则 /(?:join|resolve)\\(\\s*(?:ROOT|INDEX\\.root)\\s*,\\s*[\"'][^\"']*\\.dsh/ 即可发现此类位置假设。",
+      "keywords": [
+        "可移植",
+        "ROOT",
+        "HERE",
+        "路径",
+        "独立仓库",
+        "索引输出",
+        "migrate",
+        "自定位",
+        "分发"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-02T13:41:26.119Z",
+      "updatedAt": "2026-10-02T13:41:26.119Z"
+    }
+  ]
+}

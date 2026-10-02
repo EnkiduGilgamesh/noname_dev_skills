@@ -1,0 +1,21 @@
+# 生成物
+scripts/skill-index.json
+
+# 扩展注册脚本（用 register-extension.mjs 重新生成）
+scripts/register-*.js
+
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# 迁移产物
+*.zip

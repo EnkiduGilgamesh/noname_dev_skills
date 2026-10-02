@@ -1,0 +1,44 @@
+{
+  "name": "noname-general-extension",
+  "version": "1.0.0",
+  "description": "《无名杀》武将扩展开发技能包：7200+ 技能语义检索 + 带指纹校验的增量知识库 + 扩展注册修复",
+  "type": "module",
+  "bin": {
+    "nge-search": "scripts/skill-search.mjs",
+    "nge-index": "scripts/build-index.mjs",
+    "nge-register": "scripts/register-extension.mjs",
+    "nge-migrate": "scripts/migrate-skill.mjs"
+  },
+  "scripts": {
+    "index": "node scripts/build-index.mjs",
+    "stats": "node scripts/skill-search.mjs stats",
+    "check": "node scripts/migrate-skill.mjs check",
+    "pack": "node scripts/migrate-skill.mjs pack"
+  },
+  "files": [
+    "SKILL.md",
+    "README.md",
+    "LICENSE",
+    "install.mjs",
+    "scripts/README.md",
+    "scripts/skill-search.mjs",
+    "scripts/build-index.mjs",
+    "scripts/knowledge.mjs",
+    "scripts/knowledge-base.json",
+    "scripts/register-extension.mjs",
+    "scripts/migrate-skill.mjs"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "noname",
+    "无名杀",
+    "sanguosha",
+    "skill-search",
+    "dsh-skill",
+    "game-modding"
+  ],
+  "license": "MIT",
+  "dependencies": {}
+}
