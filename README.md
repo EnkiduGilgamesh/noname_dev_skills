@@ -1,14 +1,14 @@
 # noname-general-extension
 
-> 《无名杀》（noname）武将扩展开发技能包 —— 让 AI Agent 能在 **7300+ 个已有技能**中定位参考实现，把每次开发结论**沉淀成可复用、可校验的知识**，并在改完代码后**静态验证**是否写对。
+> 《无名杀》（noname）武将扩展开发技能包 —— 让 AI Agent 能在 **6700+ 个已有技能**中定位参考实现，把每次开发结论**沉淀成可复用、可校验的知识**，并在改完代码后**静态验证**是否写对。
 
-[《无名杀》](https://github.com/libnoname/noname) 是一个开源的三国杀-like 卡牌游戏，本体 + 扩展共有约 7300 个技能、12 MB 技能源码。为它写武将技能时，最大的困难不是语法，而是**不知道某个效果别人是怎么写的**。
+[《无名杀》](https://github.com/libnoname/noname) 是一个开源的三国杀-like 卡牌游戏，本体 + 扩展共有约 6700 个技能、12 MB 技能源码。为它写武将技能时，最大的困难不是语法，而是**不知道某个效果别人是怎么写的**。
 
-这个仓库提供一个可移植的 DSH Skill + 零依赖 CLI 工具集，解决四件事：
+这个仓库提供一个可移植的 DSH Skill + 零依赖 CLI 工具集，解决五件事：
 
 | 问题 | 解法 |
 |------|------|
-| **找不到参考实现** | 语义检索 7300+ 技能，支持中文长句与英文字段名 |
+| **找不到参考实现** | 语义检索 6700+ 技能，支持中文长句与英文字段名 |
 | **改技能时找不全位置** | `locate` 一次给出实现/描述/所属武将/影响面 |
 | **重复踩同一个坑** | 增量知识库，每条结论带**源码指纹**，源码变了自动失效 |
 | **不知道写得对不对** | 静态验证：武将悬空引用、缺描述、编码、描述与实现不一致 |
@@ -19,7 +19,7 @@
 ## 特性
 
 - **零依赖** —— 只用 Node.js 内置模块，Node ≥ 18 即可
-- **可移植** —— 约 198 KB，拷到任何《无名杀》仓库都能用
+- **可移植** —— 源码约 212 KB（不含索引），拷到任何《无名杀》仓库都能用
 - **自定位** —— 脚本动态解析项目根，不含任何硬编码路径
 - **不会误导** —— 知识库条目绑定源码指纹，源码变动即标记失效并跳过
 - **低误报验证** —— 每条检查都带排除规则，只报能确证的问题
@@ -29,21 +29,40 @@
 
 ## 安装
 
-### 方式一：直接放进项目（推荐）
+### 方式一：一键安装脚本（推荐）
+
+仓库根提供 `install.mjs`，会自动复制文件并构建索引：
+
+```bash
+git clone <本仓库> /tmp/nge
+node /tmp/nge/install.mjs --target <无名杀项目根>
+```
+
+| 选项 | 作用 |
+|------|------|
+| `--target <路径>` | **必填**。《无名杀》项目根（须含 `apps/core/noname`） |
+| `--force` | 覆盖已存在的文件（默认跳过） |
+| `--no-index` | 不自动构建索引 |
+
+安装到 `<项目根>/.dsh/skills/noname-general-extension/`，DSH 随后会自动发现该 Skill（名称 `noname-general-extension`）。
+
+> 知识库 `knowledge-base.json` 在目标已存在时**默认保留**（不覆盖），避免丢失本机沉淀的结论；
+> 需要覆盖请加 `--force`。
+
+### 方式二：手动复制
 
 ```bash
 git clone <本仓库> /tmp/nge
 mkdir -p <无名杀项目>/.dsh/skills/noname-general-extension
-cp -r /tmp/nge/SKILL.md /tmp/nge/scripts <无名杀项目>/.dsh/skills/noname-general-extension/
+cp -r /tmp/nge/SKILL.md /tmp/nge/README.md /tmp/nge/LICENSE \
+      /tmp/nge/scripts <无名杀项目>/.dsh/skills/noname-general-extension/
 
 cd <无名杀项目>/.dsh/skills/noname-general-extension/scripts
 node build-index.mjs          # 构建索引（10–30 秒）
 node skill-search.mjs stats   # 验证
 ```
 
-DSH 会自动发现该 Skill（名称 `noname-general-extension`）。
-
-### 方式二：作为独立工具使用（不放进项目）
+### 方式三：作为独立工具使用（不放进项目）
 
 ```bash
 node scripts/build-index.mjs --root <无名杀项目根>
@@ -162,17 +181,21 @@ node migrate-skill.mjs check    # 可移植性自检
 .
 ├── SKILL.md                    # 技能主体（Agent 读取的指令）
 ├── README.md                   # 本文件
+├── LICENSE                     # MIT
+├── install.mjs                 # 一键安装脚本
+├── package.json                # bin / files 定义
 └── scripts/
     ├── README.md               # 工具详解
-    ├── skill-search.mjs        # 检索引擎 + CLI
+    ├── skill-search.mjs        # 检索引擎 + 定位 + 知识库 CLI
     ├── build-index.mjs         # 索引构建器
+    ├── verify-skill.mjs        # 技能静态验证
     ├── knowledge.mjs           # 知识库模块（指纹计算/校验）
     ├── register-extension.mjs  # 扩展注册与修复
     ├── migrate-skill.mjs       # 迁移打包与自检
     └── knowledge-base.json     # 知识沉淀（应入库）
 ```
 
-索引产物 `skill-index.json`（约 5.6 MB）为生成物，已在 `.gitignore` 中排除。
+索引产物 `skill-index.json`（约 6.5 MB）为生成物，已在 `.gitignore` 中排除。
 
 ---
 
@@ -194,7 +217,25 @@ node migrate-skill.mjs check    # 可移植性自检
 
 索引器用**花括号配平**（跳过字符串与注释）定位块边界，提取技能 ID、描述、触发时机、结构特征与关键 API 调用。
 
-当前解析结果：**7209 个技能，6112 个含描述（84.8%）**。
+一个实测样本（《无名杀》1.11.7）：
+
+| 指标 | 数值 |
+|------|------|
+| 技能总数 | 6703 |
+| 含描述 | 5615（83.8%） |
+| 来源分布 | 武将包 5329 · 扩展 1318 · 本体 56 |
+
+> 技能数随目标仓库内容变化，以上仅供参考，以 `node skill-search.mjs stats` 为准。
+
+---
+
+## 配套文档：`docs/YRD/`
+
+`SKILL.md` 引用 `docs/YRD/`（事件系统 18 篇 + 11 类技能模板）。
+该目录属于 **《无名杀》仓库本体**，**不在本技能包内**、也不由安装脚本提供。
+
+若目标仓库缺该目录，可跳过文档步骤，改用仓库自带的
+`docs/game-event/`、`docs/lib-skill-format.md`，或直接用检索工具找真实实现。
 
 ---
 
