@@ -17,7 +17,12 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
 - 扩展目录：`apps/core/extension/<扩展名>/`
 - 武将包目录：`apps/core/character/<包名>/`
 - 事件系统文档：`docs/YRD/`（自顶向下 18 篇，含源码行号）
-- **模板库：`docs/YRD/templates/`（本 skill 的配套资产）**
+  > ℹ️ 该目录属于**《无名杀》仓库本体**，不由本技能包安装。
+  > 若目标仓库缺 `docs/YRD/`，说明尚未补充这批文档，此时跳过文档步骤、
+  > 改用 `docs/game-event/`、`docs/lib-skill-format.md`，或直接用检索工具找参考实现。
+- **模板库：`docs/YRD/templates/`（位于《无名杀》仓库，非本技能包）**
+  > ⚠️ 其中源码行号以 `apps/core` **1.11.4.1** 为准。在 1.11.7 上实测 183 处引用
+  > **0 处行号越界**，仅少数位置轻微位移。跳转对不上时按**符号名搜索**即可。
 - **技能检索工具：`scripts/`（在 7206 个已有技能中找参考实现）**
 
 ## 1. 标准工作流
@@ -118,12 +123,16 @@ node verify-skill.mjs --json               # 机器可读
 启动游戏：
 
 ```bash
-pnpm -F noname dev                                          # http://127.0.0.1:8080/
+pnpm -F noname dev                                          # http://127.0.0.1:8081/
 pnpm -F @noname/fs dev --debug --dirname=../../apps/core    # 8089
 ```
 
 > ⚠️ 两个服务都要开。Vite/esbuild 需要创建子进程，若在受限沙箱中运行会报
 > `spawn EPERM`，需放宽权限。
+
+> ⚠️ **端口以 `apps/core/vite.config.ts` 为准**（该文件里是唯一的真相）。
+> 实测 1.11.7：客户端 **8081**、文件服务 **8089**。
+> 若与本处不符，说明仓库改过配置，按 config 文件为准。
 
 **为什么不能无头测试？** 实测过：`apps/core/noname` 下 27 个 `.ts` 含尖括号类型断言
 （Node 的 type-stripping 不支持），且依赖 `.vue` 单文件组件，脱离 Vite 无法加载核心。
@@ -239,13 +248,26 @@ node build-index.mjs                      # 新机器上重建索引
 
 ```bash
 # 两个服务需同时运行
-pnpm -F noname dev                                          # Vite 8080
+pnpm -F noname dev                                          # Vite 8081
 pnpm -F @noname/fs dev --debug --dirname=../../apps/core    # 文件服务 8089
 ```
 
-访问 `http://127.0.0.1:8080/`
+访问 `http://127.0.0.1:8081/`
 
 > 首次安装依赖需联网：`pnpm install`。若 `@esbuild/win32-x64` 缺失导致启动失败，在 `apps/core` 下重新 `pnpm install`。
+>
+> **依赖链接残缺**（实测常见）：`pnpm install` 若在中途报
+> `ERR_PNPM_SYMLINK_FAILED ... Maximum call stack size exceeded`（多发于 `apps/mobile`
+> / `apps/electron`），**其余包的依赖链接也会跟着残缺**，表现为启动时报
+> `Cannot find module 'avvio'`（packages/fs）或 `'rollup'` / `'esbuild'`（apps/core）。
+> 修复：对报错的包单独强制重装 ——
+>
+> ```bash
+> pnpm install --filter=@noname/fs --force
+> pnpm install --filter=noname --force
+> ```
+>
+> `apps/mobile`、`apps/electron` 仅打包用，浏览器开发模式不需要它们。
 
 ## 2. 扩展目录结构
 
