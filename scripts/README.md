@@ -123,6 +123,57 @@ node skill-search.mjs search "<语义描述>" [选项]
 - **自动同义词扩展**：搜"摸牌"也匹配 `draw`；搜"锁定技"也匹配 `forced`
 - **特征参与匹配**：搜 `viewAs` 能命中所有视为技
 
+### `locate` — 修改技能的一站式定位
+
+```bash
+node skill-search.mjs locate <技能ID或中文名>
+```
+
+**为「改某个技能」而设计**。一次性给出改这个技能所需的全部坐标，省去翻文件的时间。
+
+| 区块 | 内容 | 用途 |
+|------|------|------|
+| ① 技能实现 | `文件:起-止行`（含行数） | 改逻辑 |
+| ② 技能描述 | 描述原文 + 定义处的 `文件:行号` | 改文案 |
+| ③ 所属武将 | 引用此技能的武将、体力、定义位置 | 评估影响面 |
+| ④ 结构特征 | 触发时机、关键 API、子技能 | 判断风险 |
+| ⑤ 同包技能 | 同包其余技能 | 找参照 |
+
+例：
+
+```
+$ node skill-search.mjs locate tiandu
+
+【① 技能实现】← 改逻辑
+   apps/core/character/standard/skill.js:685-706   (22 行)
+
+【② 技能描述】← 改文案
+   "当你的判定牌生效后，你可以获得之。"
+   apps/core/character/standard/translate.js:93   ← 描述定义处
+
+【③ 所属武将】← 改数值/称号，评估影响面
+   ps1059_guojia        3 体力   apps/core/character/offline/character.js:2107
+   re_guojia            3 体力   apps/core/character/refresh/character.js:525
+   xizhicai             3 体力   apps/core/character/sp/character.js:1297
+   guojia               3 体力   apps/core/character/standard/character.js:64
+   共 4 个武将引用此技能
+```
+
+**同名技能会列出全部候选让你选**，不替你猜：
+
+```
+$ node skill-search.mjs locate 天妒
+
+「天妒」有 4 个同名技能，请指定完整 ID：
+
+  nagisa_tiandu          [武将包/key]       apps/core/character/key/skill.js:8824
+  sbtiandu               [武将包/sb]        apps/core/character/sb/skill.js:1455
+  tiandu                 [武将包/standard]  apps/core/character/standard/skill.js:685
+  yxsre_tiandu           [扩展/英雄杀RE]     apps/core/extension/英雄杀RE/extension.js:4213
+```
+
+> 改完技能后记得 `node skill-search.mjs rebuild`，否则行号是旧的。
+
 ### `show` — 查看实现
 
 ```bash
@@ -130,6 +181,8 @@ node skill-search.mjs show <技能ID>
 ```
 
 输出：技能元信息 + **带行号的完整源码**。支持模糊匹配。
+
+> 自动处理 GBK 编码的老扩展文件。
 
 ### `similar` — 找同类技能
 

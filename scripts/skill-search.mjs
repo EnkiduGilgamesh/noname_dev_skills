@@ -340,35 +340,36 @@ function cmdSearch() {
     }
 }
 
+/**
+ * 读取源码文件 —— 自动处理非 UTF-8 编码。
+ * 部分老扩展（如 英雄杀RE）是 GBK 编码，直接按 UTF-8 读会得到乱码。
+ */
+function readSource(file) {
+    let buf;
+    try { buf = readFileSync(file); } catch { return null; }
+    try {
+        return new TextDecoder("utf-8", { fatal: true }).decode(buf);
+    } catch {
+        try { return new TextDecoder("gbk").decode(buf); } catch { return buf.toString("utf8"); }
+    }
+}
+
 function cmdShow() {
     const id = argv[1];
     if (!id) {
         console.error("用法: node skill-search.mjs show <技能ID>");
         process.exit(1);
     }
-    // 精确匹配优先，其次模糊
-    let hit = SKILLS.find(s => s.id === id);
-    if (!hit) {
-        const cands = SKILLS.filter(s => s.id.toLowerCase().includes(id.toLowerCase()));
-        if (cands.length === 0) {
-            console.error(`未找到技能: ${id}`);
-            console.error(`提示：先用 search 找到准确的技能 ID`);
-            process.exit(1);
-        }
-        if (cands.length > 1) {
-            console.log(`"${id}" 匹配到多个技能，请指定完整 ID：\n`);
-            for (const c of cands.slice(0, 20)) console.log(`  ${c.id}  (${c.name || "-"})  [${sourceTag(c)}]`);
-            process.exit(0);
-        }
-        hit = cands[0];
-    }
+    const hit = resolveSkill(id);
+    if (!hit) process.exit(1);
 
     const abs = join(ROOT, hit.file);
     if (!existsSync(abs)) {
         console.error(`源文件不存在: ${abs}`);
         process.exit(1);
     }
-    const lines = readFileSync(abs, "utf8").split(/\r?\n/);
+    const text = readSource(abs);
+    const lines = (text || "").split(/\r?\n/);
     const slice = lines.slice(hit.line - 1, hit.endLine);
 
     console.log(`\n═══ ${hit.name || hit.id} (${hit.id}) ═══`);
@@ -385,6 +386,139 @@ function cmdShow() {
         const n = String(hit.line + i).padStart(6, " ");
         console.log(`${n}| ${l}`);
     });
+    console.log("");
+}
+
+/** 解析技能 ID：精确优先，其次唯一模糊匹配；多义时列出候选并返回 null */
+function resolveSkill(id) {
+    let hit = SKILLS.find(s => s.id === id);
+    if (hit) return hit;
+    const cands = SKILLS.filter(s => s.id.toLowerCase().includes(id.toLowerCase()));
+    if (cands.length === 0) {
+        console.error(`未找到技能: ${id}`);
+        console.error(`提示：先用 search 找到准确的技能 ID`);
+        return null;
+    }
+    if (cands.length > 1) {
+        console.log(`"${id}" 匹配到多个技能，请指定完整 ID：\n`);
+        for (const c of cands.slice(0, 20)) console.log(`  ${c.id}  (${c.name || "-"})  [${sourceTag(c)}]`);
+        return null;
+    }
+    return cands[0];
+}
+
+/**
+ * locate —— 「改这个技能」的一站式定位。
+ *
+ * 用户说「改一下 XX」时，需要一次性拿到：
+ *   ① 技能实现位置（改逻辑）
+ *   ② 描述文本位置（改文案）
+ *   ③ 所属武将（改数值/称号；评估影响面）
+ *   ④ 邻近的同类技能（参考实现）
+ *
+ * 输出的是「可执行的修改清单」，而不是让 agent 再去翻文件。
+ */
+function cmdLocate() {
+    const id = argv[1];
+    if (!id) {
+        console.error("用法: node skill-search.mjs locate <技能ID或中文名>");
+        process.exit(1);
+    }
+
+    // 支持用中文名定位（用户通常说「改天妒」而不是 tiandu）
+    // 注意：中文名常有多个同名技能（如「天妒」有 4 个），此时必须让用户选，
+    //       不能猜 —— 猜错会改错文件，是最浪费时间的失败模式。
+    let hit = SKILLS.find(s => s.id === id);
+    if (!hit) {
+        const byName = SKILLS.filter(s => s.name === id);
+        if (byName.length === 1) {
+            hit = byName[0];
+        } else if (byName.length > 1) {
+            console.log(`\n「${id}」有 ${byName.length} 个同名技能，请指定完整 ID：\n`);
+            for (const c of byName) {
+                console.log(`  ${c.id.padEnd(22)} [${sourceTag(c)}]  ${c.file}:${c.line}`);
+                if (c.desc) console.log(`      ${c.desc.slice(0, 58)}`);
+            }
+            console.log(`\n  提示：用 locate <完整ID> 继续\n`);
+            process.exit(0);
+        }
+    }
+    if (!hit) {
+        const cands = SKILLS.filter(s =>
+            s.id.toLowerCase().includes(id.toLowerCase()) ||
+            (s.name && s.name.includes(id))
+        );
+        if (cands.length === 0) {
+            console.error(`未找到技能: ${id}`);
+            process.exit(1);
+        }
+        if (cands.length > 1) {
+            console.log(`"${id}" 匹配到 ${cands.length} 个，请指定：\n`);
+            for (const c of cands.slice(0, 25)) {
+                console.log(`  ${c.id.padEnd(22)} ${(c.name || "-").padEnd(8)} [${sourceTag(c)}]`);
+            }
+            process.exit(0);
+        }
+        hit = cands[0];
+    }
+
+    console.log(`\n════════════════════════════════════════════════════════════`);
+    console.log(`  ${hit.name || ""} (${hit.id})`);
+    console.log(`════════════════════════════════════════════════════════════`);
+    console.log(`来源: ${sourceTag(hit)}`);
+
+    // ① 实现位置
+    const abs = join(ROOT, hit.file);
+    console.log(`\n【① 技能实现】← 改逻辑`);
+    console.log(`   ${hit.file}:${hit.line}-${hit.endLine}   (${hit.endLine - hit.line + 1} 行)`);
+    if (!existsSync(abs)) console.log(`   ⚠ 文件不存在`);
+
+    // ② 描述位置
+    console.log(`\n【② 技能描述】← 改文案`);
+    if (hit.desc) {
+        console.log(`   "${hit.desc}"`);
+        if (hit.descFile && hit.descLine) {
+            console.log(`   ${hit.descFile}:${hit.descLine}   ← 描述定义处`);
+        } else {
+            console.log(`   ⚠ 未定位到描述定义处（可能是动态拼接）`);
+        }
+    } else {
+        console.log(`   （无描述）`);
+    }
+
+    // ③ 所属武将
+    console.log(`\n【③ 所属武将】← 改数值/称号，评估影响面`);
+    if (hit.owners?.length) {
+        for (const o of hit.owners) {
+            console.log(`   ${o.id.padEnd(20)} ${o.hp ? o.hp + " 体力" : ""}   ${o.file}:${o.line}`);
+        }
+        console.log(`   共 ${hit.owners.length} 个武将引用此技能`);
+    } else {
+        console.log(`   （无武将直接引用；可能是衍生技/子技能/卡牌技）`);
+    }
+
+    // ④ 结构特征与关键 API
+    const feat = featureSummary(hit);
+    if (feat || hit.apis?.length) {
+        console.log(`\n【④ 结构特征】← 判断改动风险`);
+        if (feat) console.log(`   ${feat}`);
+        if (hit.apis?.length) console.log(`   关键 API: ${hit.apis.join(", ")}`);
+        if (hit.subSkills?.length) console.log(`   子技能: ${hit.subSkills.join(", ")}`);
+        if (hit.triggers?.length) console.log(`   触发时机: ${hit.triggers.join(", ")}`);
+    }
+
+    // ⑤ 同包邻近技能
+    const sib = SKILLS.filter(s => s.pack === hit.pack && s.source === hit.source && s.id !== hit.id);
+    if (sib.length) {
+        console.log(`\n【⑤ 同包技能】← 找参照写法（共 ${sib.length} 个，显示前 8）`);
+        for (const s of sib.slice(0, 8)) {
+            console.log(`   ${s.id.padEnd(22)} ${s.name || ""}`);
+        }
+    }
+
+    console.log(`\n【下一步】`);
+    console.log(`   看实现:  node skill-search.mjs show ${hit.id}`);
+    console.log(`   找参考:  node skill-search.mjs similar ${hit.id}`);
     console.log("");
 }
 
@@ -717,6 +851,7 @@ function cmdHelp() {
 
 switch (cmd) {
     case "search": cmdSearch(); break;
+    case "locate": cmdLocate(); break;
     case "show": cmdShow(); break;
     case "similar": cmdSimilar(); break;
     case "learn": cmdLearn(); break;

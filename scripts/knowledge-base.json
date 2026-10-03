@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-02T13:54:23.861Z",
+  "updatedAt": "2026-10-03T08:12:01.702Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -416,6 +416,170 @@
       "confidence": "verified",
       "createdAt": "2026-10-02T13:54:23.860Z",
       "updatedAt": "2026-10-02T13:54:23.860Z"
+    },
+    {
+      "id": "kb-1940ad81",
+      "kind": "pattern",
+      "title": "扩展武将合并：内联武将包 vs character/ 目录",
+      "body": "英雄杀RE 把武将全部内联在 extension.js 的 precontent -> game.import('character') 里（数组格式 [sex,group,hp,skills,flags]，无 character/ 目录）。合并其它扩展到此类包时的要点：1) 武将写进 character{}，用 [sex,group,hp,['skill'],[]] 数组格式；2) 技能写进 skill{}，须用该文件既有的 ES5 风格（function + var + async function，content:async function(event,trigger,player)）；3) translate/characterIntro/characterTitle 各自补齐；4) 立绘靠文件末尾的 for-in 循环统一 push 'ext:<扩展名>/image/character/<id>.jpg'，无需逐条写 img；5) 分组要同时加进 characterSort 与 translate 的分组名。注意 register-extension.mjs guideall 靠 character/ 目录判断'含武将'，对内联式扩展会误报'无武将'并漏掉登记——需手写 localStorage 登记脚本。另：本包用 inherit:'tiandu' 之类跨包继承在本体包未启用时会取不到，故合并进来的武将自己技能应自带实现而非 inherit。",
+      "keywords": [
+        "扩展合并",
+        "内联武将包",
+        "characterSort",
+        "inherit",
+        "立绘循环",
+        "register-extension"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-02T14:23:36.840Z",
+      "updatedAt": "2026-10-02T14:23:36.840Z"
+    },
+    {
+      "id": "kb-462ac9ba",
+      "kind": "pitfall",
+      "title": "交换/篡夺主公身份必须重设 game.zhu",
+      "body": "身份模式下，胜负判定只认 game.zhu，不读 isZhu 也不读 identity。apps/core/mode/identity.js 的 checkResult 直接读 game.zhu.isAlive()（:948）与 game.zhu.classList.contains('dead')（:956），checkOnlineResult 同样读 game.zhu.isAlive()（:995）。player.isZhu / player.identity 只影响主公技是否生效（player.js:2790 isZhu2）与 UI 显示。因此实现『交换主公身份』类技能时：1) 必须在 game.broadcastAll 内交换双方 identity；2) 必须重设 game.zhu = 新主公（漏掉这步 => 篡位无效，原主公死后游戏照旧结束，且无任何报错）；3) 用 player.showIdentity() 而非 setIdentity()，因为 showIdentity 会按 identity 自动增删 isZhu（identity.js:3405-3417），setIdentity 只改 UI 文案；4) 改完 await event.trigger('zhuUpdate') 通知主公技刷新。内置先例：diy/skill.js:6691 nscuanquan、sp/skill.js:24880 olzaowang_effect。",
+      "keywords": [
+        "game.zhu",
+        "交换主公身份",
+        "篡位",
+        "isZhu",
+        "showIdentity",
+        "checkResult",
+        "zhuUpdate"
+      ],
+      "refs": [
+        "nscuanquan @ apps/core/character/diy/skill.js:6664-6707"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/diy/skill.js",
+          "start": 6664,
+          "end": 6707,
+          "hash": "6323f50f45d4"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-02T14:56:51.200Z",
+      "updatedAt": "2026-10-02T14:56:51.200Z"
+    },
+    {
+      "id": "kb-4a9b0f5e",
+      "kind": "pitfall",
+      "title": "审计旧扩展时的常见误判：6 个看似 bug 实则正确的写法",
+      "body": "审计旧版无名杀扩展时，以下写法常被误判为 bug，实测均正确，勿盲改：1) 技能用 init 钩子 —— 引擎确实会调用：player.js:11047-11048 在 addSkill 里执行 info.init(this,skill)，所以扩展里 init(player,skill){player.storage.x=0} 是有效的，开阳的计数器没有 NaN 问题。2) get.type(card,'trick')=='equip' —— get/index.js:3315-3340 只在 type=='delay' 时特判返回 'trick'，其余返回 lib.card[name].type（就是 'equip'/'trick'/'basic'），所以该判断成立，不是死代码。3) get.charactersOL(func) 的 func 返回 true 表示【排除】（get/index.js:1953 continue），与 get.gainableCharacters 相反；因此要保留同性别武将写 != 是正确的。4) damage('nocard') —— player.js:8909 把 'nocard' 识别为关键字（设置 noCard=true），num 仍默认 1，不是把字符串塞进 num 槽。5) chooseTarget(true,'提示',fn) —— player.js:6716-6734 按【参数类型】解析，不按位置：boolean→forced、string→prompt、function→filterTarget，所以顺序随意，不存在 prompt/forced 颠倒。6) contentx 自定义键 + backup 里手动 content:lib.skill.X.contentx —— chooseButton 的 backup 对象会在 content.ts:5321 被注册成 lib.skill['<id>_backup']，所以 lib.skill.X_backup.card 是可读的（读到的是 backup 对象上的 card 字段）。另：subSkill:{a:{}} 会自动注册为 lib.skill['<父id>_a']（game/index.js:8730-8733），所以 group 里写完整下划线名是有效的。",
+      "keywords": [
+        "审计",
+        "误判",
+        "init钩子",
+        "get.type",
+        "charactersOL",
+        "nocard",
+        "chooseTarget",
+        "backup",
+        "subSkill"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-02T15:33:04.104Z",
+      "updatedAt": "2026-10-02T15:33:04.104Z"
+    },
+    {
+      "id": "kb-c97fdb8d",
+      "kind": "pitfall",
+      "title": "借调其他技能 content 时 event.name 必须指向真实注册的技能",
+      "body": "扩展里用 game.createEvent(名字) + setContent(lib.skill.其它.content) 复用别的技能内容时，若被借用的 content 内部执行了 player.awakenSkill(event.name)，则 event.name 会变成你自己起的那个事件名。awakenSkill 的调用链是：awakenSkill(skill) → disableSkill(skill+'_awake', skill) → disableSkill 内读 lib.skill[skills].group（player.js:11552）。skills 若不在 lib.skill 里，就在 11552 抛 'Cannot read properties of undefined (reading group)'。同理 limited:true 的技能被借调时其 awakenSkill 副作用都会落到这个坑。解决办法：用 subSkill 登记一个同名占位技能（charlotte:true + limited:true + sub:true），让 lib.skill[event.name] 存在，同时让 limited 标记真正生效。实测案例：英雄杀RE 的 xy_polv（魄虑）借调 七哀(xinfu_qiai)/败移(baiyi) 会崩，借调 乱武(luanwu) 不崩——因为 luanwu 把 awakenSkill 放在 contentBefore 里，而 setContent 只跑 content、不跑 contentBefore。",
+      "keywords": [
+        "awakenSkill",
+        "setContent",
+        "借调content",
+        "event.name",
+        "disableSkill",
+        "limited",
+        "subSkill",
+        "崩溃"
+      ],
+      "refs": [
+        "xinfu_qiai @ apps/core/character/sp/skill.js:42809-42853"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/sp/skill.js",
+          "start": 42809,
+          "end": 42853,
+          "hash": "a81a60a10733"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-02T15:49:45.372Z",
+      "updatedAt": "2026-10-02T15:49:45.372Z"
+    },
+    {
+      "id": "kb-c4963aef",
+      "kind": "pitfall",
+      "title": "计数器类技能：无条件重置会让阈值永远无法触发",
+      "body": "写「累计N次后触发惩罚，然后重置」类技能时，务必让重置【只在惩罚触发时】发生。若写成每次结算都 count++ 然后无条件 count=0，则 count 恒为 1，只要阈值>=1 就永远不会触发惩罚，而且不会有任何报错——属于最难查的静默逻辑错误。正确形态：var count=(storage.count||0)+1; storage.count=count; if(count>threshold){ /*惩罚*/ storage.count=0; }  未超阈值时保留计数。验证手段：写一个纯逻辑模拟脚本，把 settle 函数抽出来连续调用 3~4 次，打印每次的 count 与是否触发，比读代码可靠得多。另一个要点：阈值 Math.floor(alive/2) 在 1v1/1v2 时会得到 0 或 1，需 Math.max(1,...) 兜底，否则第一动就自伤。",
+      "keywords": [
+        "计数器",
+        "阈值",
+        "重置",
+        "静默错误",
+        "封狼",
+        "Math.floor",
+        "模拟验证"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T08:01:36.011Z",
+      "updatedAt": "2026-10-03T08:01:36.011Z"
+    },
+    {
+      "id": "kb-single-file-extension",
+      "kind": "pitfall",
+      "title": "单文件扩展的技能/武将都在 extension.js 里，且常是 GBK 编码",
+      "body": "有的扩展不用 skill.js / character.js / translate.js 的多文件布局，而是把 character、skill、card、translate 全部塞进一个 extension.js。典型结构（英雄杀RE）：  game.import('extension', fn) → 返回 { name, content(){...}, precontent(yxsre){...} }  precontent 内构造 var yxsre = { character:{...}, skill:{...}, card:{...} }  技能写在 skill: { ... } 容器里，缩进可达 28 个空格（不是 Tab）；  武将用紧凑数组形态 yxsre_huoqubing:['male','han',3,['yxsre_fenglang','yxsre_tiandu'],[]]，  即 [性别, 势力, 体力, [技能...], 皮肤]；描述用 <id>_info:'...' 单引号写在同文件末尾。两个必踩的坑：① 索引器若只收集 skill.js / character.js / translate.js，会完全看不到这类扩展。   必须把 extension.js 一并纳入三个收集列表（技能、武将、翻译）。② 这类老文件常是 **GBK 编码**。用 readFileSync(f,'utf8') 读【不会报错】，   只会把中文变成乱码（静默损坏），导致描述/名称全部提取不到。   正确做法：new TextDecoder('utf-8',{fatal:true}).decode(buf) 失败后回退   new TextDecoder('gbk').decode(buf)。修好这两点后，英雄杀RE 的 121 个技能才被正确索引（含 封狼/代位/乱命）。",
+      "keywords": [
+        "单文件扩展",
+        "extension.js",
+        "GBK",
+        "编码",
+        "乱码",
+        "precontent",
+        "紧凑数组",
+        "索引",
+        "英雄杀RE",
+        "TextDecoder"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T08:12:01.621Z",
+      "updatedAt": "2026-10-03T08:12:01.621Z"
+    },
+    {
+      "id": "kb-modify-skill-workflow",
+      "kind": "pattern",
+      "title": "改技能的三个坐标：实现、描述、所属武将（缺一不可）",
+      "body": "「修改某个技能」与「新建技能」是不同任务，前者最大的时间浪费是找错文件。改一个技能实际涉及三个互不相邻的位置：① 实现 —— character/<包>/skill.js 或 单文件扩展的 extension.js；② 描述 —— 本体在 character/<包>/translate.js 的 <id>_info 字段；   单文件扩展在 extension.js 末尾同类字段。注意描述【不在】skill.js 里，   很多人只改实现忘了改描述，造成文档与行为不一致。③ 所属武将 —— character/<包>/character.js，一个技能可能被多个武将引用   （如 tiandu 被 guojia/re_guojia/xizhicai/ps1059_guojia 共 4 个引用），   改数值或称号时必须知道影响面。中文技能名常重名：「天妒」有 4 个不同实现（tiandu/sbtiandu/nagisa_tiandu/yxsre_tiandu），按名字猜是哪一个是不可接受的失败模式。工具应在重名时列出全部候选并附属主/位置，由人决定，而不是替用户选。命令：node skill-search.mjs locate <ID或中文名>，一次输出上述三个坐标 + 结构特征 + 同包参照。改完实现后必须先 rebuild 索引，否则后续 locate 给出的行号是旧值。",
+      "keywords": [
+        "修改技能",
+        "locate",
+        "描述位置",
+        "translate",
+        "所属武将",
+        "重名",
+        "影响面",
+        "工作流"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T08:12:01.701Z",
+      "updatedAt": "2026-10-03T08:12:01.701Z"
     }
   ]
 }

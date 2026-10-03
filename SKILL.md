@@ -67,6 +67,34 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
 
 8. **验证**：游戏内启用扩展 → 选将 → 实际发动技能。
 
+### ★ 修改已有技能（不同于新建）
+
+用户说「改一下 XX」时，**不要凭印象找文件**。一条命令拿到全部定位信息：
+
+```bash
+node skill-search.mjs locate <技能ID或中文名>
+```
+
+输出包含改一个技能所需的全部坐标：
+
+| 区块 | 用途 |
+|------|------|
+| ① 技能实现 | `文件:起始行-结束行` —— 改逻辑 |
+| ② 技能描述 | 描述原文 + `文件:行号` —— 改文案（**在 translate.js 或 extension.js，不在 skill.js**） |
+| ③ 所属武将 | 哪些武将引用此技能、各自体力、定义位置 —— 评估影响面 |
+| ④ 结构特征 | 触发时机、关键 API、子技能 —— 判断改动风险 |
+| ⑤ 同包技能 | 同包其余技能 —— 找参照写法 |
+
+**三条硬性纪律**：
+
+1. **改描述 ≠ 改实现**。描述文本在 `translate.js` 的 `<id>_info` 字段（本体）或
+   `extension.js` 的同一位置（单文件扩展）。`locate` 会直接给出描述所在行号。
+2. **中文名可能重名**。如「天妒」有 4 个（`tiandu` / `sbtiandu` / `nagisa_tiandu` / `yxsre_tiandu`）。
+   `locate` 遇到重名会**列出全部候选让你选**，绝不替你猜 —— 猜错会改错文件。
+3. **改完要重建索引**：`node skill-search.mjs rebuild`，否则下次 `locate` 的行号是旧的。
+
+改完实现后，**同步检查描述是否需要更新**（描述与实现不一致是常见缺陷来源）。
+
 ### ⚠️ 两个必知的机制陷阱
 
 **陷阱一：写了扩展目录 ≠ 游戏里能看到**
@@ -95,6 +123,10 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
 node skill-search.mjs search "摸牌阶段多摸一张牌"
 node skill-search.mjs search "viewAs 将一张牌当杀使用"
 node skill-search.mjs search "判定 红色黑色"        # 会命中已沉淀的判定写法
+
+# ★ 修改已有技能：一站式定位
+node skill-search.mjs locate 天妒                  # 也支持中文名（同名会列出候选）
+node skill-search.mjs locate yxsre_fenglang
 
 # 查看实现
 node skill-search.mjs show drlt_jieying
