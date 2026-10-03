@@ -42,6 +42,7 @@ const FILES = [
     ["scripts/README.md", "scripts/README.md"],
     ["scripts/skill-search.mjs", "scripts/skill-search.mjs"],
     ["scripts/build-index.mjs", "scripts/build-index.mjs"],
+    ["scripts/verify-skill.mjs", "scripts/verify-skill.mjs"],
     ["scripts/knowledge.mjs", "scripts/knowledge.mjs"],
     ["scripts/register-extension.mjs", "scripts/register-extension.mjs"],
     ["scripts/migrate-skill.mjs", "scripts/migrate-skill.mjs"],

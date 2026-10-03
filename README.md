@@ -1,15 +1,17 @@
 # noname-general-extension
 
-> 《无名杀》（noname）武将扩展开发技能包 —— 让 AI Agent 能在 **7200+ 个已有技能**中定位参考实现，并把每次开发结论**沉淀成可复用、可校验的知识**。
+> 《无名杀》（noname）武将扩展开发技能包 —— 让 AI Agent 能在 **7300+ 个已有技能**中定位参考实现，把每次开发结论**沉淀成可复用、可校验的知识**，并在改完代码后**静态验证**是否写对。
 
-[《无名杀》](https://github.com/libnoname/noname) 是一个开源的三国杀-like 卡牌游戏，本体 + 扩展共有约 7200 个技能、12 MB 技能源码。为它写武将技能时，最大的困难不是语法，而是**不知道某个效果别人是怎么写的**。
+[《无名杀》](https://github.com/libnoname/noname) 是一个开源的三国杀-like 卡牌游戏，本体 + 扩展共有约 7300 个技能、12 MB 技能源码。为它写武将技能时，最大的困难不是语法，而是**不知道某个效果别人是怎么写的**。
 
-这个仓库提供一个可移植的 DSH Skill + 零依赖 CLI 工具集，解决三件事：
+这个仓库提供一个可移植的 DSH Skill + 零依赖 CLI 工具集，解决四件事：
 
 | 问题 | 解法 |
 |------|------|
-| **找不到参考实现** | 语义检索 7200+ 技能，支持中文长句与英文字段名 |
+| **找不到参考实现** | 语义检索 7300+ 技能，支持中文长句与英文字段名 |
+| **改技能时找不全位置** | `locate` 一次给出实现/描述/所属武将/影响面 |
 | **重复踩同一个坑** | 增量知识库，每条结论带**源码指纹**，源码变了自动失效 |
+| **不知道写得对不对** | 静态验证：武将悬空引用、缺描述、编码、描述与实现不一致 |
 | **写了扩展但游戏里看不到** | 扩展注册诊断与修复 |
 
 ---
@@ -17,9 +19,10 @@
 ## 特性
 
 - **零依赖** —— 只用 Node.js 内置模块，Node ≥ 18 即可
-- **可移植** —— 约 124 KB，拷到任何《无名杀》仓库都能用
+- **可移植** —— 约 198 KB，拷到任何《无名杀》仓库都能用
 - **自定位** —— 脚本动态解析项目根，不含任何硬编码路径
 - **不会误导** —— 知识库条目绑定源码指纹，源码变动即标记失效并跳过
+- **低误报验证** —— 每条检查都带排除规则，只报能确证的问题
 - **自带迁移自检** —— 一条命令扫描硬编码路径、外部依赖、位置假设
 
 ---
@@ -57,8 +60,13 @@ cd scripts
 # ═══ 检索参考实现 ═══
 node skill-search.mjs search "摸牌阶段多摸一张牌"
 node skill-search.mjs search "viewAs" --impl      # 找所有视为技
+node skill-search.mjs locate 天妒                  # 改技能：一次拿到全部坐标
 node skill-search.mjs show drlt_jieying           # 看实现（带行号源码）
 node skill-search.mjs similar rb_jiying           # 找结构类似的
+
+# ═══ 写完后验证 ═══
+node verify-skill.mjs --pack <扩展名>              # 静态验证
+node skill-search.mjs rebuild                     # 重建索引
 
 # ═══ 沉淀结论 ═══
 node skill-search.mjs learn \
@@ -70,9 +78,6 @@ node skill-search.mjs learn \
 node skill-search.mjs kb list      # 全部条目（含失效状态）
 node skill-search.mjs kb check     # 只看失效的
 node skill-search.mjs kb stats
-
-# ═══ 源码变更后重建索引 ═══
-node skill-search.mjs rebuild
 ```
 
 ### 命令一览
@@ -80,13 +85,30 @@ node skill-search.mjs rebuild
 | 命令 | 作用 |
 |------|------|
 | `search <语义>` | 语义检索（先查知识库，再查索引） |
+| `locate <ID或中文名>` | 改技能：实现/描述/所属武将/影响面一站式定位 |
 | `show <技能ID>` | 查看技能元信息 + 带行号完整源码 |
 | `similar <技能ID>` | 找结构相似的技能 |
 | `learn` | 沉淀一条结论到知识库 |
 | `kb {list,check,show,forget,stats}` | 知识库管理 |
 | `stats` / `rebuild` | 索引统计 / 重建 |
+| `verify-skill.mjs` | 技能静态验证（悬空引用/缺描述/编码） |
 | `register-extension.mjs` | 扩展注册诊断与修复 |
 | `migrate-skill.mjs` | 打包迁移与可移植性自检 |
+
+### 验证
+
+```bash
+node verify-skill.mjs --pack 英雄杀RE     # 有错误时退出码 1
+node verify-skill.mjs --json
+```
+
+| 级别 | 检查 |
+|------|------|
+| ✗ 错误 | 武将引用了不存在的技能 ID（选将可见但技能无效） |
+| ⚠ 警告 | 技能缺描述（排除子技能/`_`前缀/派生技能）、文件编码非 UTF-8 |
+| · 提示 | 描述与实现不一致、子技能未挂载 |
+
+**静态验证查不到**（必须实机确认）：技能是否真的触发、UI 结算、AI 行为、数值平衡。
 
 ### search 常用选项
 
