@@ -540,10 +540,61 @@ function analyzeBlock(body) {
 
 console.log(`项目根: ${ROOT}`);
 
-const skillFiles = [];
-// 单文件扩展把技能/武将都写在 extension.js 里（如 英雄杀RE），必须一并扫描
-for (const d of SEARCH_DIRS) collect(d, ["skill.js", "skill.ts", "extension.js", "extension.ts"], skillFiles);
-console.log(`发现 skill 文件: ${skillFiles.length} 个`);
+/**
+ * 收集所有可能含技能/武将定义的文件。
+ *
+ * 覆盖三种扩展布局：
+ *   ① 标准多文件：skill.js / character.js / translate.js
+ *   ② 单文件：全部塞在 extension.js
+ *   ③ 模块化拆分：extension.js + character/skills/<分组>.js
+ *      （拆分后每个分组文件 `export const skill = {...}` / `character = {...}`）
+ *
+ * ③ 用扩展名 + 目录特征匹配，避免把无关的 js 全扫进来。
+ */
+/**
+ * 收集所有可能含**技能定义**的文件。
+ *
+ * 覆盖四种扩展布局：
+ *   ① 标准多文件：skill.js
+ *   ② 单文件：全部塞在 extension.js
+ *   ③ 模块化拆分：extension.js + character/skills/<分组>.js
+ *      （拆分后每个分组文件 `export const skill = {...}` / `character = {...}`）
+ *
+ * ⚠️ 不能把 character.js 当技能文件 —— 里面的键是【武将 ID】不是技能 ID，
+ *    混入会让武将本身被当成技能索引（实测多出 2900+ 条噪音）。
+ *    character.js 只用于提取「武将 → 技能」关系（见 charFiles）。
+ */
+function collectSkillFiles() {
+    const out = new Set();
+    for (const d of SEARCH_DIRS) {
+        for (const f of collect(d, ["skill.js", "skill.ts", "extension.js", "extension.ts"])) out.add(f);
+    }
+    // 模块化拆分：<任意>/character/skills/*.js
+    for (const d of SEARCH_DIRS) {
+        const stack = [d];
+        while (stack.length) {
+            const cur = stack.pop();
+            let entries;
+            try { entries = readdirSync(cur); } catch { continue; }
+            const inSkillsDir = cur.replace(/\\/g, "/").endsWith("/character/skills");
+            for (const e of entries) {
+                const p = join(cur, e);
+                let st;
+                try { st = statSync(p); } catch { continue; }
+                if (st.isDirectory()) {
+                    if (e === "node_modules" || e.startsWith(".")) continue;
+                    stack.push(p);
+                } else if (inSkillsDir && /\.(js|ts)$/.test(e)) {
+                    out.add(p);
+                }
+            }
+        }
+    }
+    return [...out];
+}
+
+const skillFiles = collectSkillFiles();
+console.log(`发现源文件: ${skillFiles.length} 个`);
 
 // 1) 先在全局范围收集翻译（描述可能定义在同目录 translate.js）
 const infoBySkill = new Map();

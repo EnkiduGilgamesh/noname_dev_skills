@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-03T08:12:01.702Z",
+  "updatedAt": "2026-10-03T08:48:45.428Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -580,6 +580,55 @@
       "confidence": "verified",
       "createdAt": "2026-10-03T08:12:01.701Z",
       "updatedAt": "2026-10-03T08:12:01.701Z"
+    },
+    {
+      "id": "kb-cb2e6014",
+      "kind": "pattern",
+      "title": "拆分臃肿扩展：老式沙箱写法的模块化改造流程",
+      "body": "英雄杀RE 这类老扩展用 game.import('extension',function(lib,game,ui,get,ai,_status){...}) 把全部内容包在一个沙箱函数里，4140+ 行的 skill 对象是臃肿主因。模块化改造流程：1) 按 characterSort 的分组切分（与游戏内分组一一对应，最好找）；2) 抽出的模块顶部必须显式 import { lib, game, ui, get, ai, _status } from 'noname'，因为沙箱外的文件拿不到这六个变量；3) 但 content/filter 里的 player/trigger/result 由【事件系统注入】，与是否 ESM 无关，不用改；4) 主文件里加一个 applyGroup(target, group) 做 Object.assign 合并 character/skill/translate/characterIntro/characterTitle；5) 关键顺序陷阱：主文件末尾常有 for(var i in character){ character[i][4].push(img) } 的立绘循环 —— applyGroup 必须在它【之前】执行，否则拆分出去的武将拿不到 img（且不报错）。校验方法：写一个脚本分别加载拆分前后的文件，取出 game.import('character') 的产物做深度对比（武将数组/技能函数 toString/translate 键值/characterSort），我这次跑出 305 个对比点。加载拆分后文件时需把 import 语句替换成注入对象，并剥掉模块内的 noname 裸导入。",
+      "keywords": [
+        "重构",
+        "拆分模块",
+        "沙箱",
+        "applyGroup",
+        "立绘循环",
+        "等价性校验",
+        "Object.assign"
+      ],
+      "refs": [
+        "yxsre_fenglang @ apps/core/extension/英雄杀RE/extension.js:3895-4165"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/extension.js",
+          "start": 3895,
+          "end": 4165,
+          "hash": "d9605aa6e8af"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T08:28:35.597Z",
+      "updatedAt": "2026-10-03T08:28:35.597Z"
+    },
+    {
+      "id": "kb-c941ded2",
+      "kind": "pitfall",
+      "title": "批量拆分扩展时的三个坑（覆盖/重复/顺序）",
+      "body": "把巨型扩展按分组批量拆成多个模块时，除已知的 import 与合并顺序外，还有三个坑：1) 【已拆分的组会被二次覆盖】批处理脚本若无条件为每个组写文件，对已经拆出去的组会写出一个空模块，覆盖掉原内容（本包 zishe.js 就中招，且因 extension/** 被 gitignore 无法 git 恢复，只能从更早的快照重建）。防护：批处理前先检测该文件是否已有内容/该组的键是否已不在 extension.js 中，命中则跳过。务必保留一份【最早】的完整快照，别用中间态当基线——本包 baseline-presource.js 是第一次拆分后的文件，已不含 zishe，重建时才发现要用 baseline-extension.js。2) 【重复 import 与重复函数定义】多次运行拆分脚本会重复插入 import 行和 applyGroup 定义；ESM 下重复 import 同名标识符会直接 SyntaxError（Identifier already declared），而重复的 function 声明则是静默取后者。每轮拆分后应检查这两个计数。3) 【校验器要按块分别比对】用 JSON.stringify 整体比较 characterIntro 这类对象会因键序不同报假差异，应逐键比较并单独报告丢失键/多出键，才能定位真实问题。",
+      "keywords": [
+        "批量拆分",
+        "幂等",
+        "覆盖",
+        "重复import",
+        "snapshot",
+        "等价性校验",
+        "键序"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T08:48:45.426Z",
+      "updatedAt": "2026-10-03T08:48:45.426Z"
     }
   ]
 }
