@@ -239,6 +239,38 @@ node migrate-skill.mjs check    # 可移植性自检
 
 ---
 
+## 维护本技能包
+
+本技能包设计为**在开发任务中持续增值**，而不是一次性工具。每次任务结束前检查四类更新：
+
+| 类型 | 何时更新 | 落到哪里 |
+|------|---------|---------|
+| **Skill 本身** | 发现约定过时、文档与源码不符 | `SKILL.md` |
+| **知识库** | 每次开发沉淀 ≥1 条结论 | `scripts/knowledge-base.json` |
+| **新工具** | 现有脚本不够用 | `scripts/` + 四处清单 |
+| **README** | 数字/命令/结构变化 | `README.md`、`scripts/README.md` |
+
+> ⚠️ **改安装副本 = 无效劳动。** 安装副本（`<项目>/.dsh/skills/...`）
+> 被项目 `.gitignore` 忽略，且会被下次 `install.mjs --force` 覆盖。
+> 所有更新都要落到**本仓库**，再用 `install.mjs --force` 回流。
+
+### 提交与推送
+
+```bash
+node scripts/migrate-skill.mjs check    # 自查：须 0 问题
+git add -A && git commit -m "<type>(<scope>): <说明>"
+# → 报告待推送内容，等用户确认
+git push origin main
+```
+
+**本地 commit 是安全的；push 是对外发布，必须经用户确认。**
+
+提交信息 type：`feat`（新工具）· `fix`（修正错误）· `docs`（文档）· `kb`（知识库）。
+
+详细流程见 `SKILL.md` §12。
+
+---
+
 ## 许可
 
 工具与文档以 MIT 许可发布。

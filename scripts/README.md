@@ -1,6 +1,6 @@
 # 技能检索工具 + 增量知识库 + 扩展注册
 
-> 在 7300+ 个已有技能中按语义查找参考实现，把**开发结论沉淀下来**，**验证技能是否写对**，并**解决"写了扩展却看不到"**的问题。
+> 在 6700+ 个已有技能中按语义查找参考实现，把**开发结论沉淀下来**，**验证技能是否写对**，并**解决"写了扩展却看不到"**的问题。
 >
 > 五个工具：
 > - `skill-search.mjs` —— 检索 + 定位 + 知识库
@@ -470,7 +470,7 @@ node migrate-skill.mjs export   # 导出到指定目录（不压缩）
 | `knowledge.mjs` | 知识库模块（指纹计算/校验） |
 | `register-extension.mjs` | 扩展注册与修复 |
 | `migrate-skill.mjs` | 迁移打包与自检 |
-| `skill-index.json` | 索引产物（约 5.5 MB，**不入库**） |
+| `skill-index.json` | 索引产物（约 6.5 MB，**不入库**） |
 | `knowledge-base.json` | 知识库（**应入库**） |
 | `register-*.js` | 生成的 Console 脚本（**不入库**） |
 
@@ -497,8 +497,60 @@ node migrate-skill.mjs export   # 导出到指定目录（不压缩）
 
 解析器用**花括号配平**（跳过字符串与注释）定位块边界。
 
-当前解析结果：**7206 个技能，6109 个含描述（84.8%）**。
+一个实测样本（《无名杀》1.11.7）：**6703 个技能，5615 个含描述（83.8%）**。
+
+> 技能数随目标仓库内容变化，以 `node skill-search.mjs stats` 实测为准。
 
 ### 依赖
 
 零外部依赖，仅用 Node.js 内置模块。需要 Node ≥ 18。
+
+---
+
+## 新增工具的开发规范
+
+要在 `scripts/` 下加新工具时，遵守以下约定（现有脚本都符合，可直接照抄结构）。
+
+### 硬性要求
+
+| 要求 | 原因 | 校验方式 |
+|------|------|---------|
+| **零依赖** | 可移植到任何仓库，无需 `npm install` | `migrate-skill.mjs check` |
+| **自定位项目根** | 不硬编码路径，换机器可用 | 同上 |
+| **不用 `execSync`/`spawnSync`** | 受限沙箱下直接 `EPERM`；且依赖外部命令 | 代码审查 |
+
+项目根解析照抄现有写法：
+
+```js
+function findRoot(start) {
+    let cur = resolve(start);
+    while (true) {
+        if (existsSync(join(cur, "apps/core/noname"))) return cur;
+        const parent = dirname(cur);
+        if (parent === cur) return null;
+        cur = parent;
+    }
+}
+const ROOT = findRoot(process.cwd()) || findRoot(HERE);
+```
+
+> ⚠️ **禁止调用外部命令**。需要遍历目录就用 `readdirSync` + `statSync` 自己走；
+> 需要读文件就用 `readFileSync`。实测 `execSync("dir ...")` 在受限环境下会
+> 直接抛 `spawnSync cmd.exe EPERM`。
+
+### 新增后必须同步的四处清单
+
+漏改任何一处都会造成不一致（本仓库曾因漏掉 `verify-skill.mjs`
+导致 `npm pack` 产出的包缺文件）：
+
+| # | 文件 | 改什么 |
+|---|------|--------|
+| 1 | `install.mjs` | 加入 `FILES` 数组 —— 否则安装副本拿不到该工具 |
+| 2 | `package.json` | 加入 `files`（打包清单）与 `bin`（如需 CLI） |
+| 3 | `scripts/README.md` | 「实现说明」表格 + 命令一览 + 用法小节 |
+| 4 | `SKILL.md` | 若属日常流程，在 §1 工作流或 §12 维护章节提及 |
+
+### 提交
+
+保持与既有工具一致的 CLI 风格（`--help`、`--json`、`--root`、退出码语义），
+然后按 `SKILL.md` §12 的流程：**本地 commit → 报告用户 → 等确认后 push**。

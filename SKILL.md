@@ -1,6 +1,6 @@
 ---
 name: noname-general-extension
-description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（7206 个技能）、扩展骨架、11 类技能模板、API 速查与避坑清单。
+description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、11 类技能模板、API 速查与避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
 ---
 
 # 开发《无名杀》武将扩展
@@ -23,7 +23,7 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
 - **模板库：`docs/YRD/templates/`（位于《无名杀》仓库，非本技能包）**
   > ⚠️ 其中源码行号以 `apps/core` **1.11.4.1** 为准。在 1.11.7 上实测 183 处引用
   > **0 处行号越界**，仅少数位置轻微位移。跳转对不上时按**符号名搜索**即可。
-- **技能检索工具：`scripts/`（在 7206 个已有技能中找参考实现）**
+- **技能检索工具：`scripts/`（在 6700+ 个已有技能中找参考实现）**
 
 ## 1. 标准工作流
 
@@ -577,3 +577,139 @@ player.getStat("triggerSkill")                     // 发动次数
 - `apps/core/character/standard/skill.js` — 已重构的现代写法样板
 - `apps/core/extension/英雄杀/` — 完整扩展范例（含 info.json/precontent/content）
 - `apps/core/extension/3D精选/character/index.js` — 武将包入口范例
+
+## 12. 维护本技能包（**任务中持续进行**）
+
+> **本 skill 不是一次性工具，而是随开发持续增值的资产。**
+> 每次任务结束前，检查是否有值得回流到技能包的内容；有则更新并提交。
+
+### 两个位置，职责不同
+
+| 位置 | 角色 | 是否入库 |
+|------|------|---------|
+| **安装副本** `<无名杀项目>/.dsh/skills/noname-general-extension/` | skill 运行时实际读取的地方 | ❌ 被项目 `.gitignore` 忽略 |
+| **源仓库** `<技能包仓库>/`（如 `noname_dev_skills`） | 唯一真相，可移植、可分发给他人 | ✅ 提交到这里 |
+
+⚠️ **关键纪律：改安装副本 = 无效劳动。**
+安装副本会被下次 `install.mjs --force` 覆盖，且不会进版本库。
+**所有更新都要落到源仓库**，再同步回安装副本。
+
+**先定位源仓库**（路径因机器而异，不要假设）：
+
+```bash
+cd .dsh/skills/noname-general-extension/scripts
+node migrate-skill.mjs check      # 输出会打印项目根与技能包位置
+git -C <技能包仓库> remote -v      # 确认是可提交的仓库
+```
+
+### 四类更新
+
+#### ① Skill 本身（`SKILL.md`）
+
+开发中发现**约定变了、写法过时、文档说错**时更新。典型触发：
+
+- 实测某条约定与源码不符（如端口、字段名、API 签名）
+- 发现新的引擎限制或行为变化
+- 本仓库结构与 SKILL.md 描述不一致
+
+> 纪律：**只写实测确认过的内容**。SKILL.md 开头就写着"每条约定都来自源码实证"，
+> 不要凭印象往里加。
+
+#### ② 知识库（`scripts/knowledge-base.json`）
+
+**每次开发至少沉淀 1 条**（见 §1 第 3 步）：
+
+```bash
+cd .dsh/skills/noname-general-extension/scripts
+node skill-search.mjs learn \
+  --title "简短标题" --body "结论内容" \
+  --kind pattern --keywords "关键词1,关键词2" --from <技能ID>
+```
+
+- `--from` 记录**证据指纹**，源码变动时自动标记失效，不会误导后续开发
+- `keywords` 要精准，过于通用的词会导致误命中（知识库已沉淀过这条教训）
+- 沉淀完**记得把 `knowledge-base.json` 同步回源仓库**
+
+#### ③ 新工具开发
+
+现有脚本不够用时（如需要批量审计、格式转换、新维度验证），在 `scripts/` 下新增。
+要求：
+
+- **零依赖** —— 只用 Node.js 内置模块（`migrate-skill.mjs check` 会校验这条）
+- **自定位** —— 用 `process.cwd()` 向上查找含 `apps/core/noname` 的目录解析项目根，
+  不要硬编码路径（照抄现有脚本的 `findRoot()`）
+- **纯 fs API** —— 不要用 `execSync` / `spawnSync` 调外部命令：
+  受限沙箱下会直接 `EPERM`，且破坏可移植性
+- 新增后同步更新：`scripts/README.md`（工具详解）、
+  `install.mjs` 的 `FILES` 列表、`package.json` 的 `files` 与 `bin`
+
+> ⚠️ 最后这条最容易漏：`install.mjs` / `package.json` 都有各自的文件清单
+> （本仓库曾因漏掉 `verify-skill.mjs` 导致打包缺文件）。新增工具时三处都要改。
+
+#### ④ README（根 `README.md` 与 `scripts/README.md`）
+
+数字类内容**必须实测后再写**，不要沿用旧值：
+
+```bash
+node skill-search.mjs stats      # 技能总数、含描述比例
+```
+
+易过时的项：技能数、索引体积、源码包体积、命令用法、目录结构、安装选项。
+（本仓库曾长期标着 7300+ 技能，实际只有 6703。）
+
+### 提交流程（**本地 commit → 等用户确认 → push**）
+
+```bash
+# 1. 自查：确保没有把安装副本的私有状态写进源仓库
+cd <技能包仓库>
+node scripts/migrate-skill.mjs check    # 可移植性自检，必须 0 问题
+
+# 2. 本地提交（不要直接 push）
+git add -A
+git commit -m "<type>(<scope>): <说明>"
+
+# 3. 报告给用户，等明确确认后再推送
+git push origin main
+```
+
+**提交信息规范**（沿用本仓库惯例）：
+
+| type | 用途 |
+|------|------|
+| `feat` | 新工具、新能力 |
+| `fix` | 修正错误（错误的行号、失效的命令、漏掉的文件） |
+| `docs` | 文档、README |
+| `kb` | 知识库沉淀 |
+
+> **push 必须等用户确认。** 本地 commit 是安全的，push 是对外发布。
+> 提交后要**明确告诉用户：有几个提交待推送、分别是什么**，让用户判断。
+
+### 更新后的同步（回流到安装副本）
+
+源仓库改完后，用官方安装脚本回流，**不要手工复制**：
+
+```bash
+node <技能包仓库>/install.mjs --target <无名杀项目根> --force
+```
+
+- 不带 `--force` 时已存在的文件会被跳过（适合首次补齐缺失文件）
+- `--force` 会覆盖同名文件，但**不会动** `PATHS-LOCAL.md`、`skill-index.json`
+  这类不在 `install.mjs` FILES 列表内的文件
+- 若改了 `SKILL.md` 或脚本，**建议重建索引**：
+
+```bash
+cd .dsh/skills/noname-general-extension/scripts && node build-index.mjs
+```
+
+### 任务收尾自检清单
+
+结束一个开发任务前，逐条确认：
+
+- [ ] 本次有没有**新的实测结论**？→ 沉淀进知识库（§12 ②）
+- [ ] 有没有发现 **SKILL.md 写错/过时**的地方？→ 修正（§12 ①）
+- [ ] 现有工具够用吗？不够 → 新增并同步三处清单（§12 ③）
+- [ ] README 里的**数字/命令**还对吗？→ 实测更新（§12 ④）
+- [ ] `migrate-skill.mjs check` 是否 **0 问题**？
+- [ ] 已**本地 commit**，并**向用户报告待推送内容**？
+
+> 若无任何更新，也应在总结中**说明"本次无技能包更新"**，而不是默默跳过。
