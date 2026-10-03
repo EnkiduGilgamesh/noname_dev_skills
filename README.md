@@ -29,9 +29,27 @@
 
 ## 安装
 
-### 方式一：一键安装脚本（推荐）
+### 方式一：直接 clone 到技能目录（推荐）
 
-仓库根提供 `install.mjs`，会自动复制文件并构建索引：
+把本仓库**整体克隆到技能安装位置**，使仓库本体即技能本体。
+这样在工作目录内即可同时开发游戏和技能包，无需跨目录操作：
+
+```bash
+git clone <本仓库> <无名杀项目>/.dsh/skills/noname-general-extension
+
+cd <无名杀项目>/.dsh/skills/noname-general-extension
+node scripts/build-index.mjs       # 构建索引（10–30 秒）
+node scripts/skill-search.mjs stats  # 验证
+```
+
+DSH 会自动发现该 Skill（名称 `noname-general-extension`）。
+
+> `install.mjs` 检测到"源即目标"时会**直接跳过复制**并提示维护流程，
+> 不会自我覆盖。（`--force` 下若不加此保护会清空 `knowledge-base.json`。）
+
+### 方式二：安装到已有项目（仓库在别处）
+
+仓库放在别处、只想把技能装进项目时，用 `install.mjs`：
 
 ```bash
 git clone <本仓库> /tmp/nge
@@ -44,12 +62,12 @@ node /tmp/nge/install.mjs --target <无名杀项目根>
 | `--force` | 覆盖已存在的文件（默认跳过） |
 | `--no-index` | 不自动构建索引 |
 
-安装到 `<项目根>/.dsh/skills/noname-general-extension/`，DSH 随后会自动发现该 Skill（名称 `noname-general-extension`）。
+安装到 `<项目根>/.dsh/skills/noname-general-extension/`。
 
 > 知识库 `knowledge-base.json` 在目标已存在时**默认保留**（不覆盖），避免丢失本机沉淀的结论；
 > 需要覆盖请加 `--force`。
 
-### 方式二：手动复制
+### 方式三：手动复制
 
 ```bash
 git clone <本仓库> /tmp/nge
@@ -62,7 +80,7 @@ node build-index.mjs          # 构建索引（10–30 秒）
 node skill-search.mjs stats   # 验证
 ```
 
-### 方式三：作为独立工具使用（不放进项目）
+### 方式四：作为独立工具使用（不放进项目）
 
 ```bash
 node scripts/build-index.mjs --root <无名杀项目根>
@@ -178,12 +196,13 @@ node migrate-skill.mjs check    # 可移植性自检
 ## 目录结构
 
 ```
-.
+.                                # ← 本目录即 git 仓库根，也是技能安装位置
 ├── SKILL.md                    # 技能主体（Agent 读取的指令）
 ├── README.md                   # 本文件
 ├── LICENSE                     # MIT
-├── install.mjs                 # 一键安装脚本
+├── install.mjs                 # 安装脚本（源≠目标时才复制；同位置时自动跳过）
 ├── package.json                # bin / files 定义
+├── .gitignore                  # 排除索引与本机说明
 └── scripts/
     ├── README.md               # 工具详解
     ├── skill-search.mjs        # 检索引擎 + 定位 + 知识库 CLI
@@ -195,7 +214,13 @@ node migrate-skill.mjs check    # 可移植性自检
     └── knowledge-base.json     # 知识沉淀（应入库）
 ```
 
-索引产物 `skill-index.json`（约 6.5 MB）为生成物，已在 `.gitignore` 中排除。
+**不入库的生成物 / 本机文件**（已在 `.gitignore` 排除）：
+
+| 文件 | 原因 |
+|------|------|
+| `scripts/skill-index.json`（约 6.5 MB） | 派生产物，含构建时的绝对路径；用 `build-index.mjs` 重建 |
+| `PATHS-LOCAL.md` | 记录本机特有的端口/环境，不随包分发 |
+| `scripts/register-*.js` | 扩展注册 Console 脚本，用 `register-extension.mjs` 重新生成 |
 
 ---
 
@@ -250,22 +275,57 @@ node migrate-skill.mjs check    # 可移植性自检
 | **新工具** | 现有脚本不够用 | `scripts/` + 四处清单 |
 | **README** | 数字/命令/结构变化 | `README.md`、`scripts/README.md` |
 
-> ⚠️ **改安装副本 = 无效劳动。** 安装副本（`<项目>/.dsh/skills/...`）
-> 被项目 `.gitignore` 忽略，且会被下次 `install.mjs --force` 覆盖。
-> 所有更新都要落到**本仓库**，再用 `install.mjs --force` 回流。
+### 推荐布局：仓库即技能目录
 
-### 提交与推送
+本仓库推荐**直接位于技能安装位置**：
+
+```
+<无名杀项目>/.dsh/skills/noname-general-extension/   ← 本仓库（含 .git）
+```
+
+这样**仓库本体与技能运行时是同一个目录**，好处：
+
+- 修改立即生效，**无需复制/同步**，不存在"改错副本"的问题
+- 游戏项目与技能包在**同一个工作目录**下，一次操作两边都能维护
+- 无需跨目录授权（在受限环境下尤其重要）
+
+> 该目录已被《无名杀》项目的 `.gitignore`（`.dsh/` 规则）忽略，
+> 因此**不会污染游戏仓库的 git 状态**，两个仓库相互独立。
+>
+> 旧的"源仓库 + 安装副本"双位置模式仍然支持（见「安装 · 方式二/三」），
+> 但需要每次改完用 `install.mjs --force` 回流，容易漏。
+
+### 日常维护流程
 
 ```bash
-node scripts/migrate-skill.mjs check    # 自查：须 0 问题
+cd <无名杀项目>/.dsh/skills/noname-general-extension
+
+# 1. 改动后自查（须 0 问题）
+node scripts/migrate-skill.mjs check
+
+# 2. 若动了工具/SKILL.md，重建索引
+node scripts/build-index.mjs
+
+# 3. 本地提交
 git add -A && git commit -m "<type>(<scope>): <说明>"
-# → 报告待推送内容，等用户确认
+
+# 4. 报告待推送内容，等用户确认后再推
 git push origin main
 ```
 
 **本地 commit 是安全的；push 是对外发布，必须经用户确认。**
 
 提交信息 type：`feat`（新工具）· `fix`（修正错误）· `docs`（文档）· `kb`（知识库）。
+
+### 双仓库协同
+
+| 仓库 | 位置 | 提交到哪 |
+|------|------|---------|
+| **游戏本体** | `<无名杀项目>/` | 上游 `noname`（只改 `docs/` 等本地资产） |
+| **本技能包** | `<无名杀项目>/.dsh/skills/noname-general-extension/` | 本仓库 origin |
+
+两者 git 状态互不干扰：技能包在 `.dsh/` 下，被游戏仓库忽略；
+在技能包目录内执行 `git` 命令只影响技能包仓库。
 
 详细流程见 `SKILL.md` §12。
 

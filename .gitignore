@@ -1,6 +1,9 @@
 # 生成物
 scripts/skill-index.json
 
+# 本机适配说明（记录该副本特有的端口/路径/环境，不随包分发）
+PATHS-LOCAL.md
+
 # 扩展注册脚本（用 register-extension.mjs 重新生成）
 scripts/register-*.js
 

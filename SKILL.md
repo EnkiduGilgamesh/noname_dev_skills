@@ -583,26 +583,53 @@ player.getStat("triggerSkill")                     // 发动次数
 > **本 skill 不是一次性工具，而是随开发持续增值的资产。**
 > 每次任务结束前，检查是否有值得回流到技能包的内容；有则更新并提交。
 
-### 两个位置，职责不同
+### 仓库位置
+
+**推荐布局：仓库本体即技能目录**（本仓库当前即为此布局）。
 
 | 位置 | 角色 | 是否入库 |
 |------|------|---------|
-| **安装副本** `<无名杀项目>/.dsh/skills/noname-general-extension/` | skill 运行时实际读取的地方 | ❌ 被项目 `.gitignore` 忽略 |
-| **源仓库** `<技能包仓库>/`（如 `noname_dev_skills`） | 唯一真相，可移植、可分发给他人 | ✅ 提交到这里 |
+| `<无名杀项目>/.dsh/skills/noname-general-extension/` | **git 仓库根 + 技能运行时，同一目录** | ✅ 提交到这里 |
 
-⚠️ **关键纪律：改安装副本 = 无效劳动。**
-安装副本会被下次 `install.mjs --force` 覆盖，且不会进版本库。
-**所有更新都要落到源仓库**，再同步回安装副本。
+好处：改完立即生效，**无需复制/同步**；游戏项目与技能包在**同一工作目录**下，
+一次操作两边都能维护，且无需跨目录授权。
 
-**先定位源仓库**（路径因机器而异，不要假设）：
+> 该目录被《无名杀》项目的 `.gitignore`（`.dsh/` 规则）忽略，
+> **不会污染游戏仓库的 git 状态**。在技能包目录内跑 `git` 只影响技能包仓库。
+
+**先确认当前布局**：
 
 ```bash
-cd .dsh/skills/noname-general-extension/scripts
-node migrate-skill.mjs check      # 输出会打印项目根与技能包位置
-git -C <技能包仓库> remote -v      # 确认是可提交的仓库
+cd <无名杀项目>/.dsh/skills/noname-general-extension
+git rev-parse --show-toplevel     # 应指向本目录 → 仓库本体在此
+git remote -v                     # 应指向技能包仓库（而非游戏仓库）
 ```
 
+若 `--show-toplevel` 指向**游戏项目根**，说明是旧的双位置模式
+（仓库在别处、此处仅为安装副本），此时才需要本节末尾的「回流」步骤。
+
+> `install.mjs` 检测到"源即目标"时会自动跳过复制，不会自我覆盖。
+
+#### 权限边界（受限环境实测）
+
+仓库在工作区内时，**文件内容免授权、git 元数据需授权**：
+
+| 操作 | 授权 |
+|------|------|
+| 改 `SKILL.md` / `README.md` / `scripts/*` / `knowledge-base.json` / 重建索引 | ✅ 免 |
+| `git add` / `commit` / `push` | ❌ 需 |
+
+原因是沙箱按**路径名前缀**保护 `.git*`，与文件权限无关
+（同目录下 `.gitignore` 被拒、`normal.txt` 可写）。
+**不要试图"修复 ACL"** —— 实测 `.git` 的权限完全正常，属沙箱固有约束。
+
+> **实践：批量提交，减少授权次数。** 文件内容可以自由迭代，
+> 攒够一批改动后一次性 `git add -A && git commit`。
+
 ### 四类更新
+
+> 以下命令均在技能包仓库根执行：
+> `cd <无名杀项目>/.dsh/skills/noname-general-extension`
 
 #### ① Skill 本身（`SKILL.md`）
 
@@ -684,9 +711,20 @@ git push origin main
 > **push 必须等用户确认。** 本地 commit 是安全的，push 是对外发布。
 > 提交后要**明确告诉用户：有几个提交待推送、分别是什么**，让用户判断。
 
-### 更新后的同步（回流到安装副本）
+### 改了 SKILL.md 或工具后：重建索引
 
-源仓库改完后，用官方安装脚本回流，**不要手工复制**：
+索引含各技能的源码位置，改了 `SKILL.md`/脚本本身通常不影响索引，
+但**改动过 `scripts/` 下的解析逻辑**后必须重建，否则 `locate`/`show` 给旧数据：
+
+```bash
+cd <无名杀项目>/.dsh/skills/noname-general-extension/scripts
+node build-index.mjs
+```
+
+### （仅旧的双位置模式）回流到安装副本
+
+若 `git rev-parse --show-toplevel` 指向游戏项目根（而非技能目录），
+说明仓库在别处、此处只是副本，改完源仓库后需回流：
 
 ```bash
 node <技能包仓库>/install.mjs --target <无名杀项目根> --force
@@ -695,11 +733,8 @@ node <技能包仓库>/install.mjs --target <无名杀项目根> --force
 - 不带 `--force` 时已存在的文件会被跳过（适合首次补齐缺失文件）
 - `--force` 会覆盖同名文件，但**不会动** `PATHS-LOCAL.md`、`skill-index.json`
   这类不在 `install.mjs` FILES 列表内的文件
-- 若改了 `SKILL.md` 或脚本，**建议重建索引**：
 
-```bash
-cd .dsh/skills/noname-general-extension/scripts && node build-index.mjs
-```
+> 这就是为什么要推荐"仓库即技能目录"布局 —— 省掉这一步，也就没有"改错副本"的风险。
 
 ### 任务收尾自检清单
 
@@ -707,9 +742,10 @@ cd .dsh/skills/noname-general-extension/scripts && node build-index.mjs
 
 - [ ] 本次有没有**新的实测结论**？→ 沉淀进知识库（§12 ②）
 - [ ] 有没有发现 **SKILL.md 写错/过时**的地方？→ 修正（§12 ①）
-- [ ] 现有工具够用吗？不够 → 新增并同步三处清单（§12 ③）
+- [ ] 现有工具够用吗？不够 → 新增并同步四处清单（§12 ③）
 - [ ] README 里的**数字/命令**还对吗？→ 实测更新（§12 ④）
 - [ ] `migrate-skill.mjs check` 是否 **0 问题**？
 - [ ] 已**本地 commit**，并**向用户报告待推送内容**？
 
 > 若无任何更新，也应在总结中**说明"本次无技能包更新"**，而不是默默跳过。
+

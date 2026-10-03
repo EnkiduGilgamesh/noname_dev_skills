@@ -35,6 +35,19 @@ if (!existsSync(join(ROOT, "apps/core/noname"))) {
 const DEST = join(ROOT, ".dsh/skills/noname-general-extension");
 const force = has("--force");
 
+// ── 本仓库已迁入目标位置时，源即目标：无需复制，只重建索引 ──
+// 场景：本仓库直接 clone 到 <项目>/.dsh/skills/noname-general-extension
+// 此时复制文件等于自我覆盖（且 --force 下会清空 knowledge-base.json）
+const SAME_LOCATION = resolve(HERE) === resolve(DEST);
+if (SAME_LOCATION) {
+    console.log(`\n检测到本仓库已位于技能安装位置：\n  ${DEST}\n`);
+    console.log(`无需复制文件（源即目标）。`);
+    console.log(`维护流程：直接在本目录改文件 → git commit → 按需 push。`);
+    console.log(`索引重建：node scripts/build-index.mjs`);
+    console.log("");
+    process.exit(0);
+}
+
 const FILES = [
     ["SKILL.md", "SKILL.md"],
     ["README.md", "README.md"],
