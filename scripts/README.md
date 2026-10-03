@@ -1,9 +1,10 @@
 # 技能检索工具 + 增量知识库 + 扩展注册
 
-> 在 7206 个已有技能中按语义查找参考实现，把**开发结论沉淀下来**，并**解决"写了扩展却看不到"**的问题。
+> 在 7300+ 个已有技能中按语义查找参考实现，把**开发结论沉淀下来**，**验证技能是否写对**，并**解决"写了扩展却看不到"**的问题。
 >
-> 四个工具：
-> - `skill-search.mjs` —— 检索 + 知识库
+> 五个工具：
+> - `skill-search.mjs` —— 检索 + 定位 + 知识库
+> - `verify-skill.mjs` —— 技能静态验证
 > - `register-extension.mjs` —— 扩展注册与修复
 > - `build-index.mjs` —— 索引构建
 > - `migrate-skill.mjs` —— 迁移打包与迁移自检
@@ -14,9 +15,14 @@
 
 ### 问题一：技能太多，找不到参考实现
 
-《无名杀》本体 + 扩展共有 **7206 个技能**（6109 个含描述），分布在 12.4 MB 源码里。手工搜索在这个规模下不现实。
+《无名杀》本体 + 扩展共有 **7304 个技能**（6171 个含描述），分布在 12 MB 源码里。手工搜索在这个规模下不现实。
 
-### 问题二：写了扩展，游戏里看不到
+### 问题二：技能写了，但不知道写得对不对
+
+语法没错 ≠ 技能能用。常见缺陷：武将引用了不存在的技能 ID、改了实现忘了改描述、
+子技能没挂进父技能 `group`。这些**静态可查**，但不查就只能在游戏里撞见。
+
+### 问题三：写了扩展，游戏里看不到
 
 扩展必须被**登记到配置的 `extensions` 数组**才显示（`apps/core/noname/init/index.ts:635-661`）。
 而玩家配置存于**浏览器 `localStorage["noname_0.9_config"]`**，服务端改不了。
@@ -35,14 +41,88 @@ cd .dsh/skills/noname-general-extension/scripts
 
 # ═══ 开发时：检索参考实现 ═══
 node skill-search.mjs search "摸牌阶段多摸一张牌"
+node skill-search.mjs locate 天妒                                            # 改技能：一次拿到全部坐标
 node skill-search.mjs show drlt_jieying
-node skill-search.mjs learn --title "..." --body "..." --from rin_baoqiu   # 沉淀结论
+node skill-search.mjs learn --title "..." --body "..." --from rin_baoqiu     # 沉淀结论
 
-# ═══ 写完后：注册扩展 ═══
+# ═══ 写完后：验证 ═══
+node verify-skill.mjs --pack 英雄杀RE            # 静态验证
+node skill-search.mjs rebuild                    # 重建索引
+
+# ═══ 再注册扩展 ═══
 node register-extension.mjs fix                  # 修复被游戏内覆盖的文件
 node register-extension.mjs guideall --enable    # 生成 Console 脚本
 # → 把脚本粘贴到浏览器 F12 Console，然后 F5
 ```
+
+---
+
+## 技能验证工具（verify-skill.mjs）
+
+```bash
+node verify-skill.mjs                      # 验证全部自建扩展
+node verify-skill.mjs --pack 英雄杀RE       # 只验证一个扩展
+node verify-skill.mjs --skill yxsre_fenglang
+node verify-skill.mjs --all                # 含本体（噪音多，一般不用）
+node verify-skill.mjs --json               # 机器可读
+```
+
+有错误时**退出码为 1**，可直接串联到脚本或 CI。
+
+### 检查项
+
+| 级别 | 检查 | 判据 |
+|------|------|------|
+| ✗ 错误 | **武将悬空引用** | 武将 `skills:[...]` 含不存在的技能 ID —— 游戏里选将可见但技能无效 |
+| ✗ 错误 | 源文件缺失 | 索引过期，需 `rebuild` |
+| ⚠ 警告 | **技能缺描述** | 无 `<id>_info`；内部子技能不报（见下） |
+| ⚠ 警告 | 文件编码异常 | 非 UTF-8，游戏内乱码 |
+| · 提示 | 描述/实现不一致 | 描述中的数字在实现段中找不到 |
+| · 提示 | 子技能未挂载 | 同文件的父技能用 `group` 挂载，但未列出它 |
+
+### 设计原则：只报能确证的问题
+
+误报会让工具失去价值。因此每项检查都有**排除规则**，均经真实代码验证：
+
+**「缺描述」不报以下情况**（它们本就不该有描述）：
+
+| 情况 | 例 | 判据 |
+|------|-----|------|
+| 被 `group` 引用的子技能 | `yxsre_fenglang_watch` | 全库扫描 `group:[...]` 建表 |
+| `_` 前缀的隐藏技能 | `_yxsrezhenwangpeiyin` | 无名杀惯例 |
+| `<父技能ID>_<后缀>` 派生技能 | `yxsre_pushuo_toMale` | 父技能在索引中存在 |
+| 数字后缀变体 | `yxsre_wushuang1` | `/[0-9]$/` |
+
+**「子技能未挂载」只在同文件时提示** —— 实测 `yxsre_wushuang_modi` 与
+`yxsre_wushuang` 只是命名相似（前者自己 group 了 `_sha`/`_juedou`），
+跨文件比对本就多是巧合。
+
+### 验证有效性（实测）
+
+注入两个真实缺陷后运行，均被精确捕获：
+
+```
+✗ [悬空引用] 武将 yxsre_huoqubing (…/zishe.js:14) 引用了不存在的技能: yxsre_THIS_DOES_NOT_EXIST
+⚠ [缺描述] yxsre_daiwei  …/zishe.js:378 无 <id>_info 描述
+```
+
+### 静态验证查不到什么
+
+**必须实机确认**的部分（不要在报告里宣称"已验证通过"）：
+
+- 技能是否真的触发（时机名写错、`filter` 恒 false —— 静态查不出）
+- UI 询问流程能否正常结算
+- AI 是否会使用
+- 数值平衡
+
+```bash
+pnpm -F noname dev                                          # http://127.0.0.1:8080/
+pnpm -F @noname/fs dev --debug --dirname=../../apps/core    # 8089
+```
+
+> 为什么不无头测试：`apps/core/noname` 有 27 个 `.ts` 含尖括号类型断言
+> （Node type-stripping 不支持）且依赖 `.vue`，脱离 Vite 无法加载核心。
+> 详见知识库 `kb-headless-testing-limits`。
 
 ---
 
@@ -384,12 +464,13 @@ node migrate-skill.mjs export   # 导出到指定目录（不压缩）
 
 | 文件 | 作用 |
 |------|------|
-| `build-index.mjs` | 索引构建器：解析技能定义 + 关联描述 |
-| `skill-search.mjs` | 检索引擎与 CLI |
+| `build-index.mjs` | 索引构建器：解析技能定义 + 关联描述 + 武将关系 |
+| `skill-search.mjs` | 检索引擎与 CLI（search / locate / show / similar / learn / kb） |
+| `verify-skill.mjs` | 技能静态验证 |
 | `knowledge.mjs` | 知识库模块（指纹计算/校验） |
 | `register-extension.mjs` | 扩展注册与修复 |
 | `migrate-skill.mjs` | 迁移打包与自检 |
-| `skill-index.json` | 索引产物（约 6 MB，**不入库**） |
+| `skill-index.json` | 索引产物（约 5.5 MB，**不入库**） |
 | `knowledge-base.json` | 知识库（**应入库**） |
 | `register-*.js` | 生成的 Console 脚本（**不入库**） |
 

@@ -65,7 +65,78 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
 
    把输出的脚本粘贴到**浏览器 Console**（F12），然后 F5 刷新。
 
-8. **验证**：游戏内启用扩展 → 选将 → 实际发动技能。
+8. **✅ 静态验证**（**写完必做**）：
+
+   ```bash
+   node verify-skill.mjs --pack <扩展名>     # 查悬空引用、缺描述、编码等问题
+   ```
+
+   详见下节「技能验证」。
+
+9. **人工验证**：游戏内启用扩展 → 选将 → 实际发动技能。
+   **静态验证通过 ≠ 技能能用**，触发时机/UI 流程只能实机确认。
+
+### ★ 技能验证
+
+验证分两层，**任何一层都不能替代另一层**。
+
+#### 第一层：静态验证（可自动化，30 秒）
+
+```bash
+node verify-skill.mjs                      # 验证全部自建扩展
+node verify-skill.mjs --pack 英雄杀RE       # 只验证一个扩展（推荐）
+node verify-skill.mjs --skill yxsre_fenglang
+node verify-skill.mjs --json               # 机器可读
+```
+
+**能查出**：
+
+| 级别 | 检查项 | 说明 |
+|------|--------|------|
+| ✗ 错误 | 武将悬空引用 | 武将 `skills:[...]` 里写了不存在的技能 ID —— 选将能看到但技能无效 |
+| ✗ 错误 | 源文件缺失 | 索引过期，需 `rebuild` |
+| ⚠ 警告 | 技能缺描述 | 无 `<id>_info`（内部子技能、`_` 开头的不报） |
+| ⚠ 警告 | 编码异常 | 文件非 UTF-8，游戏内会乱码 |
+| · 提示 | 描述/实现不一致 | 描述里的数字在实现段中找不到，可能改了实现忘改描述 |
+| · 提示 | 子技能未挂载 | 与父技能同文件、父技能确实用 `group` 挂载，但没列出它 |
+
+**退出码**：有错误返回 1，可用于 CI/脚本串联。
+
+**设计原则：只报能确证的问题。** 所有判据都经过真实代码验证 ——
+例如「缺描述」会先排除被 `group` 引用的子技能、`_` 前缀的隐藏技能、
+`<父技能ID>_<后缀>` 形式的派生技能，避免刷出一堆假警告。
+
+#### 第二层：实机验证（**不可省略**）
+
+静态验证**查不到**这些，必须人工在游戏里确认：
+
+- 技能**是否真的触发**（时机名写错、`filter` 恒返回 false 都不会被静态检查发现）
+- UI 询问流程能否正常弹出与结算
+- AI 是否会使用该技能
+- 数值平衡
+
+启动游戏：
+
+```bash
+pnpm -F noname dev                                          # http://127.0.0.1:8080/
+pnpm -F @noname/fs dev --debug --dirname=../../apps/core    # 8089
+```
+
+> ⚠️ 两个服务都要开。Vite/esbuild 需要创建子进程，若在受限沙箱中运行会报
+> `spawn EPERM`，需放宽权限。
+
+**为什么不能无头测试？** 实测过：`apps/core/noname` 下 27 个 `.ts` 含尖括号类型断言
+（Node 的 type-stripping 不支持），且依赖 `.vue` 单文件组件，脱离 Vite 无法加载核心。
+详见知识库 `kb-headless-testing-limits`。
+
+#### 改技能后的完整验证顺序
+
+```bash
+node verify-skill.mjs --pack <扩展名>   # 1. 静态验证
+node skill-search.mjs rebuild           # 2. 重建索引（否则 locate 行号是旧的）
+node verify-skill.mjs --pack <扩展名>   # 3. 重建后再验一次（行号已更新）
+# 4. 游戏内实机确认
+```
 
 ### ★ 修改已有技能（不同于新建）
 
@@ -131,6 +202,9 @@ node skill-search.mjs locate yxsre_fenglang
 # 查看实现
 node skill-search.mjs show drlt_jieying
 node skill-search.mjs similar biyue
+
+# 静态验证（写完技能后）
+node verify-skill.mjs --pack <扩展名>    # 查悬空引用/缺描述/编码
 
 # 沉淀结论（开发后）
 node skill-search.mjs learn \

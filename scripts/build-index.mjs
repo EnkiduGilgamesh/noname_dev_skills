@@ -96,6 +96,14 @@ const SEARCH_DIRS = [
 
 // ── 工具函数 ───────────────────────────────────────────────
 
+/**
+ * 收集过程中应跳过的目录。
+ *
+ * `help/`、`backups/` 里常有 extension.js 的**参考副本或旧备份**，
+ * 扫描它们会产出重复条目与早已废弃的技能定义（实测噪音来源之一）。
+ */
+const SKIP_DIRS = new Set(["node_modules", "help", "backups", "backup", "example", "dist", "docs"]);
+
 /** 递归收集指定文件名 */
 function collect(dir, names, out = []) {
     if (!existsSync(dir)) return out;
@@ -104,7 +112,7 @@ function collect(dir, names, out = []) {
         let st;
         try { st = statSync(p); } catch { continue; }
         if (st.isDirectory()) {
-            if (entry === "node_modules" || entry.startsWith(".")) continue;
+            if (entry.startsWith(".") || SKIP_DIRS.has(entry)) continue;
             collect(p, names, out);
         } else if (names.includes(entry)) {
             out.push(p);
@@ -286,6 +294,26 @@ function extractBlocksByIndent(text) {
 
     return blocks;
 }
+/**
+ * 结构性关键字 —— 它们在技能块内以 `xxx: {` 出现，但不是技能 ID。
+ *
+ * 容器风格解析时若不过滤，会把 skill / translate / ai / trigger 等
+ * 当成技能写进索引（实测产生 18 条噪音，且会污染扩展的自检结果）。
+ */
+const NON_SKILL_KEYS = new Set([
+    "skill", "skills", "translate", "character", "characterIntro", "characterTitle",
+    "characterSort", "characterReplace", "card", "ai", "trigger", "subSkill",
+    "intro", "content", "filter", "cost", "enable", "group", "result", "effect",
+    "viewAs", "mod", "global", "player", "source", "target", "game", "lib", "ui",
+    "get", "status", "_status", "name", "info", "config", "pack", "element", "list",
+    "onremove", "onuninstall", "onload", "precontent", "arenaReady", "dynamicTranslate",
+    "init", "help", "skillList", "sort", "audio", "audioname", "image", "skin",
+]);
+
+/** 判定一个键名是否可能是技能 ID */
+function looksLikeSkillId(id) {
+    return !NON_SKILL_KEYS.has(id);
+}
 
 /**
  * 风格 B：定位 `skill: {` 容器，收集其内**同级**的 `id: {` 条目。
@@ -295,7 +323,7 @@ function extractBlocksByIndent(text) {
 function extractBlocksByContainer(text) {
     const lines = text.split(/\r?\n/);
     const blocks = [];
-    const indentOf = (s) => (/^(\s*)/.exec(s) || ["", ""])[1].length;
+    const indentOf = (s) => (/^(\s*)/).exec(s) ? (/^(\s*)/.exec(s))[1].length : 0;
 
     // 候选容器锚点：`skill: {`、`skills: {`、`lib.skill = {`
     const anchors = [];
@@ -308,7 +336,7 @@ function extractBlocksByContainer(text) {
     // 单独的 lib.skill.xxx = { 每个就是一个技能
     for (let i = 0; i < lines.length; i++) {
         const m = /^(\s*)lib\.skill\.(\w+)\s*=\s*\{/.exec(lines[i]);
-        if (m) {
+        if (m && looksLikeSkillId(m[2])) {
             const end = matchBrace(lines, i);
             if (end >= 0) {
                 blocks.push({
@@ -337,15 +365,19 @@ function extractBlocksByContainer(text) {
             if (eInd !== entryIndent) continue;   // 只取同级（子技能更深，跳过）
             const end = matchBrace(lines, i);
             if (end < 0) continue;
-            blocks.push({
-                id: em[2],
-                startLine: i + 1,
-                endLine: end + 1,
-                body: lines.slice(i, end + 1).join("\n"),
-            });
+            // 过滤结构性关键字（skill/translate/ai/trigger/...）
+            if (looksLikeSkillId(em[2])) {
+                blocks.push({
+                    id: em[2],
+                    startLine: i + 1,
+                    endLine: end + 1,
+                    body: lines.slice(i, end + 1).join("\n"),
+                });
+            }
             i = end;
         }
     }
+
 
     // 去重（同一 id 只留首个）
     const seen = new Set();
@@ -633,6 +665,27 @@ console.log(`收集描述: ${infoBySkill.size} 条（含位置 ${infoPosBySkill.
 // 1b) 收集「武将 → 技能」关系，用于反查改动影响面
 const charFiles = [];
 for (const d of SEARCH_DIRS) collect(d, ["character.js", "character.ts", "extension.js", "extension.ts"], charFiles);
+// 模块化拆分后，武将也写在 character/skills/<分组>.js 里（`export const character = {...}`）
+{
+    const stack = [...SEARCH_DIRS];
+    while (stack.length) {
+        const cur = stack.pop();
+        let entries;
+        try { entries = readdirSync(cur); } catch { continue; }
+        const inSkillsDir = cur.replace(/\\/g, "/").endsWith("/character/skills");
+        for (const e of entries) {
+            const p = join(cur, e);
+            let st;
+            try { st = statSync(p); } catch { continue; }
+            if (st.isDirectory()) {
+                if (e.startsWith(".") || SKIP_DIRS.has(e)) continue;
+                stack.push(p);
+            } else if (inSkillsDir && /\.(js|ts)$/.test(e)) {
+                charFiles.push(p);
+            }
+        }
+    }
+}
 const characters = [];
 for (const f of charFiles) {
     let text;

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-03T08:48:45.428Z",
+  "updatedAt": "2026-10-03T10:57:04.139Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -585,7 +585,7 @@
       "id": "kb-cb2e6014",
       "kind": "pattern",
       "title": "拆分臃肿扩展：老式沙箱写法的模块化改造流程",
-      "body": "英雄杀RE 这类老扩展用 game.import('extension',function(lib,game,ui,get,ai,_status){...}) 把全部内容包在一个沙箱函数里，4140+ 行的 skill 对象是臃肿主因。模块化改造流程：1) 按 characterSort 的分组切分（与游戏内分组一一对应，最好找）；2) 抽出的模块顶部必须显式 import { lib, game, ui, get, ai, _status } from 'noname'，因为沙箱外的文件拿不到这六个变量；3) 但 content/filter 里的 player/trigger/result 由【事件系统注入】，与是否 ESM 无关，不用改；4) 主文件里加一个 applyGroup(target, group) 做 Object.assign 合并 character/skill/translate/characterIntro/characterTitle；5) 关键顺序陷阱：主文件末尾常有 for(var i in character){ character[i][4].push(img) } 的立绘循环 —— applyGroup 必须在它【之前】执行，否则拆分出去的武将拿不到 img（且不报错）。校验方法：写一个脚本分别加载拆分前后的文件，取出 game.import('character') 的产物做深度对比（武将数组/技能函数 toString/translate 键值/characterSort），我这次跑出 305 个对比点。加载拆分后文件时需把 import 语句替换成注入对象，并剥掉模块内的 noname 裸导入。",
+      "body": "英雄杀RE 这类老扩展用 game.import('extension',function(lib,game,ui,get,ai,_status){...}) 把全部内容包在一个沙箱函数里，4140+ 行的 skill 对象是臃肿主因。模块化改造流程：1) 按 characterSort 的分组切分（与游戏内分组一一对应，最好找）；2) 抽出的模块顶部必须显式 import { lib, game, ui, get, ai, _status } from 'noname'，因为沙箱外的文件拿不到这六个变量；3) 但 content/filter 里的 player/trigger/result 由【事件系统注入】，与是否 ESM 无关，不用改；4) 主文件里加一个 applyGroup(target, group) 做 Object.assign 合并 character/skill/translate/characterIntro/characterTitle；5) 关键顺序陷阱：主文件末尾常有 for(var i in character){ character[i][4].push(img) } 的立绘循环 —— applyGroup 必须在它【之前】执行，否则拆分出去的武将拿不到 img（且不报错）。校验方法：写一个脚本分别加载拆分前后的文件，取出 game.import('character') 的产物做深度对比（武将数组/技能函数 toString/translate 键值/characterSort），我这次跑出 305 个对比点。加载拆分后文件时需把 import 语句替换成注入对象，并剥掉模块内的 noname 裸导入。\n【2026-10 更新】该扩展已完成拆分：单一 extension.js 现拆为 10 个分组文件（character/skills/*.js），封狼等自设技能移至 character/skills/zishe.js。指纹已随之更新。",
       "keywords": [
         "重构",
         "拆分模块",
@@ -600,15 +600,15 @@
       ],
       "fingerprints": [
         {
-          "file": "apps/core/extension/英雄杀RE/extension.js",
-          "start": 3895,
-          "end": 4165,
-          "hash": "d9605aa6e8af"
+          "file": "apps/core/extension/英雄杀RE/character/skills/zishe.js",
+          "start": 35,
+          "end": 305,
+          "hash": "306add05eece"
         }
       ],
       "confidence": "verified",
       "createdAt": "2026-10-03T08:28:35.597Z",
-      "updatedAt": "2026-10-03T08:28:35.597Z"
+      "updatedAt": "2026-10-03T10:46:54.787Z"
     },
     {
       "id": "kb-c941ded2",
@@ -629,6 +629,52 @@
       "confidence": "verified",
       "createdAt": "2026-10-03T08:48:45.426Z",
       "updatedAt": "2026-10-03T08:48:45.426Z"
+    },
+    {
+      "id": "kb-headless-testing-limits",
+      "kind": "fact",
+      "title": "无头测试的边界：核心模块无法在纯 Node 加载，必须用 Vite 服务器",
+      "body": "实测结论：想脱离浏览器直接用 Node 加载《无名杀》核心来自动化测试技能，在【不引入构建期转译】的前提下不可行。三层障碍：① 别名：模块间用 Vite 别名互引（noname / @/xxx / /xxx），Node 默认不认。   可用 ESM loader hook（module.register）解决。② 省略扩展名：源码写 `@/util/sandbox.js`，但仓库里只有 sandbox.ts   （Vite 自动 .js→.ts，Node 不会）。可在 hook 里加回退。③ TS 语法：core/noname 下有 27 个 .ts，其中 content.ts、init/import.ts 用了   尖括号断言 `<T>expr`，Node 的 type-stripping 明确不支持（会直接报错）。   tsx 能过这一关，但下一关是 .vue 单文件组件（Onload 相关），tsx 也不认。结论：真正可用的验证路径是【启动 Vite 开发服务器 + 浏览器】：  pnpm -F noname dev                                  # 8080  pnpm -F @noname/fs dev --debug --dirname=../../apps/core   # 8089服务能正确产出转译后的模块（如 library/index.js 约 2.6 MB）。可自动化的部分（不需浏览器）：  · 语法检查 node --check  · 静态结构检查（技能是否能被解析器定位、描述是否存在、武将引用是否闭合）  · 索引一致性（改完代码 rebuild 后 locate 行号是否变化）  · 扩展能否被 fs 服务正确返回（HTTP 200 + 内容含技能 ID）不可自动化、必须人工在游戏里点一遍的部分：  · 技能是否真的触发（时机、filter 返回值）  · UI 询问流程是否能正常弹出与结算  · AI 是否会使用该技能沙箱注意：Vite/esbuild 需要 spawn 子进程，受限模式会报 spawn EPERM，启动服务必须用 danger-full-access。",
+      "keywords": [
+        "测试",
+        "验证",
+        "无头",
+        "headless",
+        "Node",
+        "别名",
+        "tsx",
+        "Vite",
+        "loader hook",
+        "spawn EPERM",
+        "自动化"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T10:46:34.237Z",
+      "updatedAt": "2026-10-03T10:46:34.237Z"
+    },
+    {
+      "id": "kb-static-verify-design",
+      "kind": "pattern",
+      "title": "技能静态验证：只报能确证的问题，每条检查都要有排除规则",
+      "body": "写了技能后能自动查什么？实测结论与设计要点。\n\n可靠可查（低误报）：\n① 武将悬空引用 —— 武将 skills:[...] 里的 ID 在全部技能定义中不存在。\n   这是真缺陷：游戏里选将能看到该武将，但技能无效。判据唯一，不会误报。\n② 技能缺描述 —— 但必须排除四类本就不该有描述的：\n   · 被任意技能 group:[...] 引用的子技能（扫全库建表）\n   · '_' 前缀的隐藏技能（无名杀惯例，如 lib.skill._yxsrezhenwangpeiyin）\n   · <已存在的父技能ID>_<后缀> 派生技能（如 yxsre_pushuo_toMale）\n   · 数字后缀变体（如 yxsre_wushuang1）\n③ 文件编码非 UTF-8（游戏内会乱码）。\n\n不可靠、会误报的（务必不要写进检查）：\n· 朴素地「匹配所有 `id: {` 当技能」—— 会把 skill/translate/ai/trigger/subSkill/\n  intro/result/effect 等结构性键当成技能，实测在单个扩展里就产生 30+ 条假警告。\n  正确做法是用容器锚点（skill:{ / lib.skill=）取同级条目，并用关键字黑名单过滤。\n· 「无描述即缺陷」当全库规则 —— 本体自身就有 1122+ 个无描述技能，\n  只有自建扩展才有「应当补描述」的约定，因此默认只验证 extension 来源。\n· '<父>_<后缀> 命名 ⇒ 必然属于父技能' —— 实测 yxsre_wushuang_modi 与\n  yxsre_wushuang 只是命名相似，前者自己 group 了 _sha/_juedou。\n  跨文件比对多为巧合，只在同文件且父技能确实用 group 时提示。\n\n验证有效性必须自证：写完后注入一个真实缺陷（如把武将技能数组里加一个不存在的 ID、\n注释掉一条 _info），确认工具能报出来，再还原。只跑「全绿」不能证明工具有效。\n\n静态验证的边界：查不出「技能是否真的触发」（时机名写错、filter 恒 false）、\nUI 结算、AI 行为、数值平衡 —— 这些必须实机确认，不要在报告里混淆。",
+      "keywords": [
+        "验证",
+        "verify",
+        "静态检查",
+        "误报",
+        "悬空引用",
+        "缺描述",
+        "子技能",
+        "group",
+        "自证"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T10:57:04.137Z",
+      "updatedAt": "2026-10-03T10:57:04.137Z"
     }
   ]
 }
