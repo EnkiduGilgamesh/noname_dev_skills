@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-04T04:01:52.784Z",
+  "updatedAt": "2026-10-04T04:53:55.230Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -1404,29 +1404,23 @@
       "id": "kb-af509556",
       "kind": "pattern",
       "title": "复杂选择 UI：列表与详情分离，别在列表项内做展开",
-      "body": "★经验：在 dialog 里做「可展开的卡片列表」非常难做对 —— 列表项本身是按钮（textbuttons 会把 ui.click.button 绑在节点上），在里面再放展开区会连续踩坑：① 同节点监听器无法用 stopPropagation 隔离；② 展开撑高后与其他卡片重叠；③ 加 display:block!important 修换行又会压掉 display:none 导致折叠失效。**更稳的设计是把「选择」与「阅读」拆成两个区域**：上方/左侧紧凑列表（每项只显示标题+关键数值，点击即选中/预览），下方/右侧固定文本区显示详情（点击列表项时刷新其 innerHTML）。这样列表项高度恒定，不会互相重叠，也不需要任何展开/折叠状态。★实现要点：列表项仍用 ui.create.textbuttons 生成以保证走引擎选中链路，但需传一个最小宿主对象 {add(str){…返回{firstChild}}, buttons:{add:node=>dialog.buttons.add(node)}}；**buttons.add 必须转发到真实 dialog.buttons**，否则引擎读不到候选按钮、选中拿不到结果（dialog.js:311-346 与 chooseButton 都依赖它）。★文字换行仍要给详情区加 width:100%!important + white-space:normal!important + writing-mode:horizontal-tb!important。",
+      "body": "★经验：在 dialog 里做「可展开的卡片列表」非常难做对 —— 列表项本身是按钮\n（textbuttons 会把 ui.click.button 绑在节点上），在里面再放展开区会连续踩坑：\n① 同节点监听器无法用 stopPropagation 隔离；② 展开撑高后与其他卡片重叠；\n③ 加 display:block!important 修换行又会压掉 display:none 导致折叠失效。\n\n★结论：把「选择」与「阅读」拆成两个区域（实测采用左右/上下分栏）：\n  紧凑列表（每项只显示标题 + 关键数值）负责选，\n  固定文本区负责读（点列表项时刷新其 innerHTML）。\n  列表项高度恒定，不互相重叠，也不需要任何展开/折叠状态。\n\n★实现要点（**已修订**）：\n  ⚠️ 本条目早期版本写的是「传一个最小宿主对象 {add(str){…}} 骗过 textbuttons」——\n     **该写法已被证伪**：实测列表完全不显示，且无任何报错。\n     详见 kb-baea5bbb（伪造宿主对象导致列表渲染失败）。\n  可靠做法：先 ui.create.dialog('hidden','forcebutton') 建一个**真实** dialog，\n     正常调用 ui.create.textbuttons(items, tmp)，再把 tmp.buttons 的节点搬进自有容器，\n     并 dialog.buttons.add(node) 登记到主 dialog（否则选中拿不到结果）。\n\n★两个易漏的配套步骤：\n  ① 搬移后必须复位定位样式（position:static / float:none / inset:auto / transform:none），\n     否则所有列表项叠在同一位置（见 kb-91f08bc5）；\n  ② 若要「点击只预览、由外部『确定』提交」，需用 cloneNode(true) 剥离引擎的\n     点击即选中监听（见 kb-a4994f68）。\n\n★布局配套：详情区给 width:100%!important + white-space:normal!important +\n  writing-mode:horizontal-tb!important；列表项分两段排版见 kb-xy-combo-row-twoline。",
       "keywords": [
         "列表详情分离",
         "可展开列表",
-        "textbuttons宿主",
         "按钮登记",
         "选择UI设计",
-        "重叠"
+        "重叠",
+        "左右分栏",
+        "预览后提交"
       ],
       "refs": [
         "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
       ],
-      "fingerprints": [
-        {
-          "file": "apps/core/extension/新宇杀/character/skill.js",
-          "start": 15,
-          "end": 51,
-          "hash": "6043a82530b6"
-        }
-      ],
+      "fingerprints": [],
       "confidence": "verified",
       "createdAt": "2026-10-04T02:51:43.027Z",
-      "updatedAt": "2026-10-04T02:51:43.027Z"
+      "updatedAt": "2026-10-04T04:53:55.230Z"
     },
     {
       "id": "kb-baea5bbb",
