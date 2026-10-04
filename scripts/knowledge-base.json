@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-04T05:00:37.988Z",
+  "updatedAt": "2026-10-04T15:11:50.634Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -1694,6 +1694,32 @@
       "confidence": "verified",
       "createdAt": "2026-10-04T05:00:37.988Z",
       "updatedAt": "2026-10-04T05:00:37.988Z"
+    },
+    {
+      "id": "kb-ext-carrier-roster",
+      "kind": "pattern",
+      "title": "扩展内批量武将：名单表作唯一数据源，translate 从中派生",
+      "body": "★场景：一个扩展要放几十~上百名武将（如「新宇杀」的 104 名载体武将）。\n\n★核心做法：**名单表只写一份，translate 从中 import 派生**。\n  character.js:  export const CARRIERS = [{ name: \"仇鹏鑫\" }, …]\n                 export function carrierId(i) { return `xy_c${String(i+1).padStart(3,'0')}` }\n  translate.js:  import { CARRIERS, carrierId } from './character.js'\n                 const NAMES = Object.fromEntries(CARRIERS.map((e,i)=>[carrierId(i), e.name]))\n                 export const translate = { ...NAMES, … }\n\n  ⚠️ 为什么必须派生：手写两份名单（一份定 id、一份写翻译）时，\n     改名/增删必然会漏掉一处，而**症状很难查** ——\n     选将界面直接显示原始 id（如 `xy_c017`）而不是名字，\n     看起来像「翻译没生效」，实际是名单不同步。\n\n★id 生成：用 `前缀 + 补零序号`（xy_c001…xy_c104），不要用姓名拼音\n  （中文转拼音要引依赖、多音字会错、重名会撞）。序号 id 稳定且可预测。\n\n★`names` 字段（引擎的 姓|名 格式）：批量生成时要区分两类\n  · 普通姓名 → 自动拆首字为姓：`仇鹏鑫` → `仇|鹏鑫`\n  · 不该拆的 → 整名不分，写 `整名|`：\n    组合名（周颖&周雪）、称谓（黄妹妹、雷氏、严氏兄妹）、\n    亲属（张校春胞弟）、化名（陈某、邓某）、非人名（测试人物、院外孩童）\n  做法：名单表加可选字段 `noSplit: true`，由 splitName() 分支处理。\n\n★验证要点（静态检查查不出映射错误，必须真跑一次）：\n  ① 武将总数 = 招牌 + 批量；\n  ② 每个 id 都能在 translate 里取到名字（缺一个就会显示原始 id）；\n  ③ 翻译名之间无重复；\n  ④ names 字段都含 `|`。\n  ⚠️ 别只做 `node --check` —— 语法通过完全不能保证 id↔名字对得上。\n     可靠做法：造一个 stub 的 `noname` 模块，直接 import 两个文件做断言。\n\n★名单去重：用户给的原始清单常含重复项（本次 112 条去重后 104 条，\n  江钰娜 出现 3 次）。入库前先 `Select-Object -Unique`，\n  并把「原始 N 条 → 去重 M 条」写进注释，免得日后以为漏加。",
+      "keywords": [
+        "批量武将",
+        "名单表",
+        "translate",
+        "唯一数据源",
+        "选将池",
+        "占位武将",
+        "载体武将",
+        "names",
+        "姓名字段",
+        "重复名单"
+      ],
+      "refs": [
+        "apps/core/extension/新宇杀/character/character.js",
+        "apps/core/extension/新宇杀/character/translate.js"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T15:11:50.633Z",
+      "updatedAt": "2026-10-04T15:11:50.633Z"
     }
   ]
 }
