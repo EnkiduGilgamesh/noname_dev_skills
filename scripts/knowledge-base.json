@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-04T15:23:30.658Z",
+  "updatedAt": "2026-10-04T15:53:30.971Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -732,35 +732,6 @@
       "updatedAt": "2026-10-03T14:57:09.687Z"
     },
     {
-      "id": "kb-3838cc44",
-      "kind": "pattern",
-      "title": "枚举技能与判断可附加性（技能组池）",
-      "body": "要从本体+所有已加载扩展汇总技能：遍历 lib.character 即可自动覆盖扩展（扩展加载时 addCharacterPack 已把技能写进 lib.skill、武将写进 lib.character）。取某武将技能用 get.character(name).skills（Character 实例，兼容 [sex,group,hp,skills,trash] 数组格式与 {skills:[]} 对象格式，character.js:186-206）。判断技能能否安全附加给任意武将：① 先查 Object.keys(info).length —— 被模式禁用的技能是被 finishSkill「掏空」而非删除（game/index.js:8691-8696），lib.skill[id] 存在≠可用；② 过 lib.filter.skillDisabled(skill)（library/index.js:11305，排 unique/temp/sub/fixed/vanish 与缺描述）；③ 再自行排除 charlotte/hiddenSkill/sub/sourceSkill/limited/juexingji/zhuSkill/dutySkill/groupSkill 与 ai.combo（参照幻化之战 brawl.js:503）。⚠️ subSkill 会被引擎展开成 <父ID>_<子键> 并打上 sub=true 与 sourceSkill=父ID（game/index.js:8761-8782），这类派生技能必须排除。",
-      "keywords": [
-        "技能组",
-        "枚举技能",
-        "skillDisabled",
-        "sourceSkill",
-        "charlotte",
-        "可附加技能",
-        "汇总扩展技能"
-      ],
-      "refs": [
-        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
-      ],
-      "fingerprints": [
-        {
-          "file": "apps/core/extension/新宇杀/character/skill.js",
-          "start": 15,
-          "end": 51,
-          "hash": "6043a82530b6"
-        }
-      ],
-      "confidence": "verified",
-      "createdAt": "2026-10-03T14:57:16.488Z",
-      "updatedAt": "2026-10-03T14:57:16.488Z"
-    },
-    {
       "id": "kb-f5483d9f",
       "kind": "pattern",
       "title": "给角色追加技能要用 await player.addSkills",
@@ -867,35 +838,6 @@
       "confidence": "verified",
       "createdAt": "2026-10-03T15:04:20.485Z",
       "updatedAt": "2026-10-03T15:04:20.485Z"
-    },
-    {
-      "id": "kb-1f4975a4",
-      "kind": "pattern",
-      "title": "新宇杀模式：组合=体力+技能组，开局前选故不排除特殊技",
-      "body": "「新宇杀」扩展的玩法模型：组合（combo）= 体力值 + 一整套技能，二者绑定。玩家先选载体武将（保留固有技），再选一个组合；选中后**体力按组合设置**、**技能追加**到载体身上。候选组合自动汇总自本体+所有已启用扩展的每个武将（get.character(name) 取 .hp/.maxHp/.skills），也支持扩展手写（main/combos.js 只写体力与技能，无需武将信息）。★关键设计结论：因为组合是**开局前**选定、且**体力与原武将一并设置**，所以**不需要排除限定技/觉醒技/使命技/主公技**——限定技的一局一次限制从头生效、觉醒技的觉醒条件（依赖体力与技能）能正常成立、使命技有完整状态机起点。只有「脱离原宿主必然出错」的技能才过滤（化身/新生类，依赖隐藏武将牌机制），外加 charlotte/sub/sourceSkill 等结构性排除。⚠️实战坑：本体有体力极端武将（hp=0 张让等、hp=15 兀突骨、hp=105 zhangjian、hp=12/14 杀海拾遗炉石卡），必须加体力范围过滤（默认 1..8）否则会出现荒谬体力。",
-      "keywords": [
-        "新宇杀",
-        "组合",
-        "体力+技能",
-        "不排除限定技",
-        "觉醒技",
-        "使命技",
-        "combos.js"
-      ],
-      "refs": [
-        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
-      ],
-      "fingerprints": [
-        {
-          "file": "apps/core/extension/新宇杀/character/skill.js",
-          "start": 15,
-          "end": 51,
-          "hash": "6043a82530b6"
-        }
-      ],
-      "confidence": "verified",
-      "createdAt": "2026-10-03T15:24:27.557Z",
-      "updatedAt": "2026-10-03T15:24:27.557Z"
     },
     {
       "id": "kb-8049d13d",
@@ -1404,7 +1346,7 @@
       "id": "kb-af509556",
       "kind": "pattern",
       "title": "复杂选择 UI：列表与详情分离，别在列表项内做展开",
-      "body": "★经验：在 dialog 里做「可展开的卡片列表」非常难做对 —— 列表项本身是按钮\n（textbuttons 会把 ui.click.button 绑在节点上），在里面再放展开区会连续踩坑：\n① 同节点监听器无法用 stopPropagation 隔离；② 展开撑高后与其他卡片重叠；\n③ 加 display:block!important 修换行又会压掉 display:none 导致折叠失效。\n\n★结论：把「选择」与「阅读」拆成两个区域（实测采用左右/上下分栏）：\n  紧凑列表（每项只显示标题 + 关键数值）负责选，\n  固定文本区负责读（点列表项时刷新其 innerHTML）。\n  列表项高度恒定，不互相重叠，也不需要任何展开/折叠状态。\n\n★实现要点（**已修订**）：\n  ⚠️ 本条目早期版本写的是「传一个最小宿主对象 {add(str){…}} 骗过 textbuttons」——\n     **该写法已被证伪**：实测列表完全不显示，且无任何报错。\n     详见 kb-baea5bbb（伪造宿主对象导致列表渲染失败）。\n  可靠做法：先 ui.create.dialog('hidden','forcebutton') 建一个**真实** dialog，\n     正常调用 ui.create.textbuttons(items, tmp)，再把 tmp.buttons 的节点搬进自有容器，\n     并 dialog.buttons.add(node) 登记到主 dialog（否则选中拿不到结果）。\n\n★两个易漏的配套步骤：\n  ① 搬移后必须复位定位样式（position:static / float:none / inset:auto / transform:none），\n     否则所有列表项叠在同一位置（见 kb-91f08bc5）；\n  ② 若要「点击只预览、由外部『确定』提交」，需用 cloneNode(true) 剥离引擎的\n     点击即选中监听（见 kb-a4994f68）。\n\n★布局配套：详情区给 width:100%!important + white-space:normal!important +\n  writing-mode:horizontal-tb!important；列表项分两段排版见 kb-xy-combo-row-twoline。",
+      "body": "★经验：在 dialog 里做「可展开的卡片列表」非常难做对 —— 列表项本身是按钮\n（textbuttons 会把 ui.click.button 绑在节点上），在里面再放展开区会连续踩坑：\n① 同节点监听器无法用 stopPropagation 隔离；② 展开撑高后与其他卡片重叠；\n③ 加 display:block!important 修换行又会压掉 display:none 导致折叠失效。\n\n★结论：把「选择」与「阅读」拆成两个区域（实测采用左右/上下分栏）：\n  紧凑列表（每项只显示标题 + 关键数值）负责选，\n  固定文本区负责读（点列表项时刷新其 innerHTML）。\n  列表项高度恒定，不互相重叠，也不需要任何展开/折叠状态。\n\n★实现要点（**已修订**）：\n  ⚠️ 本条目早期版本写的是「传一个最小宿主对象 {add(str){…}} 骗过 textbuttons」——\n     **该写法已被证伪**：实测列表完全不显示，且无任何报错。\n     详见 kb-baea5bbb（伪造宿主对象导致列表渲染失败）。\n  可靠做法：先 ui.create.dialog('hidden','forcebutton') 建一个**真实** dialog，\n     正常调用 ui.create.textbuttons(items, tmp)，再把 tmp.buttons 的节点搬进自有容器，\n     并 dialog.buttons.add(node) 登记到主 dialog（否则选中拿不到结果）。\n\n★两个易漏的配套步骤：\n  ① 搬移后必须复位定位样式（position:static / float:none / inset:auto / transform:none），\n     否则所有列表项叠在同一位置（见 kb-91f08bc5）；\n  ② 若要「点击只预览、由外部『确定』提交」，需用 cloneNode(true) 剥离引擎的\n     点击即选中监听（见 kb-a4994f68）。\n\n★布局配套：详情区给 width:100%!important + white-space:normal!important +\n  writing-mode:horizontal-tb!important。\n  列表项若要「左标题右数值 + 下一行内容」，用两段式块级结构：\n  行容器 font-size:0px，标题与数值用 inline-block + vertical-align:baseline\n  （标题给 min-width 即形成列对齐），内容行必须 display:block。",
       "keywords": [
         "列表详情分离",
         "可展开列表",
@@ -1420,7 +1362,7 @@
       "fingerprints": [],
       "confidence": "verified",
       "createdAt": "2026-10-04T02:51:43.027Z",
-      "updatedAt": "2026-10-04T04:53:55.230Z"
+      "updatedAt": "2026-10-04T15:53:30.970Z"
     },
     {
       "id": "kb-baea5bbb",
@@ -1622,54 +1564,6 @@
       "updatedAt": "2026-10-04T03:53:28.832Z"
     },
     {
-      "id": "kb-xy-combo-row-twoline",
-      "kind": "pattern",
-      "title": "列表项要分两段：标题行（inline-block 定宽对齐）+ 内容行（block）",
-      "body": "★需求：列表项第一行左边显示「称号」、右边显示「体力」，两者**垂直对齐**；技能名另起一行。\n★错误写法（一段式）：把称号、体力、技能名都塞进同一个块，靠空格或 <br> 分隔。\n  症状：技能名跑到行中间（因为它跟着行内排版走），且称号与体力长短不一时无法对齐。\n★正确写法（两段式，实测可用）：\n  <div class='xy-combo-item'>\n    <div class='xy-combo-line1'>            <!-- 行容器：font-size:0px -->\n      <span class='xy-combo-title'>称号</span> <!-- inline-block; min-width:150px; vertical-align:baseline -->\n      <span class='xy-combo-hp'>体力</span>    <!-- inline-block; vertical-align:baseline -->\n    </div>\n    <div class='xy-combo-sub'>技能A、技能B</div> <!-- block，强制独占一行 -->\n  </div>\n★关键点：① 行容器必须显式 font-size:0px 再给子元素写回字号 —— 否则 inline-block 之间的换行空白会撑出多余间隙；\n  ② 两个子元素都写 vertical-align:baseline（不是 top/middle），基线对齐才是「看起来齐」；\n  ③ 用它做列对齐：给左边元素 min-width（而不是 float 或 flex），右边元素自然被推到同一列；\n  ④ 内容行必须是 display:block，否则它会接着行容器继续排在同一行 —— 这正是「技能名跑到行中间」的根因。\n★配套：这些元素可能被主题/引擎规则改成 position:absolute 或加 float，样式表里对每个 class 都补 position:static!important; float:none!important。",
-      "keywords": [
-        "列表项",
-        "textbuttons",
-        "对齐",
-        "inline-block",
-        "vertical-align",
-        "font-size:0",
-        "称号",
-        "体力",
-        "两行",
-        "布局"
-      ],
-      "refs": [
-        "apps/core/extension/新宇杀/main/mode.js"
-      ],
-      "fingerprints": [],
-      "confidence": "verified",
-      "createdAt": "2026-10-04T04:01:52.784Z",
-      "updatedAt": "2026-10-04T04:01:52.784Z"
-    },
-    {
-      "id": "kb-xy-combo-list-clamp",
-      "kind": "pitfall",
-      "title": "px 限高决定「列表能看到几项」——切太小会被误判成数据变少",
-      "body": "★实测症状：用户报「现在只能显示 3 个技能组了」，以为筛选逻辑出问题。\n  真实原因：列表容器 maxHeight 设成 180px，而每项高度 ≈ 55~60px（标题行 ~32px + 技能行 ~20px + padding），\n  于是只放得下 3 项，其余被 overflow:auto 藏进滚动条里 —— **数据没问题，是可视区太小**。\n★教训：调限高时必须按「单项实测高度 × 期望可见项数」反算，并把算式写进注释。\n  本次改为 clampHeight(listWrap, 250, 120)，按「至少露出 4 项」估算。\n★排查口诀：列表「少了」先让用户报 children.length 与容器 clientHeight，\n  两者都正常就是滚动/限高问题，不要动数据层。\n★相关：对话框内容区约 450px（随屏幕高度变化）。分配参考：标题 60 + 列表 250 + 分隔 20 + 详情 190 + 按钮 40。\n  用 px 不要用 vh —— 游戏视口被缩放，vh 解析不可靠（曾导致高度塌成 0）。",
-      "keywords": [
-        "maxHeight",
-        "限高",
-        "滚动",
-        "列表",
-        "看不到",
-        "组合变少",
-        "clampHeight",
-        "溢出"
-      ],
-      "refs": [
-        "apps/core/extension/新宇杀/main/mode.js"
-      ],
-      "fingerprints": [],
-      "confidence": "verified",
-      "createdAt": "2026-10-04T04:01:52.784Z",
-      "updatedAt": "2026-10-04T04:01:52.784Z"
-    },
-    {
       "id": "kb-kb-lint-tool",
       "kind": "fact",
       "title": "知识库自洽靠 kb-lint.mjs 体检——put() 只保证写入不保证一致",
@@ -1694,58 +1588,6 @@
       "confidence": "verified",
       "createdAt": "2026-10-04T05:00:37.988Z",
       "updatedAt": "2026-10-04T05:00:37.988Z"
-    },
-    {
-      "id": "kb-ext-carrier-roster",
-      "kind": "pattern",
-      "title": "扩展内批量武将：名单表作唯一数据源，translate 从中派生",
-      "body": "★场景：一个扩展要放几十~上百名武将（如「新宇杀」的 104 名载体武将）。\n\n★核心做法：**名单表只写一份，translate 从中 import 派生**。\n  character.js:  export const CARRIERS = [{ name: \"仇鹏鑫\" }, …]\n                 export function carrierId(i) { return `xy_c${String(i+1).padStart(3,'0')}` }\n  translate.js:  import { CARRIERS, carrierId } from './character.js'\n                 const NAMES = Object.fromEntries(CARRIERS.map((e,i)=>[carrierId(i), e.name]))\n                 export const translate = { ...NAMES, … }\n\n  ⚠️ 为什么必须派生：手写两份名单（一份定 id、一份写翻译）时，\n     改名/增删必然会漏掉一处，而**症状很难查** ——\n     选将界面直接显示原始 id（如 `xy_c017`）而不是名字，\n     看起来像「翻译没生效」，实际是名单不同步。\n\n★id 生成：用 `前缀 + 补零序号`（xy_c001…xy_c104），不要用姓名拼音\n  （中文转拼音要引依赖、多音字会错、重名会撞）。序号 id 稳定且可预测。\n\n★`names` 字段（引擎的 姓|名 格式）：批量生成时要区分两类\n  · 普通姓名 → 自动拆首字为姓：`仇鹏鑫` → `仇|鹏鑫`\n  · 不该拆的 → 整名不分，写 `整名|`：\n    组合名（周颖&周雪）、称谓（黄妹妹、雷氏、严氏兄妹）、\n    亲属（张校春胞弟）、化名（陈某、邓某）、非人名（测试人物、院外孩童）\n  做法：名单表加可选字段 `noSplit: true`，由 splitName() 分支处理。\n\n★验证要点（静态检查查不出映射错误，必须真跑一次）：\n  ① 武将总数 = 招牌 + 批量；\n  ② 每个 id 都能在 translate 里取到名字（缺一个就会显示原始 id）；\n  ③ 翻译名之间无重复；\n  ④ names 字段都含 `|`。\n  ⚠️ 别只做 `node --check` —— 语法通过完全不能保证 id↔名字对得上。\n     可靠做法：造一个 stub 的 `noname` 模块，直接 import 两个文件做断言。\n\n★名单去重：用户给的原始清单常含重复项（本次 112 条去重后 104 条，\n  江钰娜 出现 3 次）。入库前先 `Select-Object -Unique`，\n  并把「原始 N 条 → 去重 M 条」写进注释，免得日后以为漏加。",
-      "keywords": [
-        "批量武将",
-        "名单表",
-        "translate",
-        "唯一数据源",
-        "选将池",
-        "占位武将",
-        "载体武将",
-        "names",
-        "姓名字段",
-        "重复名单"
-      ],
-      "refs": [
-        "apps/core/extension/新宇杀/character/character.js",
-        "apps/core/extension/新宇杀/character/translate.js"
-      ],
-      "fingerprints": [],
-      "confidence": "verified",
-      "createdAt": "2026-10-04T15:11:50.633Z",
-      "updatedAt": "2026-10-04T15:11:50.633Z"
-    },
-    {
-      "id": "kb-roster-explicit-fields",
-      "kind": "pitfall",
-      "title": "批量武将别用「下标取模」生成属性，也别按行号编 id",
-      "body": "★反模式（实测于「新宇杀」104 名载体武将）：用数组下标生成属性\n    group: GROUPS[index % 4]\n    hp:    HPS[index % 2]\n    sex:   index % 2 ? 'female' : 'male'\n  看起来简洁，但**从中间插入或删除一个人，其后所有人的势力/体力/性别全部错位**。\n  用户想单独调某个人的势力时，还得先数出他的下标。\n  → 这是「省了作者的几行，赔上使用者的全部可维护性」。\n\n★正解：**一名武将一行，所有属性显式写死**。\n    { name: \"仇鹏鑫\", group: GROUP.wei, hp: 4 }\n  加人只是插一行，**不影响其它任何人的属性**。\n  用 GROUP 常量对象代替裸字符串，既防拼写错误又能 IDE 补全。\n\n★第二层坑（更隐蔽）：id 也不要按行号编。\n  早期用 `xy_c${index+1}` 生成 id，做「插入一人」实测后发现：\n    属性没错位（已改为显式），但**其后 86 个 id 全部顺延** ——\n    于是 xy_c019 原本指 A，插入后指 B。破坏面：\n      ① 立绘文件名 image/character/xy_c019.jpg 指向了另一个人；\n      ② 存档里记录的武将 id 变成别人；\n      ③ 外部资料（名单表格）与 id 的对应关系全部失效。\n  ✅ 改为**由姓名派生 id**：`xy_` + 姓名的 Unicode 码点十六进制\n     （「仇鹏鑫」→ xy_4ec74e3f9451）。id 只与姓名有关，\n     增删/调序/重排都不影响任何人。实测插入与删除后**变化数均为 0**。\n     代价是不可读；需要短 id 时在行上显式写 `id:` 覆盖即可。\n\n★验证方法（务必真跑，别只看语法）：\n  造 stub 的 `noname` 模块，import 角色文件，然后：\n  ① 插入一人 → 断言原有武将的 id 与属性变化数为 0；\n  ② 删除一人 → 断言其余武将变化数为 0；\n  ③ 断言每个 id 都有翻译、翻译无重名。\n  `node --check` 只能保证语法，完全查不出错位。\n\n★通用心法：凡是「由下标推导出来的数据」，在**用户会增删中间项**的场景下\n  都是定时炸弹。要么显式写死，要么让标识**只由内容本身决定**。",
-      "keywords": [
-        "下标取模",
-        "index % N",
-        "错位",
-        "批量武将",
-        "势力",
-        "体力",
-        "id 生成",
-        "行号",
-        "增删",
-        "稳定 id",
-        "可维护性"
-      ],
-      "refs": [
-        "apps/core/extension/新宇杀/character/character.js"
-      ],
-      "fingerprints": [],
-      "confidence": "verified",
-      "createdAt": "2026-10-04T15:23:30.657Z",
-      "updatedAt": "2026-10-04T15:23:30.657Z"
     }
   ]
 }
