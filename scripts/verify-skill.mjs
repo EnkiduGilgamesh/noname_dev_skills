@@ -87,6 +87,8 @@ const NON_SKILL_KEYS = new Set([
     "get", "status", "_status", "name", "info", "config", "pack", "element", "list",
     "onremove", "onuninstall", "onload", "precontent", "arenaReady", "dynamicTranslate",
     "init", "help", "skillList", "sort", "audio", "audioname", "image", "skin",
+    // 扩展包（extension.js 的 extensionPackage）自身字段
+    "package", "files", "editable", "version",
 ]);
 
 // ── 收集待验证目标 ─────────────────────────────────────────

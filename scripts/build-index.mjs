@@ -285,6 +285,11 @@ function extractBlocksByIndent(text) {
         if (!m) continue;
         const id = m[1];
 
+        // 同样要过滤结构性关键字 —— 否则扩展的 extension.js 里
+        // 顶层 tab 缩进的包字段（config/help/package/files 等）
+        // 会被当成技能，产生一批假的「缺描述」警告。
+        if (!looksLikeSkillId(id)) continue;
+
         const end = matchBrace(lines, i);
         if (end < 0) continue;
 
@@ -308,6 +313,10 @@ const NON_SKILL_KEYS = new Set([
     "get", "status", "_status", "name", "info", "config", "pack", "element", "list",
     "onremove", "onuninstall", "onload", "precontent", "arenaReady", "dynamicTranslate",
     "init", "help", "skillList", "sort", "audio", "audioname", "image", "skin",
+    // 扩展包（extension.js 的 extensionPackage）自身字段：
+    // 它们与技能无关，但单文件/扩展风格解析会误当成技能 ID
+    // （实测「新宇杀」扩展会产生 4 条假「缺描述」警告）。
+    "package", "files", "editable", "version",
 ]);
 
 /** 判定一个键名是否可能是技能 ID */

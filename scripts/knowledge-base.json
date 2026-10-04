@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-03T10:57:04.139Z",
+  "updatedAt": "2026-10-04T04:01:52.784Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -675,6 +675,1005 @@
       "confidence": "verified",
       "createdAt": "2026-10-03T10:57:04.137Z",
       "updatedAt": "2026-10-03T10:57:04.137Z"
+    },
+    {
+      "id": "kb-dc930a77",
+      "kind": "pattern",
+      "title": "扩展注册新模式用 game.addMode",
+      "body": "扩展要新增一个可选模式，用 game.addMode(name, info, info2)（game/index.js:6276-6312）。它会自动设 fromextension:true、登记 splash、并把懒加载钩子写成 lib.init['setMode_'+name]（import.ts:41-52 会优先调用它）。info2 需要 {translate, extension, config}；info 需要 {name, start}。注意 game/index.js:7904 明确把 start/startBefore 排除在 lib 合并之外，所以 start 必须由模式自己提供，不能靠其它模式继承。start 是「步骤函数数组」，由 ArrayCompiler 顺序执行（compilers/ArrayCompiler.ts:12-40），最后经 init/index.ts:517-521 挂到 lib.init.start。",
+      "keywords": [
+        "addMode",
+        "自定义模式",
+        "扩展模式",
+        "start",
+        "fromextension",
+        "步骤数组"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T14:57:04.406Z",
+      "updatedAt": "2026-10-03T14:57:04.406Z"
+    },
+    {
+      "id": "kb-bd196bd3",
+      "kind": "pattern",
+      "title": "按模式限制武将池用 characterFilter",
+      "body": "要让某批武将只在指定模式出现，注册 lib.characterFilter（library/index.js:93）：键=武将ID，值=(mode)=>boolean。lib.filter.characterDisabled 会检查 lib.characterFilter[name] && !lib.characterFilter[name](get.mode())（library/index.js:11246、11293），返回 false 即该模式下禁用。武将包在 index.js 里以 characterFilter 字段提交（见 character/standard/index.js:23），经 content.ts:3922-3952 的通用循环合并进 lib。⚠️关键坑：名单必须来自静态 import 的 character.js，不能在模块顶层遍历 lib.character —— processCharacter 是在模块求值之后才写 lib.character（game/index.js:6119），那时遍历会得到空表。",
+      "keywords": [
+        "characterFilter",
+        "限制武将池",
+        "按模式过滤武将",
+        "characterDisabled",
+        "专属武将"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T14:57:09.687Z",
+      "updatedAt": "2026-10-03T14:57:09.687Z"
+    },
+    {
+      "id": "kb-3838cc44",
+      "kind": "pattern",
+      "title": "枚举技能与判断可附加性（技能组池）",
+      "body": "要从本体+所有已加载扩展汇总技能：遍历 lib.character 即可自动覆盖扩展（扩展加载时 addCharacterPack 已把技能写进 lib.skill、武将写进 lib.character）。取某武将技能用 get.character(name).skills（Character 实例，兼容 [sex,group,hp,skills,trash] 数组格式与 {skills:[]} 对象格式，character.js:186-206）。判断技能能否安全附加给任意武将：① 先查 Object.keys(info).length —— 被模式禁用的技能是被 finishSkill「掏空」而非删除（game/index.js:8691-8696），lib.skill[id] 存在≠可用；② 过 lib.filter.skillDisabled(skill)（library/index.js:11305，排 unique/temp/sub/fixed/vanish 与缺描述）；③ 再自行排除 charlotte/hiddenSkill/sub/sourceSkill/limited/juexingji/zhuSkill/dutySkill/groupSkill 与 ai.combo（参照幻化之战 brawl.js:503）。⚠️ subSkill 会被引擎展开成 <父ID>_<子键> 并打上 sub=true 与 sourceSkill=父ID（game/index.js:8761-8782），这类派生技能必须排除。",
+      "keywords": [
+        "技能组",
+        "枚举技能",
+        "skillDisabled",
+        "sourceSkill",
+        "charlotte",
+        "可附加技能",
+        "汇总扩展技能"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T14:57:16.488Z",
+      "updatedAt": "2026-10-03T14:57:16.488Z"
+    },
+    {
+      "id": "kb-f5483d9f",
+      "kind": "pattern",
+      "title": "给角色追加技能要用 await player.addSkills",
+      "body": "player.addSkills(skill, popup=true)（player.js:11229-11234）委托给 changeSkills，会 game.createEvent('changeSkills', false) 并走完整事件流程（含日志/弹窗/广播），是异步的，必须 await。对比：addSkill（player.js:11255）是同步的，直接改 this.skills；addAdditionalSkill（player.js:11375）用于「由某技能赋予的附加技能」，可随来源技能回收。追加前建议过滤 player.hasSkill(id) 以免重复。另有 getStockSkills(unowned, unique, hidden)（player.js:5145-5172）可取某角色武将牌自带的技能。",
+      "keywords": [
+        "addSkills",
+        "追加技能",
+        "changeSkills",
+        "addAdditionalSkill",
+        "获得技能"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T14:57:21.586Z",
+      "updatedAt": "2026-10-03T14:57:21.586Z"
+    },
+    {
+      "id": "kb-7482f41b",
+      "kind": "pitfall",
+      "title": "precontent 必须 async 且 await 模式注册",
+      "body": "扩展的 precontent 会被当作**事件内容**执行（content.ts:5377 的 next.setContent(info.precontent)，调用方 return next.forResult()；另一处 content.ts:6074 也是 await next），引擎会等它返回。因此 precontent 里若用不 await 的浮动 Promise（如 import(...).then(...)）去注册模式，注册会晚于启动流程，玩家上次选中该模式时 lib.mode[name] 尚不存在 → 报错或退回空模式。正确写法：export async function precontent(){ ... await import(...) ... }。",
+      "keywords": [
+        "precontent",
+        "async",
+        "异步注册",
+        "浮动Promise",
+        "模式注册时机"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T15:04:09.526Z",
+      "updatedAt": "2026-10-03T15:04:09.526Z"
+    },
+    {
+      "id": "kb-bf9b7c5c",
+      "kind": "pitfall",
+      "title": "复用别的模式 start 时不要写死插入下标",
+      "body": "若模式的 start 复用另一模式（如身份局）的步骤数组并插入自己的步骤，**不要写死下标**。实测身份局 start 共 8 步： [0..3] 设置/身份准备、[4] game.chooseCharacter() 选将、[5] 身份亮明+addVideo(init)、[6] game.gameDraw() 发牌、[7] game.phaseLoop() 回合循环。早期误判为 4 步会把步骤插到选将之前（玩家先被问技能后选武将）。稳妥做法：用 steps.findIndex(step => step.toString().includes('gameDraw')) 动态定位「发牌」步骤，插到它之前，即可保证落在【选将之后、发牌之前】；定位失败时退回一个保守下标并 console.warn。",
+      "keywords": [
+        "复用模式start",
+        "插入步骤",
+        "start下标",
+        "gameDraw定位",
+        "身份局步骤顺序"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T15:04:14.799Z",
+      "updatedAt": "2026-10-03T15:04:14.799Z"
+    },
+    {
+      "id": "kb-4a2ba3cc",
+      "kind": "pitfall",
+      "title": "解析扩展技能时须过滤 extensionPackage 字段",
+      "body": "索引/自检工具解析 extension.js 时，顶层 tab 缩进的这些键是**扩展包字段而非技能**：name/config/content/help/package/precontent/files/editable/version。若不过滤，会被当成技能并产生一批假的「缺描述」警告（实测「新宇杀」扩展误报 4 条：config/help/package/files）。坑点：build-index.mjs 有两条解析路径 —— 风格 A（extractBlocksByIndent，固定 1 个 Tab 缩进）原先**完全没有过滤**，只给风格 B（容器风格）加了 NON_SKILL_KEYS 判据；修复须同时给风格 A 加 looksLikeSkillId 判定。修好后总技能数由 6790 降到 6767（去掉 23 条幽灵条目）。",
+      "keywords": [
+        "解析噪音",
+        "extensionPackage",
+        "风格A",
+        "looksLikeSkillId",
+        "缺描述误报"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T15:04:20.485Z",
+      "updatedAt": "2026-10-03T15:04:20.485Z"
+    },
+    {
+      "id": "kb-1f4975a4",
+      "kind": "pattern",
+      "title": "新宇杀模式：组合=体力+技能组，开局前选故不排除特殊技",
+      "body": "「新宇杀」扩展的玩法模型：组合（combo）= 体力值 + 一整套技能，二者绑定。玩家先选载体武将（保留固有技），再选一个组合；选中后**体力按组合设置**、**技能追加**到载体身上。候选组合自动汇总自本体+所有已启用扩展的每个武将（get.character(name) 取 .hp/.maxHp/.skills），也支持扩展手写（main/combos.js 只写体力与技能，无需武将信息）。★关键设计结论：因为组合是**开局前**选定、且**体力与原武将一并设置**，所以**不需要排除限定技/觉醒技/使命技/主公技**——限定技的一局一次限制从头生效、觉醒技的觉醒条件（依赖体力与技能）能正常成立、使命技有完整状态机起点。只有「脱离原宿主必然出错」的技能才过滤（化身/新生类，依赖隐藏武将牌机制），外加 charlotte/sub/sourceSkill 等结构性排除。⚠️实战坑：本体有体力极端武将（hp=0 张让等、hp=15 兀突骨、hp=105 zhangjian、hp=12/14 杀海拾遗炉石卡），必须加体力范围过滤（默认 1..8）否则会出现荒谬体力。",
+      "keywords": [
+        "新宇杀",
+        "组合",
+        "体力+技能",
+        "不排除限定技",
+        "觉醒技",
+        "使命技",
+        "combos.js"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T15:24:27.557Z",
+      "updatedAt": "2026-10-03T15:24:27.557Z"
+    },
+    {
+      "id": "kb-8049d13d",
+      "kind": "pattern",
+      "title": "改角色体力：直接改 player.hp/maxHp 并先设上限",
+      "body": "要在开局前把某角色的体力改成指定值，直接赋值 player.maxHp 与 player.hp 再 player.update() 即可——这是引擎自身与各模式的通用写法（实测 61 处，遍布 brawl/boss/single/doudizhu/stone；player.js 的 init() 也是直接赋值 this.hp/this.maxHp，见 player.js:3515-3516）。★顺序很重要：**先设 maxHp，再把 hp 夹到 [1, maxHp]**。因为 player.update() 在 hp >= maxHp 时会把 hp 拉平到 maxHp（player.js:4605-4607），若先设超大 hp 再调低 maxHp，hp 会被夹掉。最贴近的现成范例是幻化之战自选主将：player.init(name) 之后 if(info.maxHp) player.maxHp=info.maxHp; if(info.hp) player.hp=Math.min(info.hp, player.maxHp)（brawl.js:5680-5685）。",
+      "keywords": [
+        "改体力",
+        "maxHp",
+        "hp",
+        "player.update",
+        "开局前设体力",
+        "组合体力"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T15:24:33.005Z",
+      "updatedAt": "2026-10-03T15:24:33.005Z"
+    },
+    {
+      "id": "kb-06b99a7e",
+      "kind": "pattern",
+      "title": "chooseButton 用数组下标作 link 更稳",
+      "body": "用 chooseButton 从一个大列表里选一项时，把 button.link 设为**数组下标（数字）**比设字符串 ID 更稳：ID 可能含任意字符（中文、空格、+、括号等），做 filterButton 匹配或后续 find 时容易出错。写法：ui.create.dialog(标题, [list.map((item,i)=>[i, 显示文本]), 'tdnodes'])（buttonPresets.tdnodes 接受 [link,文本] 数组，ui/create/index.js:3271-3281），然后 filterButton: button => typeof button.link === 'number' && !!list[button.link]。另：dialog.buttons 在 ui.create.dialog 返回后**同步**可用（ui/create/index.js:3962），可直接遍历给每个按钮挂 _customintro 做右键详情。",
+      "keywords": [
+        "chooseButton",
+        "link",
+        "下标",
+        "tdnodes",
+        "customintro",
+        "对话框",
+        "选择列表"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T15:24:39.761Z",
+      "updatedAt": "2026-10-03T15:24:39.761Z"
+    },
+    {
+      "id": "kb-96ce0d94",
+      "kind": "pitfall",
+      "title": "复用别的模式：必须连 game 方法一起复用，否则方法不存在",
+      "body": "模式定义里的 game: {...} 是在 switchMode 时才被**合并进全局 game 对象**的（game/index.js:7886-7888 的 for(let i in exports.game) game[i]=exports.game[i]），并不常驻。因此若一个模式复用另一模式（如身份局）的 start 步骤数组，却**只复用 start 而不复用 game**，执行到中途就会抛 'TypeError: game.chooseCharacter is not a function'（实测报错定位在 mode/identity.js:265，event.step:4）。★正确做法：把整个模式对象传下去，注册时 game: { ...baseMode.game, ...自定义 }，并一并带上 get: {...baseMode.get}（identity 的 chooseCharacter 内部要用 get.identityList）。identity 的 game 共 16 个方法：canReplaceViewpoint/getState/updateState/getRoomInfo/getIdentityList/getIdentityList2/getVideoName/showIdentity/checkResult/checkOnlineResult/chooseCharacterPurpleOL/chooseCharacterPurple/chooseCharacterStratagemOL/chooseCharacter/chooseCharacterOL/stratagemCamouflage。另注：identity 的 chooseCharacter 内部分支靠 _status.mode（purple/zhong/normal/stratagem），新模式不设 _status.mode 时会走普通分支。",
+      "keywords": [
+        "复用模式",
+        "game方法",
+        "chooseCharacter is not a function",
+        "switchMode",
+        "game合并",
+        "identity"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T15:36:27.707Z",
+      "updatedAt": "2026-10-03T15:36:27.707Z"
+    },
+    {
+      "id": "kb-1c088f81",
+      "kind": "pitfall",
+      "title": "按模式限制武将池必须双向过滤（含批量排除本体武将）",
+      "body": "lib.characterFilter（library/index.js:93）的键=武将ID、值=(mode)=>boolean，被 characterDisabled/characterDisabled2 检查（library/index.js:11246、11293）。★要点：只给「自己的武将」注册 mode===MODE 是**不够的** —— 那只能让自己的武将在别的模式不出现，**不能**阻止本体/其它扩展的武将在自己模式里出现（实测选将池会混入全部约 3000 个武将）。必须**双向**：① 自己的武将 → 仅本模式可用；② 其它所有武将 → 本模式下返回 false。②不能在模块顶层做，因为 lib.character 在模块求值时还是空的（武将是 processCharacter 在求值之后才写入，game/index.js:6119）；应挂到 lib.onload（数组，library/index.js:190），它由 init/index.ts:361-363 在所有导入完成后执行，此时 lib.character 已完整。合并时用 Object.assign(lib.characterFilter, ...)（该对象是普通对象，不是数组，没有 addArray）。",
+      "keywords": [
+        "characterFilter",
+        "选将池",
+        "限制武将",
+        "双向过滤",
+        "lib.onload",
+        "本体武将混入"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T15:51:41.280Z",
+      "updatedAt": "2026-10-03T15:51:41.280Z"
+    },
+    {
+      "id": "kb-9a19f3d3",
+      "kind": "pattern",
+      "title": "自定义选将流程必须自己补身份分配与 game.zhu",
+      "body": "若一个模式**自己实现选将**（例如为限定武将池/候选数量而不用 game.chooseCharacter），就必须自己补身份分配。原因：身份局的 game.chooseCharacter() 内部顺带完成了身份分配（mode/identity.js:2049-2109：identityList.randomSort() → currentPlayer.identity = currentIdentity → currentPlayer.node.identity.classList.add('guessing') → setIdentity('cai') → 若为 zhu 则 game.zhu = currentPlayer、isZhu=true）。漏掉会导致两个后果：① 身份牌 UI 不显示或异常（player.identity 为空）；② 后续身份步骤里 switch (game.zhu.name)（mode/identity.js:350）抛错，因为 game.zhu 未定义。正确补法：identityList = get.identityList(game.players.length) 取表（缺失时兜底 zhu+fan），randomSort 后逐个赋值 current.identity、current.setIdentity(id)、identityShown=true，并把 zhu 记到 game.zhu 且 isZhu=true；最后兜底确保 game.zhu 存在，再调 game.showIdentity(true)（该方法会统一设置 identityShown/ai.shown/isZhu，见 identity.js:791-804）。",
+      "keywords": [
+        "自定义选将",
+        "身份分配",
+        "game.zhu",
+        "setIdentity",
+        "identityShown",
+        "get.identityList",
+        "身份UI"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T15:51:47.558Z",
+      "updatedAt": "2026-10-03T15:51:47.558Z"
+    },
+    {
+      "id": "kb-ac995be0",
+      "kind": "pattern",
+      "title": "扩展模式的设置项：写进 addMode 的 info2.config",
+      "body": "扩展模式想提供「可在设置里调整」的选项，把它写进 game.addMode(name, info, info2) 的 **info2.config**（game/index.js:6290-6295 会把它存进 lib.mode[name].config）。这些项会自动渲染到该模式的菜单设置面板（ui/create/menu/startMenu.js:73-146 遍历 lib.mode[mode].config）。配置值按模式存储于 lib.config.mode_config[mode][key]，用 get.config(key, mode) 读取（get/index.js:2141-2147），用 game.saveConfig(key, value, mode) 写入。写法参考本体的 choice_zhu（library/index.js:6530-6546）：数值输入用 { name, init, input: true, restart: true, onblur(e){ 读 e.target.innerText、取整、夹下限、回写 innerText，再 game.saveConfig(...) } }。⚠️ 只在 info2.config 里声明还不够——渲染时若 key 不在其 config 对象中会执行 game.saveConfig(key, value.init, mode) 落默认值，所以 init 必须给对。",
+      "keywords": [
+        "模式设置",
+        "addMode config",
+        "info2.config",
+        "mode_config",
+        "get.config",
+        "自定义选项",
+        "onblur"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-03T15:51:54.805Z",
+      "updatedAt": "2026-10-03T15:51:54.805Z"
+    },
+    {
+      "id": "kb-1aff651b",
+      "kind": "pattern",
+      "title": "替换别人模式的某一步：包装原步骤并临时屏蔽其调用",
+      "body": "复用别的模式（如身份局）的 start 步骤数组时，若想**替换**其中某一步的行为（而不是并列新增一步），不要试图去掉它——直接删会导致该步内的其它必要逻辑（如身份分配）也丢失，并列出两步会导致功能重复触发（实测：玩家被要求选两次武将）。正确做法是**包装**原步骤函数：定位目标步骤（如 steps.findIndex(s => s.toString().includes('chooseCharacter'))），把它替换成 async function(event,trigger,player){ const orig = game.xxx; game.xxx = () => {}; try { await orig.call(this,event,trigger,player); } finally { game.xxx = orig; } }，即在其执行期间临时把要屏蔽的方法变成空操作，前置逻辑照常跑完，交互界面不再弹出。然后再把「自己的那一步」插到该步骤之后（index+1），保证顺序为【原步骤 → 自己的步骤 → 后续】。★验证手法：用 node 读源码切出 start 数组、按顶层步骤函数切分，确认目标关键词只命中一个步骤，并确认插入点仍在「发牌(gameDraw)」之前。",
+      "keywords": [
+        "替换步骤",
+        "包装步骤",
+        "屏蔽调用",
+        "重复选将",
+        "复用模式start",
+        "findIndex",
+        "chooseCharacter"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T00:48:04.787Z",
+      "updatedAt": "2026-10-04T00:48:04.787Z"
+    },
+    {
+      "id": "kb-2bb4bdcd",
+      "kind": "pattern",
+      "title": "让玩家看清技能：用全屏对话框 + 卡片内直出描述",
+      "body": "需要让玩家在选技能时直接读到**技能名与完整描述**（而不是靠右键查看），做法是在 ui.create.dialog 上叠加既有的大尺寸样式类：dialog.classList.add('fixed','scroll1','scroll2','fullwidth','fullheight','noupdate')，再设 dialog.style.overflow='hidden'、dialog.content.style.height='100%'（这套 class 是幻化之战等处已在用的既有样式，见 mode/brawl.js:29-40）。随后用 dialog.add([[link, html], 'tdnodes']) 为每个候选项加一张卡片，html 里直接拼出技能名与 get.skillInfoTranslation(id,null,false) 的描述文本。卡片生成后遍历 dialog.buttons 把 node.style.width 设为 calc(100% - 10px) 并 display:block，让长描述能撑满宽度换行。★要用第二参数 'forcebutton' 创建对话框，按钮才更适配这种整块布局。",
+      "keywords": [
+        "全屏对话框",
+        "fullwidth",
+        "fullheight",
+        "技能描述",
+        "tdnodes",
+        "forcebutton",
+        "选择UI"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T00:48:10.303Z",
+      "updatedAt": "2026-10-04T00:48:10.303Z"
+    },
+    {
+      "id": "kb-762fd1ab",
+      "kind": "fact",
+      "title": "扩展武将 id 前缀可能与本体冲突，必须用显式名单",
+      "body": "★实测事故：扩展若用「id 前缀」判断哪些武将是自己的（如 name.startsWith('xy_')），可能撞上本体已有的同类 id。本体的 offline 武将包里就有 8 个 xy_ 开头的武将：xy_caocao / xy_chengyu / xy_xunyu / xy_chengong / xy_zhangkai / xy_lvbu / xy_zhangmiao / xy_caosong（「徐兖」势力角色，其翻译带 *_prefix: \" 徐兖\\，见",
+      "keywords": [],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T01:12:15.262Z",
+      "updatedAt": "2026-10-04T01:12:15.262Z"
+    },
+    {
+      "id": "kb-b6fee872",
+      "kind": "pitfall",
+      "title": "多行可点击列表用 ui.create.textbuttons，别用 tdnodes",
+      "body": "要在对话框里做「每条多行文本、整行可点选」的列表（例如展示技能名+完整描述供玩家挑选），必须用 ui.create.textbuttons(list, dialog)，其中 list 元素为 [link, htmlString]。它生成 .popup.text.textbutton 整行块，能自然换行、高度自适应，并在内部把每行注册进 dialog.buttons、绑定点击（ui/create/index.js:3625-3646）；要求 htmlString **必须以 <div 开头**，否则它会自己再包一层 div。★反面教材：不要用 dialog.add([[link, html], 'tdnodes']) —— .tdnode 的 CSS 是 display:inline-block + width:auto !important + font-size:18px !important（layout/default/layout.css:3866-3877），是给短标签设计的，塞多行技能描述会横向挤在一起并彼此重叠（实测截图即如此）；而且 !important 会让你在 JS 里设的 width/height 全部失效。",
+      "keywords": [
+        "textbuttons",
+        "tdnodes",
+        "多行列表",
+        "重叠",
+        "width auto important",
+        "对话框",
+        "技能描述UI"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T01:12:22.045Z",
+      "updatedAt": "2026-10-04T01:12:22.045Z"
+    },
+    {
+      "id": "kb-5327e206",
+      "kind": "pitfall",
+      "title": "扩展模块间禁止反向导入：会循环引用并让常量变 undefined",
+      "body": "★实测事故：为复用「本扩展武将名单」与「MODE_NAME」，让 main/mode.js 反向 import character/characterFilter.js。由于 characterFilter.js 又 import character.js，而 character/index.js 同时 import characterFilter.js 与（经 precontent）mode.js，形成循环依赖。后果是模块求值顺序不确定，mode.js 里的 export const MODE_NAME = FILTER_MODE_NAME 可能在 characterFilter.js 求值完成前取值 → MODE_NAME 变成 **undefined** → game.addMode(undefined, ...) 执行 lib.config.all.mode.push(undefined)、lib.mode[undefined]=...、lib.config.mode_config[undefined]=...，于是模式配置全部读不到、选将步骤失效、开局直接崩溃（症状：选将阶段消失 + 开始游戏崩溃）。教训：① 扩展内各模块应保持**单向依赖**，把一个共享常量（如 MODE_NAME）在各文件里写成**字面量**，或抽到无依赖的 constants.js，绝不要反向 import 业务模块；② 需要「自己的武将名单」时直接从 character.js 取 Object.keys(character)，不要绕经别的模块；③ 排查此类问题时，用 node 静态构建 import 图并做环检测（从每个模块出发 DFS），比读代码猜更可靠。",
+      "keywords": [
+        "循环依赖",
+        "circular import",
+        "MODE_NAME undefined",
+        "反向导入",
+        "addMode undefined",
+        "崩溃",
+        "选将消失"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T01:20:42.596Z",
+      "updatedAt": "2026-10-04T01:20:42.596Z"
+    },
+    {
+      "id": "kb-46dc4150",
+      "kind": "fact",
+      "title": "扩展武将包必须走 package.character，不能靠模块副作用",
+      "body": "★实测事故：扩展武将一直进不了 lib.character（症状：自定义模式选将池为空、选将阶段直接消失，控制台显示武将数 0）。原因是启动顺序：init/index.ts 里 L523-524 的统一装载点 Object.values(lib.imported.character).forEach(loadCharacter) **跑在** L588-590 的扩展加载 lib.extensions.map(loadExtension) **之前**。若只靠 precontent 里 import \" ../character/index.js\\",
+      "keywords": [],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T01:38:01.716Z",
+      "updatedAt": "2026-10-04T01:38:01.716Z"
+    },
+    {
+      "id": "kb-3b8a995e",
+      "kind": "pattern",
+      "title": "取武将称号用 get.characterTitle",
+      "body": "武将称号（如关羽→「美髯公」、刘备→「乱世的枭雄」）存在 lib.characterTitle[武将ID]（本体定义在 character/<包>/characterTitle.js，如 standard/characterTitle.js:9-10），取用 API 是 get.characterTitle(id)（get/index.js:933-946）——它会剥掉 #r/#p/#g/#b 这类颜色标记并返回纯文本，避免把颜色前缀当名字显示。若要带颜色渲染，用 get.colorspan(lib.characterTitle[id])（get/index.js:1087 起），本体在技能/武将详情里就是这么用的（get/index.js:5203、5969）。★注意称号通常**不与武将同名且不唯一可辨**（「美髯公」不看出是关羽），若拿它当列表主标题，建议同时保留武将名或至少在详情里给出，否则玩家难以辨识。",
+      "keywords": [
+        "称号",
+        "characterTitle",
+        "美髯公",
+        "colorspan",
+        "显示武将名"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T01:58:37.713Z",
+      "updatedAt": "2026-10-04T01:58:37.713Z"
+    },
+    {
+      "id": "kb-7c15f937",
+      "kind": "fact",
+      "title": "textbuttons 的行按钮自身已绑点击，勿在同节点再加处理",
+      "body": "★实测坑：ui.create.textbuttons 生成每一行时，会把 ui.click.button **直接绑定在该行节点本身**（ui/create/index.js:3638-3644：next = dialog.add(str); next.firstChild.addEventListener('click', ui.click.button); dialog.buttons.add(next.firstChild)）。因此若想给同一行再加一个点击行为（如「点击展开详情」），**不能**用 addEventListener + stopPropagation 去拦截 —— 两个监听器挂在**同一个元素**上，stopPropagation 只阻止冒泡/捕获传播，无法阻止同元素上的另一个监听器，结果是「点一下两个行为都触发」（实测：既展开又被选中）。正确做法：把附加行为挂到行内部**独立的子按钮**上（如 .my-toggle），并在其回调里 stopPropagation，这样点它不会冒泡到行节点，也就不会触发选中。★另注：textbuttons 仅在字符串**不以 <div 开头**时才帮你包一层 '<div class=\" popup text textbutton\\>'（同文件",
+      "keywords": [],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T02:03:13.479Z",
+      "updatedAt": "2026-10-04T02:03:13.479Z"
+    },
+    {
+      "id": "kb-b3c1f149",
+      "kind": "pitfall",
+      "title": "lib.init.sheet 只能插单条规则，整段 CSS 要用 style 元素",
+      "body": "★实测事故：把含多个选择器的整段 CSS 传给 lib.init.sheet() 会抛 'SyntaxError: Failed to parse the rule'，且**整段样式全部失效**（症状：卡片文字挤在一起、元素无间距、宽度异常）。原因是该函数实现为 style.sheet.insertRule(arguments[i], 0)（noname/library/init/index.js:162-171），而 CSSOM 的 insertRule **只接受一条规则**，不支持整段样式表文本。正确做法：自己 createElement('style') → style.textContent = css → document.head.appendChild(style)，并可加 id 做幂等判断。本体里 lib.init.sheet 的既有用法（init/index.ts:383 等）传的都是单条规则字符串，可作对照。★配套教训：给游戏内 UI 写样式时，**关键布局（间距/宽度/行高）建议同时写内联 style**，这样即使样式表注入失败或被主题覆盖，也不会退化成完全不可读的样子。",
+      "keywords": [
+        "lib.init.sheet",
+        "insertRule",
+        "Failed to parse the rule",
+        "样式失效",
+        "createElement style",
+        "内联样式兜底"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T02:11:32.379Z",
+      "updatedAt": "2026-10-04T02:11:32.379Z"
+    },
+    {
+      "id": "kb-e5f3bceb",
+      "kind": "fact",
+      "title": "dialog.buttons 是数组，不是 DOM 节点（勿取 .style）",
+      "body": "★实测事故：对 dialog.buttons 取 .style 会抛 'TypeError: Cannot set properties of undefined (setting \" display\\)'，导致整段选组合流程被",
+      "keywords": [],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T02:15:46.788Z",
+      "updatedAt": "2026-10-04T02:15:46.788Z"
+    },
+    {
+      "id": "kb-d00ee23b",
+      "kind": "pitfall",
+      "title": "对话框内做可展开内容：别设 overflow:hidden，也别锁高度",
+      "body": "★实测问题：在 ui.create.dialog 里做「点击展开」的卡片时，展开后内容被裁掉（高度太低、看不到完整描述）。两个常见元凶：① 给卡片设了 overflow:hidden —— 折叠态算出的高度会把展开内容裁掉，应改为 overflow:visible；② 给 dialog.contentContainer 设 overflow='visible'（照抄幻化之战 brawl.js:29-40 的写法）—— 那样内容区**无法滚动**，展开后下方内容既看不见也滚不到；应改成 overflowY='auto' + overflowX='hidden'，并把 dialog.content.style.height 设为 'auto' 而非 '100%'。③ 引擎的按钮样式可能给 .button/.textbutton 固定高度，需要逐个按钮覆盖：button.style.height='auto'; minHeight='0'; maxHeight='none'; overflow='visible'; display='block'。★排查顺序：先看自己设的 overflow/height，再看按钮元素，最后才是内容区容器。",
+      "keywords": [
+        "展开被裁",
+        "overflow:hidden",
+        "高度不足",
+        "dialog滚动",
+        "textbutton固定高度",
+        "contentContainer"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T02:23:51.760Z",
+      "updatedAt": "2026-10-04T02:23:51.760Z"
+    },
+    {
+      "id": "kb-5d1329d1",
+      "kind": "pitfall",
+      "title": "dialog 内别用 flex 排版，文字会被压成一列一个字",
+      "body": "★实测症状：用 ui.create.textbuttons 往 dialog 里塞自定义卡片，卡片头部用了 display:flex 之后，展开的长文本被压成**一列一个字**（每个字换行）。原因是 flex 子项默认 min-width:auto，在 dialog 的按钮容器（.buttons 是 width:100% 的普通块，但按钮本身受引擎样式影响宽度会收缩）里，flex 容器拿不到足够宽度，于是按最小内容宽度（单个汉字）排布。★稳妥做法：dialog 内**避免用 flex**，改用「块级容器 + display:inline-block 的子项 + margin-right 控制间距」，并给每一层都显式加 width:100% / min-width:100% / box-sizing:border-box / white-space:normal：① 卡片根节点；② dialog.content、dialog.contentContainer；③ dialog.content 下的 .buttons 容器（dialog.buttons 是数组，用 querySelector('.buttons') 取）；④ 逐个按钮节点（for (const b of dialog.buttons)）。这样无论父容器怎么收缩，文本都有完整宽度可用。",
+      "keywords": [
+        "flex压成一列",
+        "min-width auto",
+        "一列一个字",
+        "textbuttons宽度",
+        "dialog排版",
+        "white-space"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T02:28:48.165Z",
+      "updatedAt": "2026-10-04T02:28:48.165Z"
+    },
+    {
+      "id": "kb-96d5b2f2",
+      "kind": "pitfall",
+      "title": "dialog 内长文本换行：内联样式会输给主题 !important，需用 !important 兜底",
+      "body": "★实测：在 dialog 的按钮（button 元素）里放长文本，即使每一层都写了内联 display:block;width:100%;white-space:normal，文字仍可能被排成「一列一个字」。原因是引擎/主题样式表里存在带 !important 的规则（例如 layout.css:3866-3877 的 .tdnode{width:auto!important}，以及各主题对 .button/.caption 的覆盖），**内联样式不带 !important 时会输**。可靠做法：在注入的 <style> 里用同样带 !important 的规则把这些属性钉死：display:block!important; width:100%!important; min-width:0!important; box-sizing:border-box!important; white-space:normal!important; word-break:break-word!important; overflow-wrap:break-word!important; writing-mode:horizontal-tb!important; text-align:left!important。★另注意排查顺序：先确认没有残留 flex（flex 子项 min-width:auto 也会造成同样症状），再确认没有被继承 writing-mode:vertical-rl（本体有这类规则用于卡牌竖排名字，layout.css:391/1374），最后才是 !important 覆盖问题。",
+      "keywords": [
+        "一列一个字",
+        "换行失效",
+        "!important",
+        "内联样式失效",
+        "writing-mode",
+        "min-width auto",
+        "长文本"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T02:33:42.473Z",
+      "updatedAt": "2026-10-04T02:33:42.473Z"
+    },
+    {
+      "id": "kb-9570b547",
+      "kind": "pitfall",
+      "title": "用 !important 强制 display:block 后，内联 display:none 会失效",
+      "body": "★实测事故：为修复「长文本被压成一列」给元素加了 display:block!important，结果**自己挖了新坑** —— 折叠态用内联 style='display:none' 写的隐藏被这条规则压掉，所有卡片详情全部展开（症状：收起状态下也显示详情内容、多个卡片文字重叠、每张卡都出现「选择」按钮）。原因：内联样式优先级低于带 !important 的样式表规则，与自己前一轮的修复直接冲突。★正确做法：显隐切换改用**类名**，且让两条规则优先级对等：.xxx:not(.open){display:none!important} + .xxx.open{display:block!important}，JS 侧用 el.classList.toggle('open', willOpen) 与 el.classList.contains('open') 判断，**不要**再读 style.display（它已不代表实际可见性）。★通用教训：一旦给某属性加了 !important，就必须把所有控制该属性的路径都改成同等优先级（类名），否则会互相打架。",
+      "keywords": [
+        "!important冲突",
+        "display:none失效",
+        "内联样式优先级",
+        "折叠失效",
+        "classList.toggle",
+        "显隐切换"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T02:39:03.150Z",
+      "updatedAt": "2026-10-04T02:39:03.150Z"
+    },
+    {
+      "id": "kb-af509556",
+      "kind": "pattern",
+      "title": "复杂选择 UI：列表与详情分离，别在列表项内做展开",
+      "body": "★经验：在 dialog 里做「可展开的卡片列表」非常难做对 —— 列表项本身是按钮（textbuttons 会把 ui.click.button 绑在节点上），在里面再放展开区会连续踩坑：① 同节点监听器无法用 stopPropagation 隔离；② 展开撑高后与其他卡片重叠；③ 加 display:block!important 修换行又会压掉 display:none 导致折叠失效。**更稳的设计是把「选择」与「阅读」拆成两个区域**：上方/左侧紧凑列表（每项只显示标题+关键数值，点击即选中/预览），下方/右侧固定文本区显示详情（点击列表项时刷新其 innerHTML）。这样列表项高度恒定，不会互相重叠，也不需要任何展开/折叠状态。★实现要点：列表项仍用 ui.create.textbuttons 生成以保证走引擎选中链路，但需传一个最小宿主对象 {add(str){…返回{firstChild}}, buttons:{add:node=>dialog.buttons.add(node)}}；**buttons.add 必须转发到真实 dialog.buttons**，否则引擎读不到候选按钮、选中拿不到结果（dialog.js:311-346 与 chooseButton 都依赖它）。★文字换行仍要给详情区加 width:100%!important + white-space:normal!important + writing-mode:horizontal-tb!important。",
+      "keywords": [
+        "列表详情分离",
+        "可展开列表",
+        "textbuttons宿主",
+        "按钮登记",
+        "选择UI设计",
+        "重叠"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T02:51:43.027Z",
+      "updatedAt": "2026-10-04T02:51:43.027Z"
+    },
+    {
+      "id": "kb-baea5bbb",
+      "kind": "pitfall",
+      "title": "借 textbuttons 生成按钮：别伪造宿主对象，用真实 dialog 再搬节点",
+      "body": "★实测事故：想自己控制列表容器、又要用 ui.create.textbuttons 生成按钮节点，于是伪造了一个宿主对象 {add(str){...返回{firstChild}}, buttons:{add(){}}} 传给 textbuttons。结果**列表完全不显示**。原因：textbuttons 对 dialog.add(str) 的返回值做了 Object.setPrototypeOf(next, lib.element.Button.prototype) 并读 next.firstChild（ui/create/index.js:3638-644），伪造对象稍有不合就静默失效，且没有任何报错。★可靠做法：先 const tmp = ui.create.dialog('hidden','forcebutton') 建一个**真实** dialog，正常调用 ui.create.textbuttons(items, tmp)，然后把 tmp.buttons 里的按钮节点用 appendChild **搬进**自己的容器（appendChild 会自动从原父节点摘除），同时 dialog.buttons.add(node) 登记到主 dialog，最后 \tmp.close() 清理。这样引擎侧的按钮注册、ui.click.button 绑定全部照常完成。★补充：搬完后要给每个节点补 display:block/width:100%/box-sizing/white-space:normal，并给 dialog.content 也设 display:block + white-space:normal，否则容器若为 inline 上下文会让列表与详情挤在一行（症状：列表不显示、详情文字横向重叠铺开）。",
+      "keywords": [
+        "textbuttons宿主",
+        "伪造dialog",
+        "按钮不显示",
+        "列表渲染",
+        "setPrototypeOf",
+        "块级布局"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T02:59:04.094Z",
+      "updatedAt": "2026-10-04T02:59:04.094Z"
+    },
+    {
+      "id": "kb-a0b1e0a2",
+      "kind": "pitfall",
+      "title": "「元素不显示但 children 正常」先查容器高度是否为 0",
+      "body": "★排障方法（很值得记住）：列表/容器「看不见」时，先让用户执行 document.getElementById('xxx').children.length —— 若返回正常数量（如 5），说明 **DOM 已生成、问题在 CSS**，不要再改 JS 结构。接着逐层向上打印每层的 getBoundingClientRect 与 getComputedStyle（height/overflow/display/opacity/visibility），就能精确找到裁剪层。★本次实测结果：列表容器 尺寸 '1003x0'、h='0px'、overflow='hidden auto' —— 容器高度被压成 0，配合 overflow:hidden 把 5 个高度正常的子项（各 33px）全部裁掉，而父级 .content 有 289px 空间。诱因是在容器上写了 max-height:52vh + overflow-y:auto：在游戏被缩放的视口里 52vh 解析异常，容器高度塌成 0。修复：容器改 height:auto!important; max-height:none!important; overflow:visible!important，让内容自然撑高，滚动交给外层 .content-container。★教训：游戏内写高度优先用 auto + min-height，慎用 vh/max-height + overflow 组合。",
+      "keywords": [
+        "元素不显示",
+        "高度为0",
+        "children正常",
+        "getBoundingClientRect",
+        "排障",
+        "vh",
+        "max-height裁剪"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T03:08:22.928Z",
+      "updatedAt": "2026-10-04T03:08:22.928Z"
+    },
+    {
+      "id": "kb-91f08bc5",
+      "kind": "pitfall",
+      "title": "搬移按钮节点后必须复位定位样式，否则全部叠在一处",
+      "body": "★实测症状：把 ui.create.textbuttons 生成的按钮节点用 appendChild 搬进自己的容器后，5 个列表项**全部叠在同一个位置**（都在顶部、互相覆盖、无法辨别与点击）。原因：这些节点原属 dialog 的 .buttons 容器，带有关联的定位/尺寸样式（dialog 体系用 position/transform 布局按钮），搬到普通块容器后不复位就会失去文档流位置。★修复要双管齐下：① 内联复位（优先级最高，最稳）：Object.assign(node.style, {display:'block', position:'static', float:'none', top/left/right/bottom:'auto', transform:'none', width:'100%', height:'auto', boxSizing:'border-box', whiteSpace:'normal'})；② 在注入的 CSS 里也加同样的 position:static!important; float:none!important; top:auto!important; transform:none!important，防主题覆盖。★通用经验：在游戏内**跨容器搬移已有节点**（尤其来自 dialog/buttons 体系的节点）后，务必复位 display/position/float/inset/transform/尺寸，不要假设它们还是自然文档流。",
+      "keywords": [
+        "节点重叠",
+        "搬移节点",
+        "position复位",
+        "appendChild",
+        "textbuttons",
+        "transform",
+        "列表项叠在一起"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T03:13:31.382Z",
+      "updatedAt": "2026-10-04T03:13:31.382Z"
+    },
+    {
+      "id": "kb-a4994f68",
+      "kind": "pattern",
+      "title": "剥离节点既有监听用 cloneNode，别只 removeEventListener",
+      "body": "★场景：用 ui.create.textbuttons 生成列表项后，想**取消**它自带的「点击即选中」（改为一律由外部「确定」按钮提交）。★做法：const clean = node.cloneNode(true); clean.link = node.link; listWrap.replaceChild(clean, node); —— 克隆会**丢弃所有既有事件监听器**，最干净可靠。不要试图 removeEventListener：引擎用的是共享的函数引用（ui.click.button）且可能在多处挂载，逐个移除容易漏且无法验证。★配套要点：① 克隆后要把新节点重新登记到 dialog.buttons（引擎靠它判定候选与组装 links）；② 「确定」按钮触发选中时，ui.click.button 内部会检查 selectable / isMine 等条件，克隆节点不一定带这些类，稳妥做法是先 \node.classList.add('selectable') 再 click，并保留一条兜底路径：把节点塞进 ui.selected.buttons 后调用 ui.click.ok()（它读 ui.selected.buttons 组装结果，见 ui/click/index.js:3098-3105）；③ **不要给 ui.click.ok 传节点**，传了它会去关闭该节点的 parentNode。★另注：ui.click.button 用 \this 作为按钮节点，调用要写 ui.click.button.call(node)，且它不接收事件参数。",
+      "keywords": [
+        "cloneNode",
+        "剥离监听",
+        "removeEventListener",
+        "点击即选中",
+        "ui.click.ok",
+        "selectable",
+        "预览确认"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T03:22:27.252Z",
+      "updatedAt": "2026-10-04T03:22:27.252Z"
+    },
+    {
+      "id": "kb-00068493",
+      "kind": "pitfall",
+      "title": "动态 innerHTML 的内容也要带内联样式，别只靠 class",
+      "body": "★实测症状：详情区（动态 innerHTML 注入）里的文本挤成一行、并与对话框顶部标题重叠。原因：内容子元素只挂了 class（.xy-detail-skillname 等），而样式表规则在某些主题下未命中或被覆盖，于是退化成默认内联排版。★可靠做法：**动态注入的 HTML 一律带内联样式**（inline style 优先级最高，不受主题影响），把关键属性在每层元素上写全：display:block; width:100%; min-width:0; box-sizing:border-box; white-space:normal; word-break:break-word; writing-mode:horizontal-tb; text-align:left。可先定义一段 BLOCK 常量字符串，在 map 里逐项复用，避免重复。★另一坑：若 CSS 里给容器写了 min-height，而 JS 又想用内联 maxHeight 限高，min-height 会把 maxHeight 顶掉（min 优先于 max），导致「限高失效、内容溢出」——容器的高度/滚动应只由一个来源控制（推荐全部交给 JS 内联设置，CSS 只留视觉样式如背景/边框/内边距）。",
+      "keywords": [
+        "innerHTML内联样式",
+        "详情区重叠",
+        "min-height顶掉max-height",
+        "动态HTML",
+        "主题覆盖"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T03:33:01.267Z",
+      "updatedAt": "2026-10-04T03:33:01.267Z"
+    },
+    {
+      "id": "kb-74c3bcb6",
+      "kind": "pitfall",
+      "title": "嵌套元素高度为 0：.content 的 font-size:0 只对直接子元素恢复",
+      "body": "★实测重大坑（排查很久，值得记住）：往 dialog 里注入**嵌套结构**的 HTML 时，内层元素会高度为 0、全部叠在同一位置（实测 3 个子元素 top 全是 383、height 全是 0，innerText 看着正常所以极具迷惑性）。根因：引擎给 .content 设了 \font-size: 0px（apps/core/layout/default/layout.css:1901），且**只对直接子元素** .content > * 恢复 16px（同文件 1904-1906）。我们注入的结构是 .xy-detail-skill > .name/.desc 这种多层的，内层继承到 0px → 盒模型塌成 0 高。★修复：动态注入的 HTML，**每一层元素都显式写 font-size**（可定义 BLOCK 常量串在每个 style 里复用）。★排查技巧：getBoundingClientRect().height 为 0 但 innerText 有内容 → 几乎一定是 font-size:0 或 display 塌陷；配合逐层打印 top/height 能立刻看出「多个元素 top 相同」这一特征。",
+      "keywords": [
+        "font-size 0",
+        "高度为0",
+        "content直接子元素",
+        "嵌套元素塌陷",
+        "innerHTML",
+        "dialog"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T03:44:57.446Z",
+      "updatedAt": "2026-10-04T03:44:57.446Z"
+    },
+    {
+      "id": "kb-33fcc6b7",
+      "kind": "pitfall",
+      "title": "注入 dialog 的嵌套元素会变成 position:absolute —— 症状与 font-size:0 极像",
+      "body": "★实测（同一症状有两个不同根因，务必都查）：往 dialog 注入嵌套 HTML 后，子/孙元素全部叠在同一位置、父元素高度塌成 0。**两个可能根因**：① position:absolute —— 探测显示每层元素 computed position 都是 absolute（脱离文档流），来源是主题/引擎的某条规则；② \font-size:0 —— .content 设了 font-size:0px（layout/default/layout.css:1901）且只对直接子元素 .content > * 恢复 16px（:1904-1906），嵌套元素继承到 0 后盒模型塌陷。两者症状几乎一模一样（top 相同、height 为 0），只看截图无法区分。★正确修复（一次覆盖两种）：注入的 HTML 每层显式写 display:block;position:static;float:none;top/left/right/bottom:auto;transform:none;width:100%;min-width:0;box-sizing:border-box;font-size:13px;white-space:normal;word-break:break-word;writing-mode:horizontal-tb;text-align:left，并在注入的 <style> 里追加一条通配复位 #容器 *{position:static!important;display:block!important;width:100%!important;...}，同时用 .xxx-inline{display:inline-block!important;width:auto!important} 豁免需要行内的元素（如徽标）。★排查心法：getBoundingClientRect().height===0 且多个元素 top 相同 → 立刻同时怀疑 position:absolute 与 font-size:0，用 getComputedStyle 一次把两者都打出来，别只看其中一个。",
+      "keywords": [
+        "position absolute",
+        "元素叠在一起",
+        "高度为0",
+        "font-size 0",
+        "通配复位",
+        "注入dialog",
+        "同级top"
+      ],
+      "refs": [
+        "xy_lingyun_yunlv @ apps/core/extension/新宇杀/character/skill.js:15-51"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/新宇杀/character/skill.js",
+          "start": 15,
+          "end": 51,
+          "hash": "6043a82530b6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T03:53:28.832Z",
+      "updatedAt": "2026-10-04T03:53:28.832Z"
+    },
+    {
+      "id": "kb-xy-combo-row-twoline",
+      "kind": "pattern",
+      "title": "列表项要分两段：标题行（inline-block 定宽对齐）+ 内容行（block）",
+      "body": "★需求：列表项第一行左边显示「称号」、右边显示「体力」，两者**垂直对齐**；技能名另起一行。\n★错误写法（一段式）：把称号、体力、技能名都塞进同一个块，靠空格或 <br> 分隔。\n  症状：技能名跑到行中间（因为它跟着行内排版走），且称号与体力长短不一时无法对齐。\n★正确写法（两段式，实测可用）：\n  <div class='xy-combo-item'>\n    <div class='xy-combo-line1'>            <!-- 行容器：font-size:0px -->\n      <span class='xy-combo-title'>称号</span> <!-- inline-block; min-width:150px; vertical-align:baseline -->\n      <span class='xy-combo-hp'>体力</span>    <!-- inline-block; vertical-align:baseline -->\n    </div>\n    <div class='xy-combo-sub'>技能A、技能B</div> <!-- block，强制独占一行 -->\n  </div>\n★关键点：① 行容器必须显式 font-size:0px 再给子元素写回字号 —— 否则 inline-block 之间的换行空白会撑出多余间隙；\n  ② 两个子元素都写 vertical-align:baseline（不是 top/middle），基线对齐才是「看起来齐」；\n  ③ 用它做列对齐：给左边元素 min-width（而不是 float 或 flex），右边元素自然被推到同一列；\n  ④ 内容行必须是 display:block，否则它会接着行容器继续排在同一行 —— 这正是「技能名跑到行中间」的根因。\n★配套：这些元素可能被主题/引擎规则改成 position:absolute 或加 float，样式表里对每个 class 都补 position:static!important; float:none!important。",
+      "keywords": [
+        "列表项",
+        "textbuttons",
+        "对齐",
+        "inline-block",
+        "vertical-align",
+        "font-size:0",
+        "称号",
+        "体力",
+        "两行",
+        "布局"
+      ],
+      "refs": [
+        "apps/core/extension/新宇杀/main/mode.js"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T04:01:52.784Z",
+      "updatedAt": "2026-10-04T04:01:52.784Z"
+    },
+    {
+      "id": "kb-xy-combo-list-clamp",
+      "kind": "pitfall",
+      "title": "px 限高决定「列表能看到几项」——切太小会被误判成数据变少",
+      "body": "★实测症状：用户报「现在只能显示 3 个技能组了」，以为筛选逻辑出问题。\n  真实原因：列表容器 maxHeight 设成 180px，而每项高度 ≈ 55~60px（标题行 ~32px + 技能行 ~20px + padding），\n  于是只放得下 3 项，其余被 overflow:auto 藏进滚动条里 —— **数据没问题，是可视区太小**。\n★教训：调限高时必须按「单项实测高度 × 期望可见项数」反算，并把算式写进注释。\n  本次改为 clampHeight(listWrap, 250, 120)，按「至少露出 4 项」估算。\n★排查口诀：列表「少了」先让用户报 children.length 与容器 clientHeight，\n  两者都正常就是滚动/限高问题，不要动数据层。\n★相关：对话框内容区约 450px（随屏幕高度变化）。分配参考：标题 60 + 列表 250 + 分隔 20 + 详情 190 + 按钮 40。\n  用 px 不要用 vh —— 游戏视口被缩放，vh 解析不可靠（曾导致高度塌成 0）。",
+      "keywords": [
+        "maxHeight",
+        "限高",
+        "滚动",
+        "列表",
+        "看不到",
+        "组合变少",
+        "clampHeight",
+        "溢出"
+      ],
+      "refs": [
+        "apps/core/extension/新宇杀/main/mode.js"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-04T04:01:52.784Z",
+      "updatedAt": "2026-10-04T04:01:52.784Z"
     }
   ]
 }
