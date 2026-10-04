@@ -16,7 +16,7 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
 - 源码核心：`apps/core/noname/`
 - 扩展目录：`apps/core/extension/<扩展名>/`
 - 武将包目录：`apps/core/character/<包名>/`
-- 事件系统文档：`docs/YRD/`（自顶向下 18 篇，含源码行号）
+- 事件系统文档：`docs/YRD/`（自顶向下 19 篇：00~15 + 3 篇附录，含源码行号）
   > ℹ️ 该目录属于**《无名杀》仓库本体**，不由本技能包安装。
   > 若目标仓库缺 `docs/YRD/`，说明尚未补充这批文档，此时跳过文档步骤、
   > 改用 `docs/game-event/`、`docs/lib-skill-format.md`，或直接用检索工具找参考实现。
@@ -226,6 +226,11 @@ node skill-search.mjs kb list      # 全部条目（含失效状态）
 node skill-search.mjs kb check     # 只看失效的
 node skill-search.mjs kb stats     # 统计
 node skill-search.mjs kb forget <id>   # 移除
+
+# 知识库体检（结构/指纹/引用/检索性/矛盾/未完成标记）
+node kb-lint.mjs                   # 常规体检
+node kb-lint.mjs --strict          # 有错误时退出码 1（可挂提交前）
+node kb-lint.mjs --verbose         # 附全部条目指纹状态
 
 # 扩展注册（写完扩展后必做）
 node register-extension.mjs status       # 检查注册状态
@@ -559,14 +564,49 @@ player.tempSkills                                  // 临时技能
 player.getStat("triggerSkill")                     // 发动次数
 ```
 
+### 界面层排障（自定义 dialog / UI）
+
+> 完整指南见 `docs/YRD/15-ui-development.md`。以下是最常踩的坑，写界面前先扫一眼。
+
+界面「不显示 / 错位 / 文字挤成一列」几乎全部源于三处差异：
+**① 视口被缩放（`vh` 不可靠，用 px）② 主题样式带 `!important`（内联会输）
+③ `.content` 有 `font-size:0px`（嵌套元素塌陷）**。
+
+```
+元素「不显示」？
+├─ 先看 children.length —— 正常就说明 DOM 已生成，问题在 CSS，别改 JS
+├─ 逐层打 getBoundingClientRect + getComputedStyle（height/overflow/display）
+└─ 高度为 0 且多个 top 相同 → 同时怀疑 position:absolute 与 font-size:0
+
+文字挤成「一列一个字」？
+├─ 查是否用了 flex（子项 min-width:auto 导致）
+├─ 查是否被继承 writing-mode:vertical-rl
+└─ 查主题 !important 是否压掉了内联样式（需用 !important 回敬）
+
+列表项「变少了」？
+└─ 查限高 ÷ 单项高度，多半是滚动藏起来了，不是数据问题
+```
+
+硬性规则：
+
+- 多行可点选列表用 `ui.create.textbuttons(list, dialog, noclick)`
+  —— 第三参数传 `true` 即可「点击只预览、由外部按钮提交」，**不必**事后 cloneNode
+- `htmlString` 必须以 `<div` 开头；`link` 用数组下标（数字）
+- `dialog.buttons` 是**数组**不是 DOM 节点；取容器用 `dialog.content.querySelector(".buttons")`
+- 🚫 **不要伪造 dialog 宿主对象**骗 `textbuttons`（静默失效，列表完全不显示）
+- 🚫 `lib.init.sheet` 只能插**单条**规则，整段 CSS 用 `createElement("style")`
+- 🚫 搬移 dialog 节点后必须复位 `display/position/float/inset/transform/尺寸`，否则全部叠在一处
+- 🚫 加了 `display:block!important` 后，显隐切换必须改用**类名**（内联 `display:none` 会失效）
+
 ## 11. 深入学习路径
 
 | 需求 | 文档 |
 |------|------|
 | **检索参考实现** | `scripts/README.md`（工具详解与检索技巧） |
-| 系统理解事件系统 | `docs/YRD/README.md`（自顶向下 18 篇） |
+| 系统理解事件系统 | `docs/YRD/README.md`（自顶向下 19 篇） |
 | 触发机制原理 | `docs/YRD/08-trigger-system.md` |
 | 技能执行链路 | `docs/YRD/09-skill-execution.md` |
+| **自定义界面 / UI 排障** | `docs/YRD/15-ui-development.md` |
 | 易错点全清单 | `docs/YRD/appendix-c-pitfalls.md` |
 | 源码行号地图 | `docs/YRD/appendix-a-source-map.md` |
 | 术语速查 | `docs/YRD/appendix-b-glossary.md` |
@@ -683,6 +723,32 @@ node skill-search.mjs stats      # 技能总数、含描述比例
 
 易过时的项：技能数、索引体积、源码包体积、命令用法、目录结构、安装选项。
 （本仓库曾长期标着 7300+ 技能，实际只有 6703。）
+
+#### ⑤ 《无名杀》仓库文档（`docs/YRD/`）
+
+> ⚠️ **这一类的文件不在技能包仓库内**，改的是《无名杀》项目本身，
+> 因此**不受技能包 git 管理**，也**不需要**回流/提交到技能包。
+
+当一批结论已经稳定、且规模足以独立成篇时，写进 `docs/YRD/`：
+
+| 情形 | 做法 |
+|------|------|
+| 界面/UI 类结论成体系 | 见 `docs/YRD/15-ui-development.md`（章节 15） |
+| 补充既有篇章的细节 | 直接改对应 `NN-*.md`，并更新 `docs/YRD/README.md` 索引 |
+| 通用易错点 | 追加到 `appendix-c-pitfalls.md` |
+
+纪律：
+
+- **行号必须逐条核对**。该系列在 README 里承诺"全部行号已对照源码验证"，
+  写进去的每个 `文件:行号` 都要实际读一遍确认（可用
+  `Select-String` / `grep -n` 定位后读取该行）
+- 新增篇章要同步更新 `docs/YRD/README.md` 的**三层索引**：
+  ① 分层目录表 ② 快速导航 ③ 开发工具链/速查表
+- 同时检查 `SKILL.md` 里对篇数的描述（"自顶向下 N 篇"）并同步
+
+> 分批策略：**知识库先沉淀**（轻量、带指纹、自动失效），
+> 攒够一个主题再**整理成文档**（重量、面向人读）。
+> 两者不是二选一 —— 知识库是原料，文档是成品。
 
 ### 提交流程（**本地 commit → 等用户确认 → push**）
 

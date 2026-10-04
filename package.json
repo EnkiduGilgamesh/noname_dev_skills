@@ -7,6 +7,7 @@
     "nge-search": "scripts/skill-search.mjs",
     "nge-index": "scripts/build-index.mjs",
     "nge-verify": "scripts/verify-skill.mjs",
+    "nge-kb-lint": "scripts/kb-lint.mjs",
     "nge-register": "scripts/register-extension.mjs",
     "nge-migrate": "scripts/migrate-skill.mjs"
   },
@@ -14,6 +15,7 @@
     "index": "node scripts/build-index.mjs",
     "stats": "node scripts/skill-search.mjs stats",
     "verify": "node scripts/verify-skill.mjs",
+    "kb-lint": "node scripts/kb-lint.mjs",
     "check": "node scripts/migrate-skill.mjs check",
     "pack": "node scripts/migrate-skill.mjs pack"
   },
@@ -26,6 +28,7 @@
     "scripts/skill-search.mjs",
     "scripts/build-index.mjs",
     "scripts/verify-skill.mjs",
+    "scripts/kb-lint.mjs",
     "scripts/knowledge.mjs",
     "scripts/knowledge-base.json",
     "scripts/register-extension.mjs",

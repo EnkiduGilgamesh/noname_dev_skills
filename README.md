@@ -129,6 +129,7 @@ node skill-search.mjs kb stats
 | `kb {list,check,show,forget,stats}` | 知识库管理 |
 | `stats` / `rebuild` | 索引统计 / 重建 |
 | `verify-skill.mjs` | 技能静态验证（悬空引用/缺描述/编码） |
+| `kb-lint.mjs` | 知识库体检（结构/指纹/引用/检索性/矛盾） |
 | `register-extension.mjs` | 扩展注册诊断与修复 |
 | `migrate-skill.mjs` | 打包迁移与可移植性自检 |
 
@@ -137,6 +138,9 @@ node skill-search.mjs kb stats
 ```bash
 node verify-skill.mjs --pack 英雄杀RE     # 有错误时退出码 1
 node verify-skill.mjs --json
+
+node kb-lint.mjs                          # 知识库体检
+node kb-lint.mjs --strict                 # 有错误时退出码 1
 ```
 
 | 级别 | 检查 |
@@ -146,6 +150,9 @@ node verify-skill.mjs --json
 | · 提示 | 描述与实现不一致、子技能未挂载 |
 
 **静态验证查不到**（必须实机确认）：技能是否真的触发、UI 结算、AI 行为、数值平衡。
+
+知识库体检另查六项：结构完整性、指纹失效、引用有效性、检索性、**条目间矛盾**、未完成标记。
+详见 `scripts/README.md`。
 
 ### search 常用选项
 
@@ -208,6 +215,7 @@ node migrate-skill.mjs check    # 可移植性自检
     ├── skill-search.mjs        # 检索引擎 + 定位 + 知识库 CLI
     ├── build-index.mjs         # 索引构建器
     ├── verify-skill.mjs        # 技能静态验证
+    ├── kb-lint.mjs             # 知识库体检
     ├── knowledge.mjs           # 知识库模块（指纹计算/校验）
     ├── register-extension.mjs  # 扩展注册与修复
     ├── migrate-skill.mjs       # 迁移打包与自检
@@ -256,8 +264,11 @@ node migrate-skill.mjs check    # 可移植性自检
 
 ## 配套文档：`docs/YRD/`
 
-`SKILL.md` 引用 `docs/YRD/`（事件系统 18 篇 + 11 类技能模板）。
+`SKILL.md` 引用 `docs/YRD/`（事件系统 19 篇 + 11 类技能模板）。
 该目录属于 **《无名杀》仓库本体**，**不在本技能包内**、也不由安装脚本提供。
+
+其中第 15 篇 [`15-ui-development.md`] 是**界面开发指南**，
+由本技能包的知识库结论整理而成 —— 是"知识库 → 文档"这条沉淀路径的实例。
 
 若目标仓库缺该目录，可跳过文档步骤，改用仓库自带的
 `docs/game-event/`、`docs/lib-skill-format.md`，或直接用检索工具找真实实现。
@@ -266,7 +277,7 @@ node migrate-skill.mjs check    # 可移植性自检
 
 ## 维护本技能包
 
-本技能包设计为**在开发任务中持续增值**，而不是一次性工具。每次任务结束前检查四类更新：
+本技能包设计为**在开发任务中持续增值**，而不是一次性工具。每次任务结束前检查五类更新：
 
 | 类型 | 何时更新 | 落到哪里 |
 |------|---------|---------|
@@ -274,6 +285,13 @@ node migrate-skill.mjs check    # 可移植性自检
 | **知识库** | 每次开发沉淀 ≥1 条结论 | `scripts/knowledge-base.json` |
 | **新工具** | 现有脚本不够用 | `scripts/` + 四处清单 |
 | **README** | 数字/命令/结构变化 | `README.md`、`scripts/README.md` |
+| **游戏仓库文档** | 某主题结论成体系，值得独立成篇 | `docs/YRD/`（**不在本仓库**，无需提交） |
+
+> 知识库与文档不是二选一：**知识库是原料**（轻量、带指纹、自动失效），
+> **文档是成品**（面向人读、成体系）。先沉淀，攒够一个主题再整理成篇。
+> 例：UI 类结论积累到 20 条后，整理为 `docs/YRD/15-ui-development.md`。
+>
+> ⚠️ 写 `docs/YRD/` 时**每个行号都要实际核对源码** —— 该系列承诺"全部行号已验证"。
 
 ### 推荐布局：仓库即技能目录
 
