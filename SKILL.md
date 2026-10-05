@@ -16,7 +16,8 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
 - 源码核心：`apps/core/noname/`
 - 扩展目录：`apps/core/extension/<扩展名>/`
 - 武将包目录：`apps/core/character/<包名>/`
-- 事件系统文档：`docs/YRD/`（自顶向下 19 篇：00~15 + 3 篇附录，含源码行号）
+- 事件系统文档：`docs/YRD/`（自顶向下 21 篇：00~17 + 3 篇附录，含源码行号）
+  > 17 篇为**打包与构建**（扩展产物在哪、`pnpm build` 做了什么、各端怎么打包）。
   > ℹ️ 该目录属于**《无名杀》仓库本体**，不由本技能包安装。
   > 若目标仓库缺 `docs/YRD/`，说明尚未补充这批文档，此时跳过文档步骤、
   > 改用 `docs/game-event/`、`docs/lib-skill-format.md`，或直接用检索工具找参考实现。
@@ -55,6 +56,18 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
    ```
 
    - `--from` 会记录**证据指纹**，源码变动时该知识自动标记失效，不会误导后续开发
+   - `--link <文档路径>` 指向**已成篇的文档**（相对项目根），正文只写结论摘要：
+   
+     ```bash
+     node skill-search.mjs learn \
+       --title "打包与扩展产物（索引）" \
+       --body "结论摘要…细节见文档" \
+       --kind fact --keywords "打包,构建,extension,产物" \
+       --link docs/YRD/17-build-and-packaging.md
+     ```
+   
+     一时无法定型为文档的结论用 `--from` 绑源码；已经写成文档的用 `--link` 指向它，
+     **不要在两处重复长篇内容**（会失同步）。两者可同时使用。
    - **每次开发都应该沉淀至少 1 条**，让知识库持续增值
 
 4. **查模板**：从 `docs/YRD/templates/templates/` 选最接近的模板（11 类）。
@@ -603,10 +616,11 @@ player.getStat("triggerSkill")                     // 发动次数
 | 需求 | 文档 |
 |------|------|
 | **检索参考实现** | `scripts/README.md`（工具详解与检索技巧） |
-| 系统理解事件系统 | `docs/YRD/README.md`（自顶向下 19 篇） |
+| 系统理解事件系统 | `docs/YRD/README.md`（自顶向下 21 篇） |
 | 触发机制原理 | `docs/YRD/08-trigger-system.md` |
 | 技能执行链路 | `docs/YRD/09-skill-execution.md` |
 | **自定义界面 / UI 排障** | `docs/YRD/15-ui-development.md` |
+| **打包 / 构建 / 扩展产物位置** | `docs/YRD/17-build-and-packaging.md` |
 | 易错点全清单 | `docs/YRD/appendix-c-pitfalls.md` |
 | 源码行号地图 | `docs/YRD/appendix-a-source-map.md` |
 | 术语速查 | `docs/YRD/appendix-b-glossary.md` |
@@ -694,6 +708,8 @@ node skill-search.mjs learn \
 ```
 
 - `--from` 记录**证据指纹**，源码变动时自动标记失效，不会误导后续开发
+- `--link <文档路径>` 指向已成篇的文档（相对项目根，如 `docs/YRD/17-build-and-packaging.md`）——
+  **结论已写成文档时优先用它**，正文只留摘要，细节归文档，避免两处失同步
 - `keywords` 要精准，过于通用的词会导致误命中（知识库已沉淀过这条教训）
 - 沉淀完**记得把 `knowledge-base.json` 同步回源仓库**
 
@@ -734,6 +750,8 @@ node skill-search.mjs stats      # 技能总数、含描述比例
 | 情形 | 做法 |
 |------|------|
 | 界面/UI 类结论成体系 | 见 `docs/YRD/15-ui-development.md`（章节 15） |
+| 联机类结论成体系 | 见 `docs/YRD/16-online-development.md`（章节 16） |
+| 打包/构建类结论成体系 | 见 `docs/YRD/17-build-and-packaging.md`（章节 17） |
 | 补充既有篇章的细节 | 直接改对应 `NN-*.md`，并更新 `docs/YRD/README.md` 索引 |
 | 通用易错点 | 追加到 `appendix-c-pitfalls.md` |
 
@@ -745,10 +763,14 @@ node skill-search.mjs stats      # 技能总数、含描述比例
 - 新增篇章要同步更新 `docs/YRD/README.md` 的**三层索引**：
   ① 分层目录表 ② 快速导航 ③ 开发工具链/速查表
 - 同时检查 `SKILL.md` 里对篇数的描述（"自顶向下 N 篇"）并同步
+  （当前：**21 篇 = 00~17 共 18 章 + 3 篇附录**）
+- **成篇后回填知识库**：用 `--link` 让知识库条目指向新文档
+  （见 §12 ②），否则检索仍只在文档里找得到、知识库却无入口
 
 > 分批策略：**知识库先沉淀**（轻量、带指纹、自动失效），
 > 攒够一个主题再**整理成文档**（重量、面向人读）。
-> 两者不是二选一 —— 知识库是原料，文档是成品。
+> 两者不是二选一 —— 知识库是原料，文档是成品，
+> 最后用 `--link` 把成品入口接回知识库，形成闭环。
 
 ### 提交流程（**本地 commit → 等用户确认 → push**）
 

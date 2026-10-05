@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-04T15:53:30.971Z",
+  "updatedAt": "2026-10-05T06:41:51.088Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -1588,6 +1588,116 @@
       "confidence": "verified",
       "createdAt": "2026-10-04T05:00:37.988Z",
       "updatedAt": "2026-10-04T05:00:37.988Z"
+    },
+    {
+      "id": "kb-de51e259",
+      "kind": "fact",
+      "title": "打包体系与扩展产物（索引）",
+      "body": "《无名杀》打包 = 一次本体 Vite 构建 + N 次包体独立构建 + 一次目录拼装。核心：扩展(extension)不参与任何构建，只被 fs.cp 原样复制。源码工程在 packages/extension/<名>/，构建产物落在 apps/core/extension/<名>/，最终 dist/extension/。完整机制、各端打包(Electron/Capacitor/Node SEA)、CI 产物矩阵见文档。",
+      "keywords": [
+        "打包",
+        "构建",
+        "build",
+        "extension",
+        "产物",
+        "dist",
+        "复制",
+        "packaging"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-05T06:41:18.116Z",
+      "updatedAt": "2026-10-05T06:41:18.116Z"
+    },
+    {
+      "id": "kb-12e9c3c0",
+      "kind": "pitfall",
+      "title": "改扩展要改源码工程，apps/core/extension 是产物",
+      "body": "apps/core/extension/<名>/ 是**构建产物**不是源码：扩展工程 vite.config.ts 里 emptyOutDir:true，每次构建先清空该目录。实测：手工放入的文件会被删除，被篡改的 extension.js 会被静默还原。正确做法是改 packages/extension/<名>/src/index.ts。注意与「游戏内制作扩展覆盖文件」是两个不同覆盖源（一个是构建期清目录，一个是运行期写盘）。",
+      "keywords": [
+        "打包",
+        "构建",
+        "产物",
+        "覆盖",
+        "extension",
+        "emptyOutDir",
+        "改错目录"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-05T06:41:21.998Z",
+      "updatedAt": "2026-10-05T06:41:21.998Z"
+    },
+    {
+      "id": "kb-9fdc0c2b",
+      "kind": "fact",
+      "title": "测试包只含 boss/cardpile/coin 三个扩展",
+      "body": "pnpm generateTestPack 产出的 output/testpack 在扩展侧是刚性白名单：只复制 dist/extension 下的 boss、cardpile、coin（三个空占位扩展）。官方扩展（杀海拾遗/英雄杀/3D精选等）与玩家自建扩展**都不会进入测试包**。若要验证某个扩展在离线包中的行为，必须用 pnpm build 的完整 dist。注意素材侧的规则不同：含 .css 的目录会被整体带入（见文档 §3.7）。",
+      "keywords": [
+        "测试包",
+        "generateTestPack",
+        "testpack",
+        "扩展",
+        "离线包",
+        "打包"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-05T06:41:27.180Z",
+      "updatedAt": "2026-10-05T06:41:27.180Z"
+    },
+    {
+      "id": "kb-beed4656",
+      "kind": "fact",
+      "title": "扩展产物契约：extension.js + type 导出 + 目录名=info.json.name",
+      "body": "扩展运行的硬性契约（apps/core/noname/init/import.ts）：① 路径必须是 extension/<名>/extension.js；② 必须同时导出 type = extension 与 default 函数，否则报 Loaded Content does not match；③ 目录名必须等于 info.json 的 name 字段（不是工程目录名）；④ info.json 提供 name/intro/author/version。模板生成的空骨架 content/precontent 为空函数、package.character.character 为空对象，故新扩展在选将界面看不到武将——这是正常的空骨架，不是 bug。",
+      "keywords": [
+        "扩展",
+        "契约",
+        "extension.js",
+        "info.json",
+        "导出",
+        "type",
+        "加载失败"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-05T06:41:42.311Z",
+      "updatedAt": "2026-10-05T06:41:42.311Z"
+    },
+    {
+      "id": "kb-f8c7c2d0",
+      "kind": "pitfall",
+      "title": "发布包会混入扩展自身的 .git 目录",
+      "body": "⚠️ fs.cp 复制 apps/core/extension 时**没有任何排除逻辑**。若某扩展目录本身是 git 仓库（内含 .git/），其内部文件会被原样带进 dist/extension/，进而进入 noname.full.zip——浪费体积且可能泄露仓库历史。实测某仓库因此多出 92 个文件。做法：构建前把嵌套 .git 重命名移走，构建后改回。内置扩展无 .git，不受影响。",
+      "keywords": [
+        "打包",
+        "发布",
+        "git",
+        "fs.cp",
+        "扩展",
+        "体积",
+        "泄漏"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-05T06:41:51.088Z",
+      "updatedAt": "2026-10-05T06:41:51.088Z"
     }
   ]
 }

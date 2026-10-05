@@ -633,14 +633,25 @@ function cmdLearn() {
   --kind K        pattern | pitfall | recipe | fact（默认 fact）
   --keywords K    逗号分隔的关键词，用于检索匹配
   --from ID       技能 ID（可多次指定），生成证据指纹
+  --link PATH     文档路径（可多次指定，相对项目根），如 docs/YRD/17-build-and-packaging.md
   --id ID         自定义知识 ID（默认由标题生成）
   --confidence C  verified | likely | tentative（默认 verified）
+
+说明:
+  --from  绑定具体源码位置，源码变动时该条自动标记失效
+  --link  指向已成篇的文档；正文只写「结论摘要 + 何时看文档」，细节留在文档里
+          两者可同时使用；kb-lint 会校验 --link 的文件确实存在
 
 示例:
   node skill-search.mjs learn \\
     --title "判定用 judge().forResult()" \\
     --body "现代写法：const r = await player.judge().forResult(); r.color 为 red/black" \\
-    --kind pattern --keywords "判定,judge,结果,红黑" --from rin_baoqiu`);
+    --kind pattern --keywords "判定,judge,结果,红黑" --from rin_baoqiu
+
+  node skill-search.mjs learn \\
+    --title "扩展产物由扩展工程自己的 vite build 产出" \\
+    --body "详见文档。要点：自建扩展源码在 packages/extension/<名>/，构建产物落在 apps/core/extension/<名>/，\`pnpm build\` 对扩展只做 fs.cp 纯复制。" \\
+    --kind fact --keywords "打包,构建,extension,产物" --link docs/YRD/17-build-and-packaging.md`);
         process.exit(1);
     }
 
@@ -652,6 +663,14 @@ function cmdLearn() {
     const fromIds = [];
     for (let i = 0; i < argv.length; i++) {
         if (argv[i] === "--from" && argv[i + 1]) fromIds.push(argv[i + 1]);
+    }
+
+    // 收集所有 --link（可能多次出现）—— 指向**文档**的引用，不生成指纹
+    // 用途：结论已写成文档时，让知识库直接指向该文档，避免正文重复长篇内容。
+    // 路径相对**项目根**（如 docs/YRD/17-build-and-packaging.md），kb-lint 会校验其存在。
+    const links = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (argv[i] === "--link" && argv[i + 1]) links.push(argv[i + 1]);
     }
 
     // 生成指纹
@@ -670,6 +689,11 @@ function cmdLearn() {
         }
     }
 
+    // 追加文档链接（放在技能引用之后）
+    for (const link of links) {
+        refs.push(link);
+    }
+
     const id = opt("--id") || "kb-" + hashText(title).slice(0, 8);
     const record = KB.put({
         id, kind, title, body, keywords, refs, fingerprints, confidence,
@@ -683,9 +707,13 @@ function cmdLearn() {
     if (keywords.length) console.log(`   关键词: ${keywords.join(", ")}`);
     if (fingerprints.length) {
         console.log(`   指纹:   ${fingerprints.length} 条（源码变动时会自动标记失效）`);
-        for (const r of refs) console.log(`           · ${r}`);
+        for (const r of refs.filter(r => !links.includes(r))) console.log(`           · ${r}`);
     } else {
         console.log(`   指纹:   无（该结论不依赖具体源码位置，长期有效）`);
+    }
+    if (links.length) {
+        console.log(`   文档:   ${links.length} 篇`);
+        for (const l of links) console.log(`           · ${l}`);
     }
     console.log("");
 }
@@ -751,7 +779,14 @@ function cmdKb() {
         console.log(`ID: ${e.id}  类型: ${kindLabel}  置信度: ${e.confidence}  状态: ${e.status}`);
         console.log(`\n${e.body}`);
         if (e.keywords?.length) console.log(`\n关键词: ${e.keywords.join(", ")}`);
-        if (e.refs?.length) console.log(`依据: ${e.refs.join("  ")}`);
+        // refs 混合两类：技能引用（含 @）与文档链接（纯路径）—— 分开展示更清晰
+        const skillRefs = (e.refs || []).filter(r => r.includes("@"));
+        const docLinks = (e.refs || []).filter(r => !r.includes("@"));
+        if (skillRefs.length) console.log(`依据: ${skillRefs.join("  ")}`);
+        if (docLinks.length) {
+            console.log(`\n📄 相关文档:`);
+            for (const l of docLinks) console.log(`   · ${l}`);
+        }
         console.log(`\n创建: ${e.createdAt}\n更新: ${e.updatedAt}\n`);
         return;
     }
@@ -820,6 +855,7 @@ function cmdHelp() {
       --kind K          pattern | pitfall | recipe | fact（默认 fact）
       --keywords K      逗号分隔关键词
       --from ID         技能 ID（可多次），生成证据指纹
+      --link PATH       文档路径（可多次，相对项目根），如 docs/YRD/17-build-and-packaging.md
       --confidence C    verified | likely | tentative（默认 verified）
 
   kb <子命令>           知识库管理

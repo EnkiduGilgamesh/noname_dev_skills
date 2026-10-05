@@ -45,6 +45,7 @@ node skill-search.mjs search "摸牌阶段多摸一张牌"
 node skill-search.mjs locate 天妒                                            # 改技能：一次拿到全部坐标
 node skill-search.mjs show drlt_jieying
 node skill-search.mjs learn --title "..." --body "..." --from rin_baoqiu     # 沉淀结论
+node skill-search.mjs learn --title "..." --body "..." --link docs/YRD/xx.md  # 沉淀结论（指向文档）
 
 # ═══ 写完后：验证 ═══
 node verify-skill.mjs --pack 英雄杀RE            # 静态验证
@@ -349,6 +350,44 @@ node skill-search.mjs learn --title T --body B [选项]
 | `--kind` | `pattern` / `pitfall` / `recipe` / `fact`（默认 `fact`） |
 | `--keywords` | 逗号分隔的关键词 |
 | `--from ID` | 技能 ID（可多次），生成**证据指纹** |
+| `--link PATH` | 文档路径（可多次，相对项目根），如 `docs/YRD/17-build-and-packaging.md` |
+
+#### `--link`：把知识指向文档
+
+当某批结论已经**成篇写成文档**时，知识库条目不该复制全文，而应
+**只写结论摘要 + 指向文档**：
+
+```bash
+node skill-search.mjs learn \
+  --title "打包体系与扩展产物（索引）" \
+  --body "《无名杀》打包 = 本体 Vite 构建 + N 次包体构建 + 一次目录拼装。核心：扩展不参与构建，只被 fs.cp 原样复制。详见文档。" \
+  --kind fact --keywords "打包,构建,extension,产物,dist" \
+  --link docs/YRD/17-build-and-packaging.md
+```
+
+设计要点：
+
+| 项 | 说明 |
+|----|------|
+| 作用 | 让检索结果**直接给出文档入口**，细节留在文档里，避免两处维护、彼此失同步 |
+| 与 `--from` 的区别 | `--from` 绑**源码位置**（带指纹，会失效）；`--link` 绑**文档**（不带指纹，长期有效） |
+| 路径基准 | 相对**项目根**；`kb-lint.mjs` 会校验该文件确实存在 |
+| 两者可同时用 | 既有源码证据指纹，又有文档链接 |
+
+> 检索与查看时的展示：
+>
+> ```
+> 📘 知识库命中 …
+> 【打包体系与扩展产物（索引）】 (事实 · 置信度 verified)
+>   《无名杀》打包 = 一次本体 Vite 构建 + … 详见文档。
+>   📎 docs/YRD/17-build-and-packaging.md      ← 文档链接
+> ```
+>
+> `kb show <id>` 会把「依据（技能引用）」与「📄 相关文档」**分开展示**。
+
+**分批策略**：知识库先沉淀（轻量、带指纹、自动失效），
+攒够一个主题再整理成文档（重量、面向人读）。
+两者不是二选一 —— **知识库是原料，文档是成品**，用 `--link` 把两者接起来。
 
 ### `stats` / `rebuild`
 
