@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-05T06:41:51.088Z",
+  "updatedAt": "2026-10-06T01:32:01.797Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -1698,6 +1698,115 @@
       "confidence": "verified",
       "createdAt": "2026-10-05T06:41:51.088Z",
       "updatedAt": "2026-10-05T06:41:51.088Z"
+    },
+    {
+      "id": "kb-ebfb84f6",
+      "kind": "recipe",
+      "title": "Windows 安装包打包：能开权限就别硬扛",
+      "body": "打包 Electron 安装包时，4 类阻塞中有 3 类（spawn EPERM / 临时文件访问被拒 / winCodeSign 符号链接）在给管理员或完全访问权限后直接消失，只有『工具链网络下载失败』与权限无关、需用本地镜像。因此首选方案是放宽权限跑打包，而不是逐条绕。无沙箱/管理员时：pnpm -F @noname/electron build:win 通常一次通过。有沙箱时需同时设置 TEMP/TMP、ELECTRON_BUILDER_CACHE 到工作区，并关闭签名或开 Windows 开发者模式。完整对照表与命令见文档 §10.1、§10.6。",
+      "keywords": [
+        "打包",
+        "安装包",
+        "electron",
+        "权限",
+        "沙箱",
+        "EPERM",
+        "build:win",
+        "NSIS"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-06T01:31:26.760Z",
+      "updatedAt": "2026-10-06T01:31:26.760Z"
+    },
+    {
+      "id": "kb-5a22cb7c",
+      "kind": "pitfall",
+      "title": "打包报 spawn EPERM 是管道问题，不是 TEMP 问题",
+      "body": "esbuild 以长驻子进程提供服务、父子间走管道通信；受限沙箱禁止打开命名管道，于是 spawn 直接 EPERM（栈顶为 esbuild/lib/main.js 的 ensureServiceIsRunning）。关键：改 TEMP/TMP 到工作区对这条无效，因为根因不是临时目录。正确处置是放宽该次命令的权限。不要反复重试同一命令——这是沙箱既定边界。",
+      "keywords": [
+        "spawn EPERM",
+        "esbuild",
+        "tsx",
+        "管道",
+        "沙箱",
+        "打包失败"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-06T01:31:33.513Z",
+      "updatedAt": "2026-10-06T01:31:33.513Z"
+    },
+    {
+      "id": "kb-78152ccc",
+      "kind": "recipe",
+      "title": "工具链下载超时用 OVERRIDE_URL + 本地镜像",
+      "body": "打包卡在 'Get https://github.com/electron-userland/electron-builder-binaries/... nsis-3.0.4.1.7z failed to respond'。这条与沙箱/权限无关，放权限也没用。处置：手工下载 nsis-3.0.4.1.7z 与 nsis-resources-3.4.1.7z，起本地 HTTP 服务，设 ELECTRON_BUILDER_BINARIES_DOWNLOAD_OVERRIDE_URL 指向它（见 binDownload.js:177）。务必核对 SHA512，源码内写死了期望值(nsisUtil.js:35,51)。另：缓存根可用 ELECTRON_BUILDER_CACHE 改写(binDownload.js:41)，沙箱下必须指向工作区。下载建议用 Node 的 https —— 本机实测 Invoke-WebRequest 报 connection closed、curl 报 schannel SEC_E_NO_CREDENTIALS。",
+      "keywords": [
+        "NSIS",
+        "下载超时",
+        "GitHub",
+        "镜像",
+        "OVERRIDE_URL",
+        "ELECTRON_BUILDER_CACHE"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-06T01:31:33.647Z",
+      "updatedAt": "2026-10-06T01:31:33.647Z"
+    },
+    {
+      "id": "kb-wincodesign-symlink",
+      "kind": "pitfall",
+      "title": "winCodeSign 解压失败的根因是缺符号链接权限",
+      "body": "⚠ 现象：打包报 'Cannot create symbolic link : A required privilege is not held by the client'，指向 winCodeSign-2.6.0.7z 里的 darwin/10.12/lib/*.dylib。★ 成因：该包含 macOS 符号链接，而 Windows 建符号链接需管理员或开发者模式。⚠ 两个易误判点：① 实际只有 darwin 下 2 个文件失败，Windows 工具链(signtool.exe/rcedit)其实已解压好——缺的不是工具而是权限；② 缓存目录名每次运行都变，且由 app-builder.exe 自行下载解压、只认自己写的 .complete，外部预置目录无法绕过。★ 做法：加 --config.win.signAndEditExecutable=false 关闭签名（本项目本就不签名）。⚠ 副作用：连带跳过写图标，安装后用 Electron 默认图标而非 noname.ico；要带图标就给管理员权限或开开发者模式。",
+      "keywords": [
+        "winCodeSign",
+        "符号链接",
+        "symlink",
+        "signtool",
+        "打包失败",
+        "签名",
+        "图标"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-06T01:32:01.729Z",
+      "updatedAt": "2026-10-06T01:32:01.729Z"
+    },
+    {
+      "id": "kb-pack-files-bypass",
+      "kind": "pitfall",
+      "title": "打包退出码为 0 不代表包是对的：files 被绕过会产出空壳包",
+      "body": "⚠ 现象：安装包生成了、退出码 0、日志显示 building target=nsis 成功，但只有约 100 MB 且不含游戏本体。★ 成因：用 electron-builder 命令行传参(--config.xxx)时若没同时给出 files 映射，会回退到默认 **/* ，只把 apps/electron 自身打进包。★ 做法：自查 output/win-unpacked/resources/app 是否含 game/ image/ extension/ index.html noname.js——错误时只有 app/ dist/ node_modules/ build.ts vite.config.ts package.json。★ 体积旁证：正确约 1.6 GB，错误约 100 MB。★ 首选项目自带 pnpm -F @noname/electron build:win（已内置正确 files，见 apps/electron/build.ts:13-18）；需自定义时用等价配置文件而非零散命令行参数。不要只看退出码就认为打包成功。",
+      "keywords": [
+        "打包",
+        "electron-builder",
+        "files",
+        "空壳包",
+        "静默失败",
+        "resources/app",
+        "安装包"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-06T01:32:01.796Z",
+      "updatedAt": "2026-10-06T01:32:01.796Z"
     }
   ]
 }

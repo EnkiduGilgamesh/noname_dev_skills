@@ -142,6 +142,8 @@ pnpm -F @noname/fs dev --debug --dirname=../../apps/core    # 8089
 
 > ⚠️ 两个服务都要开。Vite/esbuild 需要创建子进程，若在受限沙箱中运行会报
 > `spawn EPERM`，需放宽权限。
+> **这是管道通信被拒，不是临时目录问题**——改 `TEMP` 无效，直接放宽该次命令的权限即可。
+> 打包（打安装包）遇同类问题的完整对照见 §11.5。
 
 > ⚠️ **端口以 `apps/core/vite.config.ts` 为准**（该文件里是唯一的真相）。
 > 实测 1.11.7：客户端 **8081**、文件服务 **8089**。
@@ -621,6 +623,7 @@ player.getStat("triggerSkill")                     // 发动次数
 | 技能执行链路 | `docs/YRD/09-skill-execution.md` |
 | **自定义界面 / UI 排障** | `docs/YRD/15-ui-development.md` |
 | **打包 / 构建 / 扩展产物位置** | `docs/YRD/17-build-and-packaging.md` |
+| **打 Windows 安装包（含沙箱/无权限/断网）** | `docs/YRD/17-build-and-packaging.md` §10 |
 | 易错点全清单 | `docs/YRD/appendix-c-pitfalls.md` |
 | 源码行号地图 | `docs/YRD/appendix-a-source-map.md` |
 | 术语速查 | `docs/YRD/appendix-b-glossary.md` |
@@ -631,6 +634,50 @@ player.getStat("triggerSkill")                     // 发动次数
 - `apps/core/character/standard/skill.js` — 已重构的现代写法样板
 - `apps/core/extension/英雄杀/` — 完整扩展范例（含 info.json/precontent/content）
 - `apps/core/extension/3D精选/character/index.js` — 武将包入口范例
+
+## 11.5 打包与权限（**跨端交付**）
+
+> 打安装包（Electron/NSIS 等）比开发模式更容易撞上环境权限问题。
+> 完整实操见 `docs/YRD/17-build-and-packaging.md` §10，此处只留**决策要点**。
+
+### ★ 首选：先给足权限，别急着逐条绕
+
+打包链路的 4 类常见阻塞中，**3 类在给足权限后自动消失**：
+
+| 阻塞 | 给足权限后 | 说明 |
+|------|-----------|------|
+| `spawn EPERM`（esbuild/tsx） | ✅ 消失 | **是管道问题，不是 TEMP 问题**——改 `TEMP` 救不了，别白试 |
+| `[vite:esbuild-transpile] Access is denied` | ✅ 消失 | 临时文件写在系统 `TEMP` 被拒 |
+| `winCodeSign` 解压：`Cannot create symbolic link` | ✅ 消失 | 该包含 macOS 符号链接，Windows 建链接需管理员或**开发者模式** |
+| 工具链下载超时（GitHub） | ❌ 不变 | **与权限无关**，只能用镜像解决 |
+
+> ✅ **实践**：本机以**管理员**运行终端；受限沙箱则把该次命令**单次放行**为完全访问。
+> 权限足够时 `pnpm -F @noname/electron build:win` 通常一次通过，
+> **无需**设置 `TEMP`、`ELECTRON_BUILDER_CACHE`，也**无需**关闭签名（可保留图标）。
+
+### ⚠️ 无权限时的降级手段
+
+按需组合，但注意各自代价：
+
+```powershell
+$env:TEMP = "<root>\.tmp"; $env:TMP = "<root>\.tmp"          # 临时目录 → 工作区
+$env:ELECTRON_BUILDER_CACHE = "<root>\.tmp\ebcache"           # 缓存 → 工作区
+$env:ELECTRON_BUILDER_BINARIES_DOWNLOAD_OVERRIDE_URL = "http://127.0.0.1:8799"  # 本地镜像
+# 关闭签名以绕过符号链接限制 —— ⚠️ 代价：安装后是 Electron 默认图标
+--config.win.signAndEditExecutable=false
+```
+
+### ⚠️ 两条最容易翻车的纪律
+
+1. **退出码 0 ≠ 打包成功。**
+   用 `--config.xxx` 传参而未同时给出 `files` 映射时，electron-builder 会回退到默认
+   `**/*`，只打进外壳、**游戏本体全缺**，但退出码仍是 0。
+   ★ **必查** `output/win-unpacked/resources/app` 是否含 `game/`、`image/`、`extension/`。
+   体积旁证：正确 **~1.6 GB**，空壳 **~100 MB**。
+   → 优先用项目自带脚本，它已内置正确 `files`。
+
+2. **改打包配置用「等价配置文件」，别堆命令行参数。**
+   命令行传参会**整体替换**而非合并默认配置，极易漏掉 `files` 这类关键项。
 
 ## 12. 维护本技能包（**任务中持续进行**）
 
