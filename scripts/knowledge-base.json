@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-06T01:32:01.797Z",
+  "updatedAt": "2026-10-06T03:38:50.403Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -1807,6 +1807,33 @@
       "confidence": "verified",
       "createdAt": "2026-10-06T01:32:01.796Z",
       "updatedAt": "2026-10-06T01:32:01.796Z"
+    },
+    {
+      "id": "kb-0618917d",
+      "kind": "recipe",
+      "title": "安卓打包：JDK 21 是硬门槛，签名缺失会静默回退 debug",
+      "body": "⚠ 构建入口 pnpm -F @noname/mobile build:android（-- --aab 出 AAB，--variant=debug 出 debug）。★ 四步：checkJavaVersion → pnpm build → pnpm sync → gradlew。⚠ 两个必知门槛：① JDK 必须 21（buildAndroid.ts:76-88 硬校验，JDK 25 会在 Android 工程配置阶段失败），Android Studio 不需要，Gradle Wrapper 够用；② SDK 需 platforms;android-36 + build-tools;36.0.0 且必须接受许可 yes|sdkmanager --licenses。⚠ 签名缺失不报错，而是回退 debug keystore（build.gradle.kts:60,76-79）——自测可行，但无法上架 Play、也无法覆盖安装已签名的包。★ 两个隐蔽坑：① afterSync.ts:69-80 把 assets 里的 .pnpm 改名 _pnpm（Android 忽略点开头目录），所以别手敲 cap sync，要用 pnpm sync；② targetSdk 36 强制 edge-to-edge，capacitor.config.ts:9-17 用 SystemBars.hidden 隐藏系统栏，否则顶部按钮点不到。详见文档。",
+      "keywords": [
+        "安卓",
+        "APK",
+        "AAB",
+        "Capacitor",
+        "JDK21",
+        "Android SDK",
+        "签名",
+        "keystore",
+        ".pnpm",
+        "edge-to-edge",
+        "SAF",
+        "build:android"
+      ],
+      "refs": [
+        "docs/YRD/18-android-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-06T03:38:50.403Z",
+      "updatedAt": "2026-10-06T03:38:50.403Z"
     }
   ]
 }

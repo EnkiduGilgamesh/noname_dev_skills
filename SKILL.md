@@ -16,8 +16,9 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
 - 源码核心：`apps/core/noname/`
 - 扩展目录：`apps/core/extension/<扩展名>/`
 - 武将包目录：`apps/core/character/<包名>/`
-- 事件系统文档：`docs/YRD/`（自顶向下 21 篇：00~17 + 3 篇附录，含源码行号）
+- 事件系统文档：`docs/YRD/`（自顶向下 22 篇：00~18 + 3 篇附录，含源码行号）
   > 17 篇为**打包与构建**（扩展产物在哪、`pnpm build` 做了什么、各端怎么打包）。
+  > 18 篇为**安卓打包实战**（JDK 21 硬校验、Capacitor 同步三件事、签名与 SAF）。
   > ℹ️ 该目录属于**《无名杀》仓库本体**，不由本技能包安装。
   > 若目标仓库缺 `docs/YRD/`，说明尚未补充这批文档，此时跳过文档步骤、
   > 改用 `docs/game-event/`、`docs/lib-skill-format.md`，或直接用检索工具找参考实现。
@@ -618,12 +619,13 @@ player.getStat("triggerSkill")                     // 发动次数
 | 需求 | 文档 |
 |------|------|
 | **检索参考实现** | `scripts/README.md`（工具详解与检索技巧） |
-| 系统理解事件系统 | `docs/YRD/README.md`（自顶向下 21 篇） |
+| 系统理解事件系统 | `docs/YRD/README.md`（自顶向下 22 篇） |
 | 触发机制原理 | `docs/YRD/08-trigger-system.md` |
 | 技能执行链路 | `docs/YRD/09-skill-execution.md` |
 | **自定义界面 / UI 排障** | `docs/YRD/15-ui-development.md` |
 | **打包 / 构建 / 扩展产物位置** | `docs/YRD/17-build-and-packaging.md` |
 | **打 Windows 安装包（含沙箱/无权限/断网）** | `docs/YRD/17-build-and-packaging.md` §10 |
+| **打安卓 APK（JDK 21 / SDK / 签名）** | `docs/YRD/18-android-packaging.md` |
 | 易错点全清单 | `docs/YRD/appendix-c-pitfalls.md` |
 | 源码行号地图 | `docs/YRD/appendix-a-source-map.md` |
 | 术语速查 | `docs/YRD/appendix-b-glossary.md` |
@@ -810,7 +812,7 @@ node skill-search.mjs stats      # 技能总数、含描述比例
 - 新增篇章要同步更新 `docs/YRD/README.md` 的**三层索引**：
   ① 分层目录表 ② 快速导航 ③ 开发工具链/速查表
 - 同时检查 `SKILL.md` 里对篇数的描述（"自顶向下 N 篇"）并同步
-  （当前：**21 篇 = 00~17 共 18 章 + 3 篇附录**）
+  （当前：**22 篇 = 00~18 共 19 章 + 3 篇附录**）
 - **成篇后回填知识库**：用 `--link` 让知识库条目指向新文档
   （见 §12 ②），否则检索仍只在文档里找得到、知识库却无入口
 
