@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-06T04:41:21.471Z",
+  "updatedAt": "2026-10-11T11:59:24.025Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -1906,6 +1906,31 @@
       "confidence": "verified",
       "createdAt": "2026-10-06T04:41:21.470Z",
       "updatedAt": "2026-10-06T04:41:21.470Z"
+    },
+    {
+      "id": "kb-240634bb",
+      "kind": "pattern",
+      "title": "判定角色在某人攻击范围内使用 inRange",
+      "body": "判定目标是否在角色攻击范围内用 attacker.inRange(target)。该方法内建 from==to 拦截（返回 false），并经由 getAttackRange() 与 checkMod('inRange') 结算修正。多目标判定时可过滤 current != target && current.inRange(target)。",
+      "keywords": [
+        "攻击范围",
+        "inRange",
+        "攻击距离"
+      ],
+      "refs": [
+        "xinzhizheng @ apps/core/character/mobile/skill.js:17122-17162"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/mobile/skill.js",
+          "start": 17122,
+          "end": 17162,
+          "hash": "7a6cc6127471"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-11T11:59:24.024Z",
+      "updatedAt": "2026-10-11T11:59:24.024Z"
     }
   ]
 }
