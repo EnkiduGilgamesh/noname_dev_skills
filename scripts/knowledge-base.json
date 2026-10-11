@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-11T15:25:18.795Z",
+  "updatedAt": "2026-10-11T15:58:56.267Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2043,6 +2043,33 @@
       "confidence": "verified",
       "createdAt": "2026-10-11T15:25:18.795Z",
       "updatedAt": "2026-10-11T15:25:18.795Z"
+    },
+    {
+      "id": "kb-ccba2129",
+      "kind": "pattern",
+      "title": "借用多目标技能content必须按目标派发事件",
+      "body": "当借用带 selectTarget: -1 的多目标技能（如贾诩【乱武】lib.skill.luanwu.content）时，其 content 预期运行在单个 target 的事件上下文中（通过 const { target } = event 获取目标）。若直接创建单一事件调用 setContent(lib.skill.luanwu.content)，会导致 event.target 为 undefined 并报 Cannot read properties of undefined (reading 'chooseToUse')。正确做法是收集所有目标 targets，循环为每个目标创建子事件并显式赋予 next.target = current，再依次结算。",
+      "keywords": [
+        "借用content",
+        "多目标",
+        "乱武",
+        "event.target",
+        "undefined"
+      ],
+      "refs": [
+        "xy_polv @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:89-217"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 89,
+          "end": 217,
+          "hash": "637d01bb7fba"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-11T15:58:56.266Z",
+      "updatedAt": "2026-10-11T15:58:56.266Z"
     }
   ]
 }
