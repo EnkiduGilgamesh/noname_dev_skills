@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-11T14:05:44.602Z",
+  "updatedAt": "2026-10-11T15:25:18.795Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2017,6 +2017,32 @@
       "confidence": "verified",
       "createdAt": "2026-10-11T14:05:44.602Z",
       "updatedAt": "2026-10-11T14:05:44.602Z"
+    },
+    {
+      "id": "kb-9ec024cf",
+      "kind": "pattern",
+      "title": "成为额外目标与取消目标的标准写法",
+      "body": "在 useCardToTarget 时机成为额外目标：通过 trigger.targets.add(player) 与 trigger.getParent().targets.add(player) 添加；若取消目标，则使用 trigger.targets.remove(player) 和 trigger.getParent().targets.remove(player) 移除。为防多目标牌（如AOE）反复弹窗，应在 trigger.getParent() 上设置标记防重入。",
+      "keywords": [
+        "额外目标",
+        "取消目标",
+        "useCardToTarget",
+        "防重入"
+      ],
+      "refs": [
+        "olqiuyuan @ apps/core/character/onlyOL/skill.js:10033-10073"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/onlyOL/skill.js",
+          "start": 10033,
+          "end": 10073,
+          "hash": "ac2982efed8e"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-11T15:25:18.795Z",
+      "updatedAt": "2026-10-11T15:25:18.795Z"
     }
   ]
 }
