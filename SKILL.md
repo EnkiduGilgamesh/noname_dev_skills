@@ -1,6 +1,6 @@
 ---
 name: noname-general-extension
-description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、11 类技能模板、API 速查与避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
+description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技、蓄力技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、11 类技能模板与蓄力技开发范式、API 速查与避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
 ---
 
 # 开发《无名杀》武将扩展
@@ -445,25 +445,595 @@ mypack_wusheng_info: "将一张红色牌当【杀】使用。",  // 技能描述
 描述可用：`<br>` 换行、`<li>` 列表、`${get.poptip("技能ID")}` 嵌入提示、`<span class='firetext'>` 着色。
 ⚠️ `#g/#r/#b/#p` 颜色前缀**只对武将称号生效**，技能描述里无效。
 
-## 6. 11 类技能模板索引
+## 6. 特殊技能类型开发范式大全
 
-**写技能第一步：从下表选模板，不要从零开始。**
+**写技能第一步：从下表选模板或参考对应专章范式，不要从零开始。**
 
-| 需求 | 模板文件 |
-|------|---------|
-| 满足条件时触发 | `templates/01-被动触发技.js` |
-| 强制发动不询问 | `templates/02-锁定技.js` |
-| 发动需弃牌/选目标 | `templates/03-有代价的触发技.js` |
-| 将 X 当 Y 使用 | `templates/04-视为技viewAs.js` |
-| 出牌阶段主动发动 | `templates/05-主动技.js` |
-| 一局仅一次 / 觉醒 | `templates/06-限定技与觉醒技.js` |
-| 转换技、记录状态 | `templates/07-状态切换技.js` |
-| 摸牌/伤害/回复 | `templates/08-直接效果技.js` |
-| 选多个目标 | `templates/09-多目标技.js` |
-| 技能由多部分协作 | `templates/10-附属技能.js` |
-| 限时生效的子技能 | `templates/11-临时技能.js` |
+### 6.0 技能模板速查表
+
+| 需求 | 技能类型 | 特征属性 / 核心机制 | 模板文件 / 专章 |
+|------|---------|---------------------|----------------|
+| 满足条件时触发 | 被动触发技 | `trigger + filter + content` | `templates/01-被动触发技.js` |
+| 强制发动不询问 | 锁定技 | `forced: true` / `mod` 规则修正 | 见 §6.1 / `templates/02-锁定技.js` |
+| 发动需弃牌/选目标 | 代价触发技 | `cost` 阶段前置扣减与交互 | `templates/03-有代价的触发技.js` |
+| 一局游戏仅限一次 | 限定技 | `limited: true + awakenSkill` | 见 §6.2 / `templates/06-限定技与觉醒技.js` |
+| 条件达成永久质变 | 觉醒技 | `juexingji: true + forced: true` | 见 §6.3 / `templates/06-限定技与觉醒技.js` |
+| 任务达成与失败惩戒 | 使命技 | `dutySkill: true + achieve/fail` | 见 §6.4 专章 |
+| 阴阳状态交替轮换 | 转换技 | `zhuanhuanji: true + changeZhuanhuanji` | 见 §6.5 / `templates/07-状态切换技.js` |
+| 将 X 当 Y 使用/打出 | 视为技 | `viewAs + filterCard + viewAsFilter` | 见 §6.6 / `templates/04-视为技viewAs.js` |
+| 点数累加阶梯消耗 | 蓄力技 | `chargeSkill: true + syncStorage` | 见 §6.7 专章 |
+| 出牌阶段主动发动 | 主动技 | `enable: "phaseUse"` | `templates/05-主动技.js` |
+| 摸牌/伤害/回复 | 直接效果技 | `player.draw() / player.damage()` | `templates/08-直接效果技.js` |
+| 选多个目标 | 多目标技 | `selectTarget / targets.forEach` | `templates/09-多目标技.js` |
+| 技能由多部分协作 | 附属技能 | `subSkill / group` | `templates/10-附属技能.js` |
+| 限时生效的子技能 | 临时技能 | `addTempSkill(skill, expire)` | `templates/11-临时技能.js` |
 
 路径前缀：`docs/YRD/templates/templates/`
+
+---
+
+### 6.1 锁定技开发范式（Compulsory Skill）
+
+锁定技是**满足条件即强制发动、不弹出询问窗口**的技能。分为“时机触发型”与“规则修正型”（mod）。
+
+#### 机制要点与红线
+- **特征标记**：`forced: true`（或 `locked: true`）。引擎据此向 UI 渲染锁定技标签，并在触发时不生成 `chooseBool` 确认弹窗。
+- **规则修正优先走 `mod`**：修改手牌上限、使用次数、攻击范围、距离计算等效果，**严禁在 trigger 里手动赋值变量**，必须使用 `mod` 字段，底层零延迟、零事件开销。
+- **强制选择约束**：若锁定技要求玩家从多个选项中抉择，传入 `{ forced: true }` 或不提供取消按钮，强制做出选择。
+- ❌ **红线**：严禁在锁定技的 `content` 中使用 `chooseBool` 询问玩家是否发动。
+
+#### 标准代码模板
+
+```javascript
+export const skill = {
+    // ── 示例 A：触发型锁定技 ──
+    mypack_suoding_trigger: {
+        audio: false,
+        trigger: { player: "phaseJieshuBegin" },
+        forced: true,
+        filter(event, player) {
+            return player.countCards("h") < player.hp;
+        },
+        async content(event, trigger, player) {
+            await player.draw(1);
+        },
+    },
+
+    // ── 示例 B：规则修正型锁定技（mod） ──
+    mypack_suoding_mod: {
+        audio: false,
+        mod: {
+            // 【杀】无次数限制
+            cardUsable(card, player, num) {
+                if (card.name === "sha") return Infinity;
+            },
+            // 普通锦囊无视距离
+            targetInRange(card, player, target, now) {
+                if (get.type(card) === "trick") return true;
+            },
+            // 手牌上限 +1
+            maxHandcard(player, num) {
+                return num + 1;
+            },
+        },
+    },
+
+    // ── 示例 C：强制二选一锁定技 ──
+    mypack_suoding_choice: {
+        audio: false,
+        trigger: { player: "phaseDrawBegin" },
+        forced: true,
+        async content(event, trigger, player) {
+            // 使用 chooseControl 强制二选一，不添加 cancel 选项
+            const result = await player.chooseControl(["选项一", "选项二"])
+                .set("prompt", "【技能名】：请选择一项强制执行")
+                .set("choiceList", ["摸两张牌", "回复1点体力"])
+                .forResult();
+            if (result.control === "选项一") {
+                await player.draw(2);
+            } else {
+                await player.recover(1);
+            }
+        },
+    },
+};
+```
+
+---
+
+### 6.2 限定技开发范式（Limited Skill）
+
+限定技是**整局游戏中仅能发动一次**的强力技能。可为出牌阶段主动发动，也可在特定时机触发。
+
+#### 机制要点与红线
+- **特征标记**：`limited: true`、`skillAnimation: true`、`animationColor: "orange"`（支持 `"fire"`, `"thunder"`, `"metal"`, `"wood"` 等色系）。
+- ⚠️ **致命红线（必调 awakenSkill）**：在 `content` 内**必须第一时间调用 `player.awakenSkill(event.name)`**！
+  - 引擎通过 `player.awakenSkill` 将技能登记到 `player.awakenedSkills` 集合并置 `player.storage[skill] = true`。
+  - **若遗漏此行，引擎无法识别技能已消耗，该技能在后续回合中仍可被无限制重复使用！**
+- **UI 状态**：配置 `intro: { content: "limited" }` 即可在技能角标渲染限定技专属状态。
+
+#### 标准代码模板
+
+```javascript
+export const skill = {
+    // ── 示例 A：主动限定技（出牌阶段） ──
+    mypack_xianding_active: {
+        audio: false,
+        enable: "phaseUse",
+        limited: true,
+        skillAnimation: true,
+        animationColor: "fire",
+        intro: { content: "limited" },
+        filter(event, player) {
+            return !player.storage.mypack_xianding_active && player.countCards("he") > 0;
+        },
+        filterCard: true,
+        position: "he",
+        prompt: "限定技：弃置一张牌并令所有其他角色受到1点火焰伤害",
+        async content(event, trigger, player) {
+            // ① 必须首先标记已发动，封死二次发动
+            player.awakenSkill(event.name);
+
+            const targets = game.filterPlayer(current => current !== player);
+            for (const target of targets) {
+                await target.damage(1, "fire");
+            }
+        },
+    },
+
+    // ── 示例 B：触发型限定技（濒死救主） ──
+    mypack_xianding_trigger: {
+        audio: false,
+        trigger: { player: "dying" },
+        limited: true,
+        skillAnimation: true,
+        animationColor: "wood",
+        intro: { content: "limited" },
+        filter(event, player) {
+            return !player.storage.mypack_xianding_trigger && player.hp <= 0;
+        },
+        async content(event, trigger, player) {
+            player.awakenSkill(event.name);
+            await player.recover(3 - player.hp);
+            await player.draw(3);
+        },
+    },
+};
+```
+
+---
+
+### 6.3 觉醒技开发范式（Awakening Skill）
+
+觉醒技是**满足条件时自动强制发动，永久改变武将形态与技能组**的一局一次技能（兼具锁定技与限定技特征）。
+
+#### 机制要点与红线
+- **标配四要素**：
+  1. `juexingji: true`
+  2. `forced: true`（锁定强制发动，绝不弹出取消选项）
+  3. `skillAnimation: true, animationColor: "metal"`
+  4. `derivation: ["new_skill"]`（声明衍生技能，用于图鉴展示）
+- **觉醒三部曲顺序**（多触发于准备阶段 `trigger: { player: "phaseZhunbeiBegin" }`）：
+  1. **首行封印**：`player.awakenSkill(event.name)`，防止后续异步操作引发条件重入；
+  2. **体魄质变**：调整体力上限/回复体力/摸牌；
+  3. **技能蜕变**：移除旧技能（`player.removeSkill`），赋予新技能（`player.addSkills`）。
+- ❌ **红线**：禁止在觉醒技中弹窗询问玩家是否觉醒；必须首行 `awakenSkill`。
+
+#### 标准代码模板
+
+```javascript
+export const skill = {
+    mypack_juexing: {
+        audio: false,
+        trigger: { player: "phaseZhunbeiBegin" },
+        forced: true,
+        juexingji: true,
+        skillAnimation: true,
+        animationColor: "metal",
+        derivation: ["mypack_juexing_boost", "mashu"],
+        filter(event, player) {
+            // 觉醒门槛判定
+            return !player.storage.mypack_juexing && player.hp <= 2 && player.countCards("h") >= 3;
+        },
+        async content(event, trigger, player) {
+            // 1. 防重入封锁（首行执行）
+            player.awakenSkill(event.name);
+
+            // 2. 体魄质变：加体力上限、回血、摸牌
+            await player.gainMaxHp(1);
+            await player.recover(1);
+            await player.draw(2);
+
+            // 3. 技能蜕变：移除自身，赋予进阶技能
+            await player.removeSkill(event.name);
+            await player.addSkills(["mypack_juexing_boost", "mashu"]);
+        },
+    },
+};
+```
+
+---
+
+### 6.4 使命技开发范式（Mission / Duty Skill）
+
+使命技是**赋予角色阶段性任务，达成则飞升进阶，失败则承受惩罚或降阶**的复合型机制技能。
+
+#### 架构设计：主从三位一体
+```mermaid
+flowchart TD
+    MAIN["主技能 (dutySkill: true)<br>提供基础效果 + 进度存储 (storage)"]
+    MAIN --> SUCCESS["subSkill.achieve<br>(使命成功)"]
+    MAIN --> FAIL["subSkill.fail<br>(使命失败)"]
+    SUCCESS --> S_AWAKEN["player.awakenSkill<br>赋予进阶强化技能 (addSkills)"]
+    FAIL --> F_AWAKEN["player.awakenSkill<br>扣减上限 / 剥夺能力 / 赋予惩罚"]
+```
+
+- **特征标记**：`dutySkill: true`。引擎会据此向 UI 渲染“使命技”专属标签。
+- **主技能**：负责提供常驻效果或记录任务指标，配置 `intro: { content: "使命进度：# / 3" }`。
+- **成功分支（`subSkill.achieve`）**：`dutySkill: true, forced: true, skillAnimation: true`。条件达成时触发，调用 `player.awakenSkill(skillId)`，打印 `game.log(player, "成功完成使命")`，并升级技能。
+- **失败分支（`subSkill.fail`）**：`dutySkill: true, forced: true`。触发失败条件时，调用 `player.awakenSkill(skillId)`，打印 `game.log(player, "使命失败")`，执行扣血/减上限/负面效果。
+- ⚠️ **红线**：成功与失败分支均必须调用 `player.awakenSkill(skillId)`，并清理相关追踪变量，避免死循环。
+
+#### 标准代码模板
+
+```javascript
+export const skill = {
+    mypack_shiming: {
+        audio: false,
+        dutySkill: true,
+        group: ["mypack_shiming_achieve", "mypack_shiming_fail"],
+        intro: {
+            content: "当前造成伤害次数：#/3。达成后技能升级；若进入濒死则使命失败。",
+        },
+        init(player) {
+            if (player.storage.mypack_shiming == undefined) player.storage.mypack_shiming = 0;
+            player.markSkill("mypack_shiming");
+        },
+        // 常驻效果：摸牌阶段额外摸一张
+        trigger: { player: "phaseDrawBegin" },
+        forced: true,
+        async content(event, trigger, player) {
+            trigger.num += 1;
+        },
+        subSkill: {
+            achieve: {
+                audio: false,
+                dutySkill: true,
+                forced: true,
+                skillAnimation: true,
+                animationColor: "fire",
+                trigger: { source: "damageSource" },
+                filter(event, player) {
+                    if (player.storage.mypack_shiming_done) return false;
+                    return (player.storage.mypack_shiming || 0) + 1 >= 3;
+                },
+                async content(event, trigger, player) {
+                    player.storage.mypack_shiming_done = true;
+                    player.unmarkSkill("mypack_shiming");
+                    player.awakenSkill("mypack_shiming");
+                    game.log(player, "成功完成使命！");
+                    await player.gainMaxHp(1);
+                    await player.recover(1);
+                    await player.addSkills(["mypack_shiming_upgraded"]);
+                },
+                sub: true,
+            },
+            fail: {
+                audio: false,
+                dutySkill: true,
+                forced: true,
+                trigger: { player: "dying" },
+                filter(event, player) {
+                    return !player.storage.mypack_shiming_done;
+                },
+                async content(event, trigger, player) {
+                    player.storage.mypack_shiming_done = true;
+                    player.unmarkSkill("mypack_shiming");
+                    player.awakenSkill("mypack_shiming");
+                    game.log(player, "使命失败！");
+                    await player.removeSkill("mypack_shiming");
+                    await player.loseMaxHp(1);
+                },
+                sub: true,
+            },
+        },
+    },
+};
+```
+
+---
+
+### 6.5 转换技开发范式（Switch Skill）
+
+转换技具有**“阳”与“阴”两种形态，每次发动后状态自动轮换交替**。
+
+#### 机制要点与红线
+- **核心配置**：
+  - `zhuanhuanji: true`
+  - `mark: true`
+  - `marktext: "☯"`
+  - `intro: { content(storage) { return storage ? "阴：[形态二效果]" : "阳：[形态一效果]"; } }`
+- **原生切换方法**：在 `content` 中直接调用 **`player.changeZhuanhuanji(event.name)`**。
+  - 引擎会自动将 `player.storage[skill]` 取反（`false` 变为 `true`，`true` 变为 `false`）；
+  - 自动向全局广播 `$changeZhuanhuanji` 播放太极图阴阳轮转动画；
+  - 自动更新悬浮提示卡片。
+- ⚠️ **红线（首行缓存当前状态）**：必须在 `content` 头部先使用临时变量记录当前状态 `const isYin = !!player.storage[event.name];`，然后再调用 `changeZhuanhuanji`，否则执行效果时会误读已翻转的阴阳状态！
+
+#### 标准代码模板
+
+```javascript
+export const skill = {
+    mypack_zhuanhuan: {
+        audio: false,
+        zhuanhuanji: true,
+        mark: true,
+        marktext: "☯",
+        intro: {
+            content(storage) {
+                return storage
+                    ? "阴：出牌阶段限一次，你可以弃置一张黑色牌并摸两张牌。"
+                    : "阳：出牌阶段限一次，你可以弃置一张红色牌并回复1点体力。";
+            },
+        },
+        enable: "phaseUse",
+        usable: 1,
+        filter(event, player) {
+            const isYin = !!player.storage.mypack_zhuanhuan;
+            const targetColor = isYin ? "black" : "red";
+            return player.hasCard(card => get.color(card) === targetColor, "he");
+        },
+        filterCard(card, player) {
+            const isYin = !!player.storage.mypack_zhuanhuan;
+            return get.color(card) === (isYin ? "black" : "red");
+        },
+        position: "he",
+        prompt: "转换技：弃置对应颜色牌发动效果",
+        async content(event, trigger, player) {
+            // ① 必须先读取发动时的阴阳形态
+            const isYin = !!player.storage[event.name];
+
+            // ② 翻转转换技状态并触发原生旋转特效
+            player.changeZhuanhuanji(event.name);
+
+            // ③ 根据发动时的形态执行效果
+            if (!isYin) {
+                // 阳形态：回复体力
+                await player.recover(1);
+            } else {
+                // 阴形态：摸牌
+                await player.draw(2);
+            }
+        },
+        ai: {
+            order: 6,
+            result: { player: 1 },
+        },
+    },
+};
+```
+
+---
+
+### 6.6 视为技开发范式（View-As Skill）
+
+视为技允许玩家**将一张或多张牌当作某种虚拟牌（VCard）使用或打出**（如关羽【武圣】、赵云【龙胆】）。
+
+#### 关键属性与避坑红线
+- **四大关键属性**：
+  1. `enable`: `["chooseToUse", "chooseToRespond"]`（使用与响应兼顾）或 `"phaseUse"`（仅出牌阶段）。
+  2. `filterCard(card, player)`: 过滤合法转化素材（函数或 `{ color: "red" }`、`{ name: "shan" }` 对象）。
+  3. `position: "hes"`: 允许选择素材的区域（`h` 手牌、`e` 装备区、`s` 技能区）。
+  4. `viewAs`: `{ name: "sha" }` 或动态返回对象的函数 `(cards, player) => ({ name: "sha" })`。
+- ⚠️ **避坑核心：`viewAsFilter(player)` 绝不可漏**：
+  - `viewAsFilter` 是引擎用于判定**“当前技能按钮是否应该亮起”**的高频轻量前置检查。
+  - **若不定义此函数，当玩家手牌没有符合条件的素材时，技能按钮依然会常驻亮起，点击后因为找不到合法卡牌直接报错或界面卡住！**
+- **AI 适配**：配置 `ai.respondSha: true` / `ai.respondShan: true`，并在 `check(card)` 中返回 `5 - get.value(card)`（引导 AI 优先使用价值最低的杂牌）。
+
+#### 标准代码模板
+
+```javascript
+export const skill = {
+    mypack_shishi: {
+        audio: false,
+        // ① 适用场景：既能主动使用，又能响应出牌
+        enable: ["chooseToUse", "chooseToRespond"],
+
+        // ② 素材卡牌过滤（示例：黑色非基本牌）
+        filterCard(card, player) {
+            return get.color(card) === "black" && get.type(card) !== "basic";
+        },
+
+        // ③ 可选区域：手牌与装备区
+        position: "he",
+
+        // ④ 转化成的目标虚拟牌
+        viewAs: { name: "sha" },
+
+        // ⑤ ⚠️ 核心防卡死预检：若无合法素材，按钮直接置灰不点亮
+        viewAsFilter(player) {
+            return player.hasCards("he", card => get.color(card) === "black" && get.type(card) !== "basic");
+        },
+
+        prompt: "将一张黑色非基本牌当【杀】使用或打出",
+
+        // ⑥ AI 素材选择策略：优先消耗低价值卡牌
+        check(card) {
+            return 6 - get.value(card);
+        },
+
+        ai: {
+            respondSha: true,
+            skillTagFilter(player) {
+                return player.hasCards("he", card => get.color(card) === "black" && get.type(card) !== "basic");
+            },
+            order() {
+                return get.order({ name: "sha" }) + 0.1;
+            },
+        },
+    },
+};
+```
+
+---
+
+### 6.7 蓄力技开发范式与流程（Charge Skill）
+
+蓄力技是具有**初始点数、上限限制、触发累加、阶梯消耗**特征的主动/组合技能（如蓄力技 3/4：初始 3 点，上限 4 点）。
+
+#### 标准开发五步流程
+
+```mermaid
+flowchart TD
+    S1["1. 初始化与 UI 标记<br>(init 赋初值 + intro 标记)"] --> S2["2. 监听增点与上限保护<br>(Math.min 防溢出 + syncStorage)"]
+    S2 --> S3["3. 出牌阶段校验与阶梯弹窗<br>(chooseControl 选项一/选项二)"]
+    S3 --> S4["4. 执行操作与取消回退<br>(扣除蓄力，若取消则回退补点)"]
+    S4 --> S5["5. 阶段重置与多目标清算<br>(phaseUseEnd 清标记 / 数组遍历还牌)"]
+```
+
+#### Step 1：状态存储与 UI 标记
+- **初值与标记**：在 `init(player)` 中检测初值，若 `undefined` 则赋初值并执行 `player.markSkill(skillId)`。
+- **清理机制**：在 `onremove(player)` 中清理 `player.storage[skillId]` 并执行 `player.unmarkSkill(skillId)`。
+- **悬浮提示**：配置 `intro: { content: "当前蓄力点：#/上限" }`。
+
+#### Step 2：触发增点与防溢出
+- **子技能挂载**：通过 `subSkill.gain` 挂载 `trigger`（如 `phaseJieshuBegin`、`phaseDiscardAfter`、`damageEnd`）。
+- **上限截断**：严格使用 `Math.min(MAX_POINTS, currentPoints + addNum)` 避免数值无上限溢出。
+- **三件套同步**：赋值后必须执行 `player.markSkill(skillId)` 与 `player.syncStorage(skillId)`，并输出 `game.log`。
+
+#### Step 3：出牌阶段消耗与交互弹窗
+- **发动门槛**：`enable: "phaseUse"`，`filter: (event, player) => (player.storage[skillId] || 0) >= MIN_COST`。
+- **按钮文案红线**：根据当前蓄力点与触发条件动态构造分支，按钮数组必须为 `["选项一", "选项二", ..., "cancel2"]`，禁止裸露英文 key。
+
+#### Step 4：分支执行与取消回退补偿（⚠️ 必做防踩坑）
+- **预扣点数**：进入分支后先扣除对应档位的蓄力点。
+- **回退机制**：若随后的选牌或选目标操作返回 `!result.bool`（玩家主动取消），**必须立即执行 `player.storage[skillId] += cost` 将点数原路退回**，防止误触导致白白吞点。
+
+#### Step 5：阶段重置与多目标清算
+- **限次重置**：若某些分支有“出牌阶段限一次”限制，在 `subSkill.clear` 中监听 `phaseUseEnd` 清理标记。
+- **多目标清算**：若分支允许多次发动（如多目标掠夺牌/给牌），必须使用数组 `player.storage[xxx_targets] = []` 记录目标名单；并在出牌阶段结束时遍历该数组，逐一交还牌，严禁只用单个变量被后续目标覆盖。
+
+---
+
+#### 蓄力技标准完整代码模板
+
+```javascript
+export const skill = {
+    mypack_xuli: {
+        audio: false,
+        chargeSkill: true,
+        enable: "phaseUse",
+        intro: {
+            content: "当前蓄力点：#/4",
+        },
+        init(player) {
+            if (player.storage.mypack_xuli == undefined) player.storage.mypack_xuli = 3;
+            player.markSkill("mypack_xuli");
+        },
+        onremove(player) {
+            delete player.storage.mypack_xuli;
+            player.unmarkSkill("mypack_xuli");
+        },
+        filter(event, player) {
+            return (player.storage.mypack_xuli || 0) >= 1;
+        },
+        async content(event, trigger, player) {
+            const points = player.storage.mypack_xuli || 0;
+            const choices = [];
+            const choiceList = [];
+            const cnNumbers = ["一", "二", "三"];
+
+            // 档位1：消耗1点
+            const canOpt1 = points >= 1 && player.countCards("he") > 0;
+            // 档位2：消耗2点（允许多次发动）
+            const canOpt2 = points >= 2 && game.hasPlayer(c => c != player);
+
+            let opt1 = null, opt2 = null;
+            if (canOpt1) {
+                opt1 = "选项" + cnNumbers[choices.length];
+                choices.push(opt1);
+                choiceList.push("【一档技能】（消耗1点）：弃置一张牌并摸两张牌");
+            }
+            if (canOpt2) {
+                opt2 = "选项" + cnNumbers[choices.length];
+                choices.push(opt2);
+                choiceList.push("【二档技能】（消耗2点）：获得一名其他角色的一张牌");
+            }
+
+            if (!choices.length) return;
+            choices.push("cancel2");
+
+            const chooseResult = await player.chooseControl(choices)
+                .set("prompt", "【技能名】：请选择消耗蓄力点发动的效果（当前蓄力点：" + points + "/4）")
+                .set("choiceList", choiceList)
+                .forResult();
+
+            const control = chooseResult.control;
+            if (control === opt1) {
+                // 执行一档：选牌弃置
+                const choose = await player.chooseCard("he", true, "选择一张牌弃置").forResult();
+                if (choose.bool) {
+                    player.storage.mypack_xuli -= 1;
+                    player.markSkill("mypack_xuli");
+                    player.syncStorage("mypack_xuli");
+                    await player.discard(choose.cards);
+                    await player.draw(2);
+                }
+                // 若 choose.bool 为 false 则自然取消，点数不被扣除
+            } else if (control === opt2) {
+                // 执行二档：选目标掠夺
+                const choose = await player.chooseTarget(true, (card, player, target) => target !== player).forResult();
+                if (choose.bool) {
+                    player.storage.mypack_xuli -= 2;
+                    player.markSkill("mypack_xuli");
+                    player.syncStorage("mypack_xuli");
+                    player.storage.mypack_xuli_targets = player.storage.mypack_xuli_targets || [];
+                    player.storage.mypack_xuli_targets.add(choose.targets[0]);
+                    await player.gainPlayerCard(choose.targets[0], "he", true);
+                    player.addTempSkill("mypack_xuli_return", "phaseUseAfter");
+                }
+            }
+        },
+        group: ["mypack_xuli_gain"],
+        subSkill: {
+            gain: {
+                audio: false,
+                forced: true,
+                trigger: {
+                    player: ["phaseJieshuBegin", "damageEnd"],
+                },
+                async content(event, trigger, player) {
+                    const addNum = (event.triggername === "damageEnd") ? (trigger.num || 1) : 1;
+                    const cur = player.storage.mypack_xuli || 0;
+                    if (cur < 4) {
+                        const next = Math.min(4, cur + addNum);
+                        player.storage.mypack_xuli = next;
+                        player.markSkill("mypack_xuli");
+                        player.syncStorage("mypack_xuli");
+                        game.log(player, "获得了", get.cnNumber(next - cur) + "点蓄力点（当前：" + next + "/4）");
+                    }
+                },
+                sub: true,
+            },
+            return: {
+                trigger: { player: "phaseUseEnd" },
+                forced: true,
+                popup: false,
+                audio: false,
+                async content(event, trigger, player) {
+                    player.removeSkill("mypack_xuli_return");
+                    const targets = player.storage.mypack_xuli_targets || [];
+                    delete player.storage.mypack_xuli_targets;
+                    for (const target of targets) {
+                        if (!target || !target.isIn()) continue;
+                        // 依次逐个交还等量牌...
+                    }
+                },
+                sub: true,
+            },
+        },
+    },
+};
+```
 
 ## 7. API 速查
 
@@ -495,6 +1065,11 @@ player.awakenSkill(skillId)                   // 标记限定技已用
 | `chooseControl` | `{ bool, control }` |
 | `chooseButton` | `{ bool, links }` |
 
+> ⚠️ **`chooseControl` 交互按钮约束**：
+> `chooseControl(controls)` 的参数 `controls` 会直接作为底部按钮文本（经 `get.translation` 转换）。
+> 禁止直接传入未翻译的英文标识符（如 `["shaTarget", "damage"]`），否则底部按钮直接裸露英文！
+> **规范写法**：当使用 `choiceList` 提供多行说明时，`controls` 必须统一映射为 `["选项一", "选项二", ...]` 等中文选项，使按钮与 `choiceList` 行号一一对齐，内部分支判定与 AI 评估通过变量或索引映射。
+
 ### 状态与管理
 
 ```js
@@ -506,7 +1081,7 @@ player.removeSkill(id)
 player.hasSkill(id)
 ```
 
-## 8. 十一大避坑（按危害排序）
+## 8. 十二大避坑（按危害排序）
 
 1. **`cost` 忘记 `event.result = ...`** → 技能永不发动，**且无任何报错**（最难查）
 2. **忘记 `.forResult()`** → 拿到事件对象而非结果，`bool` 判定异常
@@ -519,6 +1094,7 @@ player.hasSkill(id)
 9. **`group` 引用的技能不存在** → 静默失效，无报错
 10. **不 `await` 效果事件** → 后续逻辑提前执行，产生竞态
 11. **写了不存在的武将字段**（`hiddenSkills`/`growthHp`/`tags`）→ 静默无效
+12. **`chooseControl` 传入未经翻译的英文 key** → 弹窗底部直接裸露英文按钮（如 `shaTarget`），配合 `choiceList` 时必须映射为 `["选项一", "选项二"]` 等中文选项
 
 ## 9. 过时写法（**新代码不要用**）
 
@@ -613,6 +1189,7 @@ player.getStat("triggerSkill")                     // 发动次数
 - 🚫 `lib.init.sheet` 只能插**单条**规则，整段 CSS 用 `createElement("style")`
 - 🚫 搬移 dialog 节点后必须复位 `display/position/float/inset/transform/尺寸`，否则全部叠在一处
 - 🚫 加了 `display:block!important` 后，显隐切换必须改用**类名**（内联 `display:none` 会失效）
+- 🚫 **`chooseControl` 配合 `choiceList` 禁止裸传英文 key**：`controls` 数组必须统一映射为中文按钮（如 `["选项一", "选项二", ...]`），严禁出现裸露的未翻译英文按钮。
 
 ## 11. 深入学习路径
 

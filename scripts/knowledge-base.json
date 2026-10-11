@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-11T11:59:24.025Z",
+  "updatedAt": "2026-10-11T14:05:44.602Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -1931,6 +1931,92 @@
       "confidence": "verified",
       "createdAt": "2026-10-11T11:59:24.024Z",
       "updatedAt": "2026-10-11T11:59:24.024Z"
+    },
+    {
+      "id": "kb-dd81084f",
+      "kind": "pitfall",
+      "title": "chooseControl 配合 choiceList 时按钮必须使用中文选项（选项一、选项二），禁止裸露英文 key",
+      "body": "chooseControl(controls) 的参数 controls 会直接作为底部交互按钮的文本（经 get.translation 转换）。若直接传入未经翻译的英文标识符（如 shaTarget、damage），底部按钮将直接显示裸露的英文单词。当使用 choiceList 提供详细多行说明时，controls 数组必须统一映射为 ['选项一', '选项二'] 等中文选项，使按钮与 choiceList 的行号一一对齐，内部 AI 评估与分支判定通过变量或索引映射。",
+      "keywords": [
+        "chooseControl",
+        "choiceList",
+        "选项一",
+        "选项二",
+        "交互按钮",
+        "按钮文案",
+        "英文key",
+        "弹窗选择"
+      ],
+      "refs": [
+        "yxsre_xihou @ apps/core/extension/英雄杀RE/character/skills/dahan.js:23-71"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/dahan.js",
+          "start": 23,
+          "end": 71,
+          "hash": "a52bdf0fcc3b"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-11T12:51:33.503Z",
+      "updatedAt": "2026-10-11T12:51:33.503Z"
+    },
+    {
+      "id": "kb-fc69410e",
+      "kind": "pattern",
+      "title": "蓄力技标准开发流程与范式（防溢出、回退补偿、UI标记、多目标清算）",
+      "body": "蓄力技核心实现包含四步：① storage与init初始化：在init(player)中赋初值并markSkill，intro中通过'当前蓄力点：#/上限'呈现标记；② 增点触发与上限保护：通过subSkill/group监听时机，用Math.min(max, cur + add)防溢出并同步syncStorage；③ 出牌阶段消耗与取消回退：chooseControl必须用['选项一', '选项二', 'cancel2']，若玩家后续操作取消，必须回退扣除的点数；④ 清理与多目标结算：通过subSkill.clear在phaseUseEnd重置限次标记，若允许多次发动则用数组记录目标并在phaseUseEnd遍历结算。",
+      "keywords": [
+        "蓄力技",
+        "蓄力点",
+        "init",
+        "markSkill",
+        "chooseControl",
+        "取消回退",
+        "防溢出",
+        "多目标还牌"
+      ],
+      "refs": [
+        "yxsre_zhunwu @ apps/core/extension/英雄杀RE/character/skills/dahan.js:724-981"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/dahan.js",
+          "start": 724,
+          "end": 981,
+          "hash": "838735606f8e"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-11T13:50:07.453Z",
+      "updatedAt": "2026-10-11T13:50:07.453Z"
+    },
+    {
+      "id": "kb-8636dffa",
+      "kind": "recipe",
+      "title": "特殊技能类型开发范式大全（锁定技、限定技、觉醒技、使命技、转换技、视为技）",
+      "body": "《无名杀》核心特殊技能标准范式：① 锁定技（forced: true，无条件结算，属性修改走 mod）；② 限定技（limited: true，content 必须调 player.awakenSkill(event.name) 防无限发动）；③ 觉醒技（forced: true + juexingji: true，满足条件触发，调用 awakenSkill 后改上限、换技能）；④ 使命技（通过 storage 记进度，用 subSkill.success 和 subSkill.fail 拆分达成与失败并双向清理）；⑤ 转换技（zhuanhuanji: true，marktext:'☯'，每次结算翻转 storage 并 syncStorage）；⑥ 视为技（viewAs + filterCard + viewAsFilter 快速预检）。",
+      "keywords": [
+        "特殊技能",
+        "锁定技",
+        "限定技",
+        "觉醒技",
+        "使命技",
+        "转换技",
+        "视为技",
+        "开发范式",
+        "awakenSkill",
+        "zhuanhuanji",
+        "viewAs"
+      ],
+      "refs": [
+        ".agents/skills/noname-general-extension/SKILL.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-11T14:05:44.602Z",
+      "updatedAt": "2026-10-11T14:05:44.602Z"
     }
   ]
 }
