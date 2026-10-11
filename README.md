@@ -35,9 +35,9 @@
 这样在工作目录内即可同时开发游戏和技能包，无需跨目录操作：
 
 ```bash
-git clone <本仓库> <无名杀项目>/.dsh/skills/noname-general-extension
+git clone <本仓库> <无名杀项目>/.agents/skills/noname-general-extension
 
-cd <无名杀项目>/.dsh/skills/noname-general-extension
+cd <无名杀项目>/.agents/skills/noname-general-extension
 node scripts/build-index.mjs       # 构建索引（10–30 秒）
 node scripts/skill-search.mjs stats  # 验证
 ```
@@ -62,7 +62,7 @@ node /tmp/nge/install.mjs --target <无名杀项目根>
 | `--force` | 覆盖已存在的文件（默认跳过） |
 | `--no-index` | 不自动构建索引 |
 
-安装到 `<项目根>/.dsh/skills/noname-general-extension/`。
+安装到 `<项目根>/.agents/skills/noname-general-extension/`。
 
 > 知识库 `knowledge-base.json` 在目标已存在时**默认保留**（不覆盖），避免丢失本机沉淀的结论；
 > 需要覆盖请加 `--force`。
@@ -71,11 +71,11 @@ node /tmp/nge/install.mjs --target <无名杀项目根>
 
 ```bash
 git clone <本仓库> /tmp/nge
-mkdir -p <无名杀项目>/.dsh/skills/noname-general-extension
+mkdir -p <无名杀项目>/.agents/skills/noname-general-extension
 cp -r /tmp/nge/SKILL.md /tmp/nge/README.md /tmp/nge/LICENSE \
-      /tmp/nge/scripts <无名杀项目>/.dsh/skills/noname-general-extension/
+      /tmp/nge/scripts <无名杀项目>/.agents/skills/noname-general-extension/
 
-cd <无名杀项目>/.dsh/skills/noname-general-extension/scripts
+cd <无名杀项目>/.agents/skills/noname-general-extension/scripts
 node build-index.mjs          # 构建索引（10–30 秒）
 node skill-search.mjs stats   # 验证
 ```
@@ -298,8 +298,11 @@ node migrate-skill.mjs check    # 可移植性自检
 本仓库推荐**直接位于技能安装位置**：
 
 ```
-<无名杀项目>/.dsh/skills/noname-general-extension/   ← 本仓库（含 .git）
+<无名杀项目>/.agents/skills/noname-general-extension/   ← 本仓库（含 .git）
 ```
+
+DSH 扫描两个项目级技能根，二者都可用：`.dsh/skills`（优先级 100，DSH 专属）
+与 `.agents/skills`（优先级 200，**跨工具共享约定**，本仓库采用后者）。
 
 这样**仓库本体与技能运行时是同一个目录**，好处：
 
@@ -307,7 +310,7 @@ node migrate-skill.mjs check    # 可移植性自检
 - 游戏项目与技能包在**同一个工作目录**下，一次操作两边都能维护
 - 无需跨目录授权（在受限环境下尤其重要）
 
-> 该目录已被《无名杀》项目的 `.gitignore`（`.dsh/` 规则）忽略，
+> 该目录已被《无名杀》项目的 `.gitignore`（`.agents/skills/` 规则）忽略，
 > 因此**不会污染游戏仓库的 git 状态**，两个仓库相互独立。
 >
 > 旧的"源仓库 + 安装副本"双位置模式仍然支持（见「安装 · 方式二/三」），
@@ -316,7 +319,7 @@ node migrate-skill.mjs check    # 可移植性自检
 ### 日常维护流程
 
 ```bash
-cd <无名杀项目>/.dsh/skills/noname-general-extension
+cd <无名杀项目>/.agents/skills/noname-general-extension
 
 # 1. 改动后自查（须 0 问题）
 node scripts/migrate-skill.mjs check
@@ -340,9 +343,9 @@ git push origin main
 | 仓库 | 位置 | 提交到哪 |
 |------|------|---------|
 | **游戏本体** | `<无名杀项目>/` | 上游 `noname`（只改 `docs/` 等本地资产） |
-| **本技能包** | `<无名杀项目>/.dsh/skills/noname-general-extension/` | 本仓库 origin |
+| **本技能包** | `<无名杀项目>/.agents/skills/noname-general-extension/` | 本仓库 origin |
 
-两者 git 状态互不干扰：技能包在 `.dsh/` 下，被游戏仓库忽略；
+两者 git 状态互不干扰：技能包在 `.agents/skills/` 下，被游戏仓库忽略；
 在技能包目录内执行 `git` 命令只影响技能包仓库。
 
 详细流程见 `SKILL.md` §12。

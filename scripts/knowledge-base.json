@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-06T03:38:50.403Z",
+  "updatedAt": "2026-10-06T04:41:21.471Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -1834,6 +1834,78 @@
       "confidence": "verified",
       "createdAt": "2026-10-06T03:38:50.403Z",
       "updatedAt": "2026-10-06T03:38:50.403Z"
+    },
+    {
+      "id": "kb-4eae9a88",
+      "kind": "pitfall",
+      "title": "Electron 双击无反应：主进程必须是 CJS + @electron/remote 要 external",
+      "body": "⚠ 症状：双击 noname.exe 毫无反应，无窗口无报错、进程秒退、命令行也无输出。★ 根因两层：① package.json 的 type:module 让 vite-plugin-electron 自动推导 formats:[es]，ESM 主进程写 import {BrowserWindow} from 'electron'，而 electron 内置模块是 CJS 形态、导出名无法被 cjs-module-lexer 静态识别 → SyntaxError: does not provide an export named 'BrowserWindow'（崩在 main.js 第一行，窗口来不及创建）；② 若把 @electron/remote 打进 bundle，Rollup 会重复生成 const electron_1 声明使引用落到错误作用域 → TypeError: Cannot read properties of undefined (reading 'on')，报错指向 @electron/remote 自己的源码路径，极易误判。★ 修复：vite.config.ts 里显式覆盖 lib:{formats:['cjs'],fileName:()=>'main.cjs'}（必须改 lib，因 lib.formats 优先级高于 rollupOptions.output.format 且 mergeConfig 保留插件 build.lib），external 用正则 /^@electron\\\\/remote(\\\\/|\\$)/ 匹配子路径（字符串 external 是精确匹配，写 '@electron/remote/main' 匹配不到实际 import 的 '@/main/index.js'）。同步改 package.json 的 main 与 build.ts 的 extraMetadata.main 为 app/main.cjs。★ 修复后 main.cjs 从 1.64MB 降到 4.4KB（依赖转 external）。★ 排查：看是否有 Home/ 目录生成——没有说明 main 根本没执行到 setPath。",
+      "keywords": [
+        "Electron",
+        "双击无反应",
+        "启动失败",
+        "CJS",
+        "ESM",
+        "electron-builder",
+        "main.cjs",
+        "BrowserWindow",
+        "@electron/remote",
+        "interop"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-06T03:53:59.651Z",
+      "updatedAt": "2026-10-06T03:53:59.651Z"
+    },
+    {
+      "id": "kb-b4c45388",
+      "kind": "pitfall",
+      "title": "改成 CJS 后 import.meta.dirname 失效导致 Electron 静默退出",
+      "body": "⚠ 现象：双击 exe 毫无反应、无窗口无报错、进程秒退、退出码 0、无 stdout/stderr；最关键判据是 **Home/ 目录不生成**。★ 根因：main.ts 用 const dirname = path.join(import.meta.dirname, '../')，而 import.meta 只存在于 ESM；产物改成 CJS 后打包器把它替换成 void 0，于是 path.join(undefined,'../') 立即抛 'The path argument must be of type string'。该语句位于所有 setPath() 之前，所以 Home/ 永不生成。★ 为何最隐蔽：抛错在 app.whenReady() 之前，Electron 来不及弹窗或写日志；产物语法合法（node --check 通过）。★ 修复：CJS 下改用 __dirname。★ 连带项：preload 路径也要从 app/preload.js 改成 app/preload.cjs（指错时 Electron 不报错，只是 preload 静默失效）；import.meta.env.DEV 无需改，vite 会静态替换。★ 排查：①看 Home/ 是否生成 ②检查产物是否含 void 0（Select-String -Pattern 'void 0'）③确认 external 化后的 node_modules 依赖在包内。",
+      "keywords": [
+        "Electron",
+        "双击无反应",
+        "静默退出",
+        "import.meta",
+        "void 0",
+        "__dirname",
+        "CJS",
+        "Home目录",
+        "preload.cjs"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-06T04:23:16.200Z",
+      "updatedAt": "2026-10-06T04:23:16.200Z"
+    },
+    {
+      "id": "kb-7ae35b83",
+      "kind": "pitfall",
+      "title": "external 化 CJS 依赖会丢 default 解包：createApp is not a function",
+      "body": "⚠ 现象与 import.meta 那条一模一样：双击毫无反应、无报错、退出码 0、Home/ 不生成。★ 根因：把依赖标为 rollup external 后，Rollup 不再插入 default 互操作包装。源码 import createApp from '@noname/fs'（默认导入）被编译成 const createApp = require('@noname/fs')，而该模块用 tsup/__toCommonJS 产出、带 __esModule:true，require 返回的是命名空间对象 { default, defaultConfig }，真正的函数在 .default 上 → TypeError: createApp is not a function。该句同样位于所有 setPath() 之前，所以依旧静默。★ 修复：const createApp = typeof m === 'function' ? m : m.default;（兼容已包装与未包装两种形态）。★ 通用规律：凡把 CJS 依赖标 external，对它的默认导入都要确认 .default 解包。对照：@electron/remote/main/index.js 是 module.exports = require('../dist/src/main') 的纯 CJS 再导出，不受影响；带 __esModule 的 tsup/esbuild 产物会受影响。★ 无 GUI 验证法：写模拟器 stub 掉 electron 与 @electron/remote，用 createRequire 加载 main.cjs，看调用序列是否跑到 new BrowserWindow 与 loadURL —— 本案实测得到 setPath×7 → crashReporter → whenReady → new BrowserWindow → loadURL(8089) → Server listening。",
+      "keywords": [
+        "Electron",
+        "external",
+        "default解包",
+        "createApp is not a function",
+        "CJS互操作",
+        "静默失败",
+        "Home目录",
+        "模拟器验证"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-06T04:41:21.470Z",
+      "updatedAt": "2026-10-06T04:41:21.470Z"
     }
   ]
 }

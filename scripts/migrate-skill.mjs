@@ -11,8 +11,8 @@
  *   node migrate-skill.mjs check                         检查可移植性（有无硬编码路径）
  *
  * 迁移后在【新机器】执行：
- *   unzip 到 <新项目根>/.dsh/skills/ ，然后运行：
- *   node .dsh/skills/noname-general-extension/scripts/build-index.mjs
+ *   unzip 到 <新项目根>/.agents/skills/ ，然后运行：
+ *   node .agents/skills/noname-general-extension/scripts/build-index.mjs
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync, copyFileSync } from "node:fs";
 import { join, dirname, resolve, relative, basename } from "node:path";
@@ -103,12 +103,12 @@ function cmdPack() {
 
     console.log(`
 迁移步骤（在新机器上）：
-  1. 解压到  <新项目根>/.dsh/skills/
+  1. 解压到  <新项目根>/.agents/skills/
   2. cd <新项目根>
   3. 重建索引（必须，因为索引含机器相关的路径）：
-       node .dsh/skills/noname-general-extension/scripts/build-index.mjs
+       node .agents/skills/noname-general-extension/scripts/build-index.mjs
   4. 验证：
-       node .dsh/skills/noname-general-extension/scripts/skill-search.mjs stats
+       node .agents/skills/noname-general-extension/scripts/skill-search.mjs stats
 `);
 }
 
@@ -132,9 +132,9 @@ function cmdExport() {
     console.log(`\n✅ 已导出 ${always.length} 个文件到:\n   ${out}`);
     console.log(`
 迁移步骤（在新机器上）：
-  1. 把该目录放到  <新项目根>/.dsh/skills/noname-general-extension/
+  1. 把该目录放到  <新项目根>/.agents/skills/noname-general-extension/
   2. cd <新项目根>
-  3. node .dsh/skills/noname-general-extension/scripts/build-index.mjs
+  3. node .agents/skills/noname-general-extension/scripts/build-index.mjs
 `);
 }
 
@@ -214,11 +214,11 @@ function cmdCheck() {
     }
     if (!issues) console.log(`  ✓ 未发现硬编码路径`);
 
-    // 1b. 检查代码里把 skill 自身位置写死成 <ROOT>/.dsh/skills/...
+    // 1b. 检查代码里把 skill 自身位置写死成 <ROOT>/.agents/skills/...（或 .dsh/skills）
     //     这类写法在「技能位于独立仓库、项目在别处」时会指向错误位置。
     //
-    //     例外：install.mjs 的职责就是往【目标项目】的 .dsh/skills/ 里写，
-    //     它用 join(ROOT, ".dsh/...") 是正确行为，不能算位置假设。
+    //     例外：install.mjs 的职责就是往【目标项目】的技能根里写，
+    //     它用 join(ROOT, ".agents/skills/...") 是正确行为，不能算位置假设。
     console.log(`\n〔1b〕技能自身位置是否自定位`);
     const SELF_LOCATE_EXEMPT = new Set(["install.mjs"]);
     let selfLocated = true;
@@ -227,7 +227,8 @@ function cmdCheck() {
         const text = readFileSync(join(SKILL_DIR, f), "utf8")
             .replace(/`(?:[^`\\]|\\.)*`/gs, "``")      // 去模板串
             .replace(/\/\/[^\n]*/g, "");               // 去行注释
-        const re = /(?:join|resolve)\(\s*(?:ROOT|INDEX\.root)\s*,\s*["'][^"']*\.dsh[^"']*["']/g;
+        // 两个项目级技能根都算位置假设：.agents/skills（rank 200）、.dsh/skills（rank 100）
+        const re = /(?:join|resolve)\(\s*(?:ROOT|INDEX\.root)\s*,\s*["'][^"']*\.(?:agents|dsh)[^"']*["']/g;
         const hits = text.match(re);
         if (hits) {
             console.log(`  ⚠ ${f}: 把自身位置写死在 ROOT 下`);
@@ -273,8 +274,8 @@ function cmdCheck() {
     console.log(buildDynamic ? `  ✓ build-index 动态解析项目根` : `  ⚠ build-index 可能硬编码项目根`);
     if (!buildDynamic) issues++;
 
-    // 输出路径若写成 join(ROOT, ".dsh/skills/...")，技能放在项目外时索引会写错地方
-    const outHardcoded = /join\(\s*ROOT\s*,\s*["']\.dsh/.test(buildSrc);
+    // 输出路径若写成 join(ROOT, ".agents/skills/...")，技能放在项目外时索引会写错地方
+    const outHardcoded = /join\(\s*ROOT\s*,\s*["']\.(?:agents|dsh)/.test(buildSrc);
     if (outHardcoded) {
         console.log(`  ⚠ build-index 的索引输出路径写死在 ROOT 下（技能在项目外时会写错位置）`);
         issues++;
@@ -322,10 +323,10 @@ Skill 迁移工具
     node migrate-skill.mjs pack           # 打包
 
   【目标机器】
-    1. 解压到  <项目根>/.dsh/skills/
+    1. 解压到  <项目根>/.agents/skills/
     2. cd <项目根>
-    3. node .dsh/skills/noname-general-extension/scripts/build-index.mjs
-    4. 验证: node .dsh/skills/noname-general-extension/scripts/skill-search.mjs stats
+    3. node .agents/skills/noname-general-extension/scripts/build-index.mjs
+    4. 验证: node .agents/skills/noname-general-extension/scripts/skill-search.mjs stats
 
 注意：
   · skill-index.json 是【机器相关】的生成物，迁移后【必须重建】

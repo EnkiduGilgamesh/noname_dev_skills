@@ -32,11 +32,17 @@ if (!existsSync(join(ROOT, "apps/core/noname"))) {
     process.exit(1);
 }
 
-const DEST = join(ROOT, ".dsh/skills/noname-general-extension");
+// 技能安装位置。DSH 会扫描两个项目级技能根（见 SKILL.md §12）：
+//   <项目根>/.dsh/skills      （rank 100）
+//   <项目根>/.agents/skills   （rank 200，跨工具共享约定）
+// 默认用 .agents/skills；若已存在 .dsh/skills 的旧安装则沿用，避免装出两份。
+const DEST_AGENTS = join(ROOT, ".agents/skills/noname-general-extension");
+const DEST_DSH = join(ROOT, ".dsh/skills/noname-general-extension");
+const DEST = existsSync(DEST_DSH) && !existsSync(DEST_AGENTS) ? DEST_DSH : DEST_AGENTS;
 const force = has("--force");
 
-// ── 本仓库已迁入目标位置时，源即目标：无需复制，只重建索引 ──
-// 场景：本仓库直接 clone 到 <项目>/.dsh/skills/noname-general-extension
+// ── 本仓库已位于技能安装位置时，源即目标：无需复制，只重建索引 ──
+// 场景：本仓库直接 clone 到 <项目>/.agents/skills/noname-general-extension
 // 此时复制文件等于自我覆盖（且 --force 下会清空 knowledge-base.json）
 const SAME_LOCATION = resolve(HERE) === resolve(DEST);
 if (SAME_LOCATION) {

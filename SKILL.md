@@ -35,7 +35,7 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
 2. **🔍 检索**（**必做第一步**）：
 
    ```bash
-   cd .dsh/skills/noname-general-extension/scripts
+   cd .agents/skills/noname-general-extension/scripts
    node skill-search.mjs search "<用功能语义描述，别用技能名>"
    ```
 
@@ -77,7 +77,7 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
 7. **🔧 注册扩展**（**写完必做，否则游戏里看不到**）：
 
    ```bash
-   cd .dsh/skills/noname-general-extension/scripts
+   cd .agents/skills/noname-general-extension/scripts
    node register-extension.mjs fix                  # 先修复被游戏内「制作扩展」覆盖的文件
    node register-extension.mjs guideall --enable    # 批量登记 + 启用
    ```
@@ -690,20 +690,27 @@ $env:ELECTRON_BUILDER_BINARIES_DOWNLOAD_OVERRIDE_URL = "http://127.0.0.1:8799"  
 
 **推荐布局：仓库本体即技能目录**（本仓库当前即为此布局）。
 
+DSH 扫描**两个**项目级技能根，二者都可放本技能：
+
+| 优先级 | 路径 | 说明 |
+|--------|------|------|
+| 100 | `<无名杀项目>/.dsh/skills/` | DSH 专属 |
+| 200 | `<无名杀项目>/.agents/skills/` | **跨工具共享约定（本仓库采用）** |
+
 | 位置 | 角色 | 是否入库 |
 |------|------|---------|
-| `<无名杀项目>/.dsh/skills/noname-general-extension/` | **git 仓库根 + 技能运行时，同一目录** | ✅ 提交到这里 |
+| `<无名杀项目>/.agents/skills/noname-general-extension/` | **git 仓库根 + 技能运行时，同一目录** | ✅ 提交到这里 |
 
 好处：改完立即生效，**无需复制/同步**；游戏项目与技能包在**同一工作目录**下，
 一次操作两边都能维护，且无需跨目录授权。
 
-> 该目录被《无名杀》项目的 `.gitignore`（`.dsh/` 规则）忽略，
+> 该目录被《无名杀》项目的 `.gitignore`（`.agents/skills/` 规则）忽略，
 > **不会污染游戏仓库的 git 状态**。在技能包目录内跑 `git` 只影响技能包仓库。
 
 **先确认当前布局**：
 
 ```bash
-cd <无名杀项目>/.dsh/skills/noname-general-extension
+cd <无名杀项目>/.agents/skills/noname-general-extension
 git rev-parse --show-toplevel     # 应指向本目录 → 仓库本体在此
 git remote -v                     # 应指向技能包仓库（而非游戏仓库）
 ```
@@ -711,7 +718,8 @@ git remote -v                     # 应指向技能包仓库（而非游戏仓�
 若 `--show-toplevel` 指向**游戏项目根**，说明是旧的双位置模式
 （仓库在别处、此处仅为安装副本），此时才需要本节末尾的「回流」步骤。
 
-> `install.mjs` 检测到"源即目标"时会自动跳过复制，不会自我覆盖。
+> `install.mjs` 检测到"源即目标"时会自动跳过复制，不会自我覆盖；
+> 它也兼容 `.dsh/skills`（若项目里已存在旧安装则沿用，避免装出两份）。
 
 #### 权限边界（受限环境实测）
 
@@ -732,7 +740,7 @@ git remote -v                     # 应指向技能包仓库（而非游戏仓�
 ### 四类更新
 
 > 以下命令均在技能包仓库根执行：
-> `cd <无名杀项目>/.dsh/skills/noname-general-extension`
+> `cd <无名杀项目>/.agents/skills/noname-general-extension`
 
 #### ① Skill 本身（`SKILL.md`）
 
@@ -750,7 +758,7 @@ git remote -v                     # 应指向技能包仓库（而非游戏仓�
 **每次开发至少沉淀 1 条**（见 §1 第 3 步）：
 
 ```bash
-cd .dsh/skills/noname-general-extension/scripts
+cd .agents/skills/noname-general-extension/scripts
 node skill-search.mjs learn \
   --title "简短标题" --body "结论内容" \
   --kind pattern --keywords "关键词1,关键词2" --from <技能ID>
@@ -854,7 +862,7 @@ git push origin main
 但**改动过 `scripts/` 下的解析逻辑**后必须重建，否则 `locate`/`show` 给旧数据：
 
 ```bash
-cd <无名杀项目>/.dsh/skills/noname-general-extension/scripts
+cd <无名杀项目>/.agents/skills/noname-general-extension/scripts
 node build-index.mjs
 ```
 
@@ -885,4 +893,5 @@ node <技能包仓库>/install.mjs --target <无名杀项目根> --force
 - [ ] 已**本地 commit**，并**向用户报告待推送内容**？
 
 > 若无任何更新，也应在总结中**说明"本次无技能包更新"**，而不是默默跳过。
+
 

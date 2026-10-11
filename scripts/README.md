@@ -38,7 +38,7 @@
 ## 快速使用
 
 ```bash
-cd .dsh/skills/noname-general-extension/scripts
+cd .agents/skills/noname-general-extension/scripts
 
 # ═══ 开发时：检索参考实现 ═══
 node skill-search.mjs search "摸牌阶段多摸一张牌"
@@ -495,8 +495,8 @@ node migrate-skill.mjs pack --out D:\tmp\x.zip
 # 把 zip 拷到新机器（U 盘 / 网盘 / scp / git）
 
 # ═══ 在【新机器】上：解压 + 构建 ═══
-# 解压到 <新项目根>/.dsh/skills/noname-general-extension/
-cd <新项目根>/.dsh/skills/noname-general-extension/scripts
+# 解压到 <新项目根>/.agents/skills/noname-general-extension/
+cd <新项目根>/.agents/skills/noname-general-extension/scripts
 node migrate-skill.mjs check                # 自检：路径、依赖、文件完整性
 node build-index.mjs                        # 重建索引（约 10-30 秒）
 ```
@@ -522,7 +522,7 @@ node nge/install.mjs --target <《无名杀》项目根>
 
 ### 独立仓库形态 vs 项目内形态
 
-| | 项目内技能（`<项目>/.dsh/skills/`） | 独立仓库 |
+| | 项目内技能（`<项目>/.agents/skills/`） | 独立仓库 |
 |---|---|---|
 | 定位项目根 | 从脚本位置向上自动找到 | **必须** `--root` 或从项目内运行 |
 | 索引输出 | 脚本旁 | 脚本旁（跟随脚本，非跟随 ROOT） |

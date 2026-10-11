@@ -59,7 +59,7 @@ const SKILLS = INDEX.skills;
  * 解析顺序：
  *   ① --root 参数
  *   ② 从 cwd 向上查找含 apps/core/noname 的目录
- *   ③ 从本脚本位置向上查找（skill 位于 <项目根>/.dsh/skills/ 下）
+ *   ③ 从本脚本位置向上查找（skill 位于 <项目根>/.agents/skills/ 或 .dsh/skills/ 下）
  *   ④ 兜底：索引中记录的 root（并给出警告）
  */
 function findProjectRoot(start) {
