@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-11T15:58:56.267Z",
+  "updatedAt": "2026-10-12T15:57:22.480Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2070,6 +2070,59 @@
       "confidence": "verified",
       "createdAt": "2026-10-11T15:58:56.266Z",
       "updatedAt": "2026-10-11T15:58:56.266Z"
+    },
+    {
+      "id": "kb-0ef4a63b",
+      "kind": "pitfall",
+      "title": "阶段使用次数计数器必须绑定phaseUse事件避免跨回合泄漏",
+      "body": "当技能需要统计'本阶段使用次数'时，不要单纯在player.storage自行累加并依赖phaseUseEnd子技能清理。若技能在阶段内被tempBanSkill，引擎在phaseUseEnd会跳过该被禁用技能的group子技能触发，导致计数器无法清零并跨回合残留，从而在下回合首次发动时误判超过阈值触发自伤。规范做法：通过event.getParent('phaseUse')将计数值直接绑定到当前出牌阶段事件对象上（phaseUse._count），由引擎原生事件生命周期保证阶段结束即自动销毁，彻底杜绝跨回合泄漏。",
+      "keywords": [
+        "phaseUse",
+        "计数器",
+        "跨回合",
+        "tempBanSkill",
+        "泄漏"
+      ],
+      "refs": [
+        "yxsre_fenglang @ apps/core/extension/英雄杀RE/character/skills/dahan.js:1398-1660"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/dahan.js",
+          "start": 1398,
+          "end": 1660,
+          "hash": "9e9f37c38d6a"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-12T15:23:36.680Z",
+      "updatedAt": "2026-10-12T15:23:36.680Z"
+    },
+    {
+      "id": "kb-65f9b229",
+      "kind": "pattern",
+      "title": "卡牌标记（gaintag）的命名与翻译规范",
+      "body": "通过 card.addGaintag 或 next.gaintag 给卡牌设置角标时，卡牌通过 get.translation(tag) 渲染文本。必须在 translate 中显式提供该 tag 的中文映射；发牌时应显式重置 next.gaintag = [tag] 防止混入父事件名。",
+      "keywords": [
+        "gaintag",
+        "卡牌标记",
+        "卡牌角标",
+        "translate"
+      ],
+      "refs": [
+        "olqingshi @ apps/core/character/onlyOL/skill.js:7166-7351"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/onlyOL/skill.js",
+          "start": 7166,
+          "end": 7351,
+          "hash": "d21e8f97d94c"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-12T15:57:22.480Z",
+      "updatedAt": "2026-10-12T15:57:22.480Z"
     }
   ]
 }

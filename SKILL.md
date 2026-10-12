@@ -1054,6 +1054,11 @@ await player.gainMaxHp() / loseMaxHp()
 player.awakenSkill(skillId)                   // 标记限定技已用
 ```
 
+> ⚠️ **卡牌标记（`gaintag`）命名与翻译约束**：
+> 1. **翻译必须显式声明**：卡牌左上/右上角标通过 `card.addGaintag(tag)` 触发 `get.translation(tag)` 渲染。**必须在 `translate` 对象中显式配置该 tag 的中文映射**（如 `yxsre_qingshi_tag: '倾世'`）。若遗漏翻译，卡牌表面会直接裸露内部英文标识符（如 `xxx_tag`）。
+> 2. **发牌防污染**：调用 `target.gain(cards, ...)` 时，若当前处于技能事件中，为防止混入父事件名或残留 tag，必须覆盖赋值 `next.gaintag = ['my_tag']`（或显式初始化后再添加），切忌在未初始化的数组上无防护追加。
+> 3. **隐形标记**：若 tag 仅用于底层逻辑判定无需在牌面显示，可在 `translate` 中配置为 `'invisible'`。
+
 ### 询问类（**必须 `.forResult()`**）
 
 | API | 返回 |
@@ -1081,7 +1086,7 @@ player.removeSkill(id)
 player.hasSkill(id)
 ```
 
-## 8. 十二大避坑（按危害排序）
+## 8. 十三大避坑（按危害排序）
 
 1. **`cost` 忘记 `event.result = ...`** → 技能永不发动，**且无任何报错**（最难查）
 2. **忘记 `.forResult()`** → 拿到事件对象而非结果，`bool` 判定异常
@@ -1095,6 +1100,7 @@ player.hasSkill(id)
 10. **不 `await` 效果事件** → 后续逻辑提前执行，产生竞态
 11. **写了不存在的武将字段**（`hiddenSkills`/`growthHp`/`tags`）→ 静默无效
 12. **`chooseControl` 传入未经翻译的英文 key** → 弹窗底部直接裸露英文按钮（如 `shaTarget`），配合 `choiceList` 时必须映射为 `["选项一", "选项二"]` 等中文选项
+13. **卡牌标记（`gaintag`）遗漏翻译映射** → 卡牌表面直接裸露英文内部标识符（如 `xxx_tag` 或父技能 ID）。使用 `next.gaintag = [tag]` 或 `card.addGaintag(tag)` 时，必须在 `translate` 中显式定义该 `tag` 的中文名称（如 `my_tag: '标记名'`）。发牌时建议显式覆盖赋值 `next.gaintag = ['my_tag']` 防止混入父事件名。
 
 ## 9. 过时写法（**新代码不要用**）
 
@@ -1190,6 +1196,7 @@ player.getStat("triggerSkill")                     // 发动次数
 - 🚫 搬移 dialog 节点后必须复位 `display/position/float/inset/transform/尺寸`，否则全部叠在一处
 - 🚫 加了 `display:block!important` 后，显隐切换必须改用**类名**（内联 `display:none` 会失效）
 - 🚫 **`chooseControl` 配合 `choiceList` 禁止裸传英文 key**：`controls` 数组必须统一映射为中文按钮（如 `["选项一", "选项二", ...]`），严禁出现裸露的未翻译英文按钮。
+- 🚫 **卡牌标记（`gaintag`）禁止遗漏中文翻译**：任何附加到卡牌上的 `gaintag` 必须在 `translate` 表中有对应翻译（如 `my_tag: '标记名'` 或 `'invisible'`），且发牌时应显式重置 `next.gaintag = [tag]`，否则卡牌左上角直接裸露未经翻译的英文标识符或父事件名。
 
 ## 11. 深入学习路径
 
