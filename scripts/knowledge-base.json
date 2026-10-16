@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-12T15:57:22.480Z",
+  "updatedAt": "2026-10-16T15:06:21.477Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2123,6 +2123,24 @@
       "confidence": "verified",
       "createdAt": "2026-10-12T15:57:22.480Z",
       "updatedAt": "2026-10-12T15:57:22.480Z"
+    },
+    {
+      "id": "kb-ac6749c4",
+      "kind": "recipe",
+      "title": "武将平衡类扩展现代重构与按武将分文件范式",
+      "body": "修改已有武将技能的平衡类扩展，需通过 ES module 规范导出（export let type = 'extension'，export default），在 content 中安全遍历修改 lib.character 与 lib.characterPack，并在 lib.arenaReady 中注入以防被重置。必须严防未开启扩展包的武将引发 TypeError 导致全扩展中断。",
+      "keywords": [
+        "武将平衡",
+        "技能修改",
+        "分文件",
+        "扩展重构",
+        "ES模块"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-16T15:06:21.477Z",
+      "updatedAt": "2026-10-16T15:06:21.477Z"
     }
   ]
 }
