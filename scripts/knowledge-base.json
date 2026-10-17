@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-17T05:54:35.539Z",
+  "updatedAt": "2026-10-17T06:16:12.922Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2258,19 +2258,19 @@
         "三语"
       ],
       "refs": [
-        "yxsre_sanyu @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:653-971"
+        "yxsre_sanyu @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:704-1043"
       ],
       "fingerprints": [
         {
           "file": "apps/core/extension/英雄杀RE/character/skills/nanbei.js",
-          "start": 653,
-          "end": 971,
-          "hash": "cefd1056207c"
+          "start": 704,
+          "end": 1043,
+          "hash": "6be2c33346b0"
         }
       ],
       "confidence": "verified",
       "createdAt": "2026-10-17T04:06:10.261Z",
-      "updatedAt": "2026-10-17T05:46:27.868Z"
+      "updatedAt": "2026-10-17T06:16:12.921Z"
     },
     {
       "id": "kb-d9b0b06b",
@@ -2316,7 +2316,7 @@
       "id": "kb-80ead433",
       "kind": "pattern",
       "title": "技能维度与时机限制开发范式（每轮限制、每角色限制、每点数限制）",
-      "body": "★做法：在无名杀中开发各种限制维度的技能标准范式：1.【每轮限制】：轮首角色回合开始前引擎触发全局 roundStart 并自增 game.roundNumber。单次每轮限制使用 player.addTempSkill(skill + '_round', 'roundStart')，配合 subSkill: { round: { charlotte: true, onremove: true } }，无需手写定时器，到轮首由引擎自动清理重置。2.【每名角色限制】：利用 storage 记录已选目标。filterTarget 校验 !player.getStorage(skill).includes(target)；发动后 player.markAuto(skill, [target]) 去重追加；跨时限重置绑定对应时机（阶段限一次用 phaseUseAfter，每轮限一次用 roundStart）。3.【每个点数/花色限制（如三语）】：用数组记录已用点数（1~13），必须做到全链路拦截：①hiddenCard/hiddenWuxie 预检排除已用点数；②filter/viewAsFilter 排除已用点数；③chooseButton.dialog 分栏排除已用点数；④backup.filterCard 执行时拦截已用点数；⑤在 backup.precontent 中记录已用点数并赋予轮次临时技能；⑥subSkill.round 配置 mark:true 与 intro 呈现剩余/已用点数。",
+      "body": "★做法：在无名杀中开发各种限制维度的技能标准范式：1.【每轮限制】：轮首角色回合开始前引擎触发全局 roundStart 并自增 game.roundNumber。单次每轮限制使用 player.addTempSkill(skill + '_round', 'roundStart')，配合 subSkill: { round: { charlotte: true, onremove: true } }，到轮首自动清理重置。2.【每名角色限制】：利用 storage 记录已选目标。filterTarget 校验 !player.getStorage(skill).includes(target)；发动后 player.markAuto(skill, [target]) 去重追加；跨时限重置绑定对应时机（阶段限一次用 phaseUseAfter，每轮限一次用 roundStart）。3.【每个点数/花色限制（如三语：全局或每轮）】：用数组记录已用点数（1~13），必须全链路拦截：①hiddenCard/hiddenWuxie 预检排除已用点数；②filter/viewAsFilter 排除已用点数；③chooseButton.dialog 分栏排除已用点数；④backup.filterCard 执行时拦截已用点数；⑤在 backup.precontent 中记录已用点数；⑥配置 markcount/intro 呈现剩余点数与已用点数；⑦AI策略：若手牌有真牌（如真实杀/闪/无懈）优先使用真牌，不浪费全局限一次的珍贵点数。",
       "keywords": [
         "每轮限制",
         "每名角色限制",
@@ -2330,19 +2330,19 @@
         "三语"
       ],
       "refs": [
-        "yxsre_sanyu @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:653-971"
+        "yxsre_sanyu @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:704-1043"
       ],
       "fingerprints": [
         {
           "file": "apps/core/extension/英雄杀RE/character/skills/nanbei.js",
-          "start": 653,
-          "end": 971,
-          "hash": "cefd1056207c"
+          "start": 704,
+          "end": 1043,
+          "hash": "6be2c33346b0"
         }
       ],
       "confidence": "verified",
       "createdAt": "2026-10-17T05:46:41.607Z",
-      "updatedAt": "2026-10-17T05:46:41.607Z"
+      "updatedAt": "2026-10-17T06:16:02.817Z"
     },
     {
       "id": "kb-1680fa77",
@@ -2361,19 +2361,19 @@
         "三语"
       ],
       "refs": [
-        "yxsre_sanyu @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:653-971"
+        "yxsre_sanyu @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:704-1043"
       ],
       "fingerprints": [
         {
           "file": "apps/core/extension/英雄杀RE/character/skills/nanbei.js",
-          "start": 653,
-          "end": 971,
-          "hash": "cefd1056207c"
+          "start": 704,
+          "end": 1043,
+          "hash": "6be2c33346b0"
         }
       ],
       "confidence": "verified",
       "createdAt": "2026-10-17T05:46:49.557Z",
-      "updatedAt": "2026-10-17T05:46:49.557Z"
+      "updatedAt": "2026-10-17T06:16:08.379Z"
     },
     {
       "id": "kb-078fe4e9",
