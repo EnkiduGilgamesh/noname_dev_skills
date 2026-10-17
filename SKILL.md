@@ -1035,6 +1035,67 @@ export const skill = {
 };
 ```
 
+### 6.12 死亡交互与死者拼点技（deadTarget 与 fixedResult 范式）
+
+无名杀引擎默认将死亡角色（`game.dead`）完全排除在卡牌与技能目标池之外，且底层编译器（`ContentCompilerBase.ts`）会对未带 `forceDie: true` 的死者事件实施硬性熔断（直接掐死事件）。若技能涉及与死亡角色互动、存牌或拼点，必须遵循以下范式：
+
+#### 核心规则四原则
+1. **死者目标准入**：技能必须声明 `deadTarget: true`，且 `filterTarget` 允许死者（`target != player`），引擎 `game.Check.target` 才会将 `game.dead` 并入可选列表，并绕过 `lib.filter.targetEnabled` 的死亡校验。
+2. **死者严禁持有手牌**：死亡角色手牌区 DOM 已被隐藏。若对死者调用 `target.draw(2)`，无 `forceDie` 会被编译器直接掐死；即使强塞卡牌也会造成“幽灵手牌”永久污染全局。死者卡牌应通过 `game.cardsGotoSpecial(cards)` 转入特殊区，并逻辑保存在 `target.storage[skillId]` 中。
+3. **卡牌隐私与脱敏展示**：
+   - 数据层隔离：卡牌移出时执行 `card.removeKnower("everyone"); card.addKnower(target);`，仅死者可知。
+   - 视图层脱敏：重写技能 `intro` 的 `mark` 与 `content`，判断 `if (player == game.me || player.isUnderControl()) dialog.addAuto(cards); else return "共有" + get.cnNumber(cards.length) + "张冥牌";`，实现仅本人可见、其他玩家只看数量。
+   - 日志防泄露：`game.log` 记录卡牌流动时切勿传入卡牌数组参数，防止卡名被公屏直接打出。
+4. **死者自主选牌与拼点注入（fixedResult）**：
+   - 原生 `chooseToCompare` 底层检查双方手牌数，死者手牌为 0 时会在 step 0 直接取消拼点（`cancelled: true`）。
+   - 正确解法：让死者通过 `target.chooseButton(["提示", cards], true).set("ai", ...)` 弹窗自主选牌（`chooseButton` 官方内置 `forceDie: true`，弹窗居中渲染，支持真人点选与 AI 敌友阵营博弈计算）；
+   - 从死者 `storage` 中移出选中的牌后，作为 `fixedResult` 注入拼点：
+     `player.chooseToCompare(target).set("fixedResult", { [target.playerid]: deadCard })`；
+   - 系统会自动跳过死者无手牌校验，并在拼点后自动将双方卡牌送入弃牌堆！
+
+```js
+// 范例：死者获得暗置冥牌，并从中选牌与发起者拼点
+yxsre_biangui: {
+    enable: "phaseUse",
+    usable: 1,
+    deadTarget: true,
+    intro: {
+        markcount: (storage, player) => player.storage.yxsre_biangui?.length || 0,
+        mark(dialog, content, player) {
+            const cards = player.storage.yxsre_biangui;
+            if (cards?.length) {
+                if (player == game.me || player.isUnderControl()) dialog.addAuto(cards);
+                else return "共有" + get.cnNumber(cards.length) + "张冥牌";
+            }
+        },
+    },
+    filter: (event, player) => game.dead.length > 0,
+    async content(event, trigger, player) {
+        const target = game.dead.randomGet();
+        await player.draw(2);
+        // 1. 存入死者专属区并脱敏
+        const newCards = get.cards(2);
+        game.cardsGotoSpecial(newCards);
+        newCards.forEach(c => { c.removeKnower("everyone"); c.addKnower(target); });
+        target.storage.yxsre_biangui = (target.storage.yxsre_biangui || []).concat(newCards);
+        target.markSkill("yxsre_biangui");
+        // 2. 死者自主选牌
+        const ghostCards = target.storage.yxsre_biangui.slice();
+        const choose = await target.chooseButton(["请选择一张“冥牌”拼点", ghostCards], true)
+            .set("ai", button => get.attitude(target, player) > 0 ? get.number(button.link) : (14 - get.number(button.link)))
+            .forResult();
+        const deadCard = choose.links?.[0] || ghostCards[0];
+        target.storage.yxsre_biangui.remove(deadCard);
+        // 3. 注入 fixedResult 拼点
+        const next = player.chooseToCompare(target);
+        next.set("fixedResult", { [target.playerid]: deadCard });
+        const compareResult = await next.forResult();
+    }
+}
+```
+
+
+
 ## 7. API 速查
 
 ### 效果类（均可 await）
@@ -1086,7 +1147,7 @@ player.removeSkill(id)
 player.hasSkill(id)
 ```
 
-## 8. 十三大避坑（按危害排序）
+## 8. 十五大避坑（按危害排序）
 
 1. **`cost` 忘记 `event.result = ...`** → 技能永不发动，**且无任何报错**（最难查）
 2. **忘记 `.forResult()`** → 拿到事件对象而非结果，`bool` 判定异常
@@ -1101,6 +1162,8 @@ player.hasSkill(id)
 11. **写了不存在的武将字段**（`hiddenSkills`/`growthHp`/`tags`）→ 静默无效
 12. **`chooseControl` 传入未经翻译的英文 key** → 弹窗底部直接裸露英文按钮（如 `shaTarget`），配合 `choiceList` 时必须映射为 `["选项一", "选项二"]` 等中文选项
 13. **卡牌标记（`gaintag`）遗漏翻译映射** → 卡牌表面直接裸露英文内部标识符（如 `xxx_tag` 或父技能 ID）。使用 `next.gaintag = [tag]` 或 `card.addGaintag(tag)` 时，必须在 `translate` 中显式定义该 `tag` 的中文名称（如 `my_tag: '标记名'`）。发牌时建议显式覆盖赋值 `next.gaintag = ['my_tag']` 防止混入父事件名。
+14. **`chooseButton` 传参格式错误导致 `buttons is not iterable`** → 传卡牌列表让角色弹窗选择时，必须传标准数组参数 `target.chooseButton(["标题", cards], true).set("ai", ...)`；若传成对象 `{ dialog: ["标题", cards] }`，底层会将 JS 数组误当做 Dialog DOM 实例读取 `.buttons` 从而抛出 `TypeError: buttons is not iterable` 导致异步流程彻底崩溃断流。
+15. **与死亡角色交互/拼点陷阱（手牌为0取消与编译器熔断）** → 死亡角色手牌数为 0，直接对其调用 `chooseToCompare` 会在 step 0 被底层直接取消（`cancelled: true`），发起者永远判定不赢；必须通过 `fixedResult: { [target.playerid]: deadCard }` 注入拼点牌！且底层 `ContentCompilerBase.ts` 在事件执行前硬性检查 `if (player.isDead() && !event.forceDie)`，给死者调用的普通事件若缺少 `forceDie: true` 会被直接掐死。死者严禁持有手牌，应使用 `storage` + `game.cardsGotoSpecial`，或带 `forceDie: true` 的扩展区。
 
 ## 9. 过时写法（**新代码不要用**）
 

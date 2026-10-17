@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-16T15:06:21.477Z",
+  "updatedAt": "2026-10-17T03:36:52.710Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2141,6 +2141,108 @@
       "confidence": "verified",
       "createdAt": "2026-10-16T15:06:21.477Z",
       "updatedAt": "2026-10-16T15:06:21.477Z"
+    },
+    {
+      "id": "kb-7bbd8f4c",
+      "kind": "pattern",
+      "title": "与死亡角色拼点与游戏外区域（冥牌）开发范式",
+      "body": "与死亡角色拼点时，原生 chooseToCompare 会因死者 countCards('h')==0 在 step 0 直接取消（cancelled:true）。正确范式是为死者维护武将牌扩展区（addToExpansion带forceDie:true）存放卡牌，死者通过 chooseButton（内置forceDie:true且为dialog弹窗，支持真人点选与AI决策）挑选一张牌后，利用 chooseToCompare 的 fixedResult 参数（fixedResult:{[target.playerid]:deadCard}）注入拼点，既绕过手牌校验，又跳过死者无手牌UI交互，实现零脏数据死者交互。",
+      "keywords": [
+        "拼点",
+        "chooseToCompare",
+        "fixedResult",
+        "死者",
+        "forceDie",
+        "扩展区",
+        "expansion",
+        "chooseButton"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T03:14:32.341Z",
+      "updatedAt": "2026-10-17T03:14:32.341Z"
+    },
+    {
+      "id": "kb-b4ee578d",
+      "kind": "mechanism",
+      "title": "无名杀死亡生命周期与底层编译器熔断机制（forceDie）",
+      "body": "死亡全流程分为四阶段：1.classList.add('dead')，移入game.dead并移出game.players，断开座次链表；2.dieAfter身份明置与胜负结算；3.触发die时机；4.弃置所有区域卡牌player.discard(getCards('hejsx'))并清除临时技能。底层熔断：ContentCompilerBase.ts在事件执行前硬性检查if(player.isDead()&&!event.forceDie)，无forceDie事件（如draw、gain、useCard、chooseToUse）会被直接掐死；触发技入口lib.filter.triggerSkill检查if(!info.forceDie&&player.isDead())，死亡技能（断肠、武魂）必须声明forceDie:true才能触发。但在player.chooseTarget与player.chooseButton中引擎默认内置了forceDie:true。",
+      "keywords": [
+        "die",
+        "死亡",
+        "forceDie",
+        "ContentCompilerBase",
+        "triggerSkill",
+        "isDead",
+        "hejsx"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T03:36:30.560Z",
+      "updatedAt": "2026-10-17T03:36:30.560Z"
+    },
+    {
+      "id": "kb-3f768ff8",
+      "kind": "pattern",
+      "title": "虎牢关（boss模式）重整状态底层原理与生命周期定制",
+      "body": "虎牢关联军重整在底层严格复用死亡流程（classList.add('dead')，移入game.dead，弃置所有hejsx牌，满足isDead()）。其与普通死亡的核心差异在于模式层（boss.js）的四处重写：1.dieAfter重写：只要联军有人存活就不判负，初始化storage.boss_chongzheng=0开启倒计时；2.bossPhaseLoop轮询保留：轮到死者座次时捕获else if(player.isDead())，跳过正常回合阶段转而累加计数；3.死后自愈与备战：hp<maxHp时底层直接player.hp++，满血且手牌<4时直接向手牌DOM插入牌；4.倒计时归零时调用player.revive(player.hp)重新缝合回座次链表满状态复活。",
+      "keywords": [
+        "重整",
+        "虎牢关",
+        "boss",
+        "dieAfter",
+        "bossPhaseLoop",
+        "revive",
+        "isDead"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T03:36:37.663Z",
+      "updatedAt": "2026-10-17T03:36:37.663Z"
+    },
+    {
+      "id": "kb-587d6220",
+      "kind": "pattern",
+      "title": "突破死亡限制的目标选择与暗置游戏外区域（Knower权限与Intro脱敏）",
+      "body": "1.选死者为目标：技能/卡牌声明deadTarget:true，game.Check.target将game.dead并入可选列表，lib.filter.targetEnabled放行死亡过滤；2.死者不可持有手牌（手牌区DOM被隐藏且引发幽灵牌Bug），死者卡牌应通过game.cardsGotoSpecial存入storage，或带forceDie:true的addToExpansion；3.卡牌对其他玩家不可见：卡牌执行card.removeKnower('everyone');card.addKnower(target);日志game.log绝不可传入卡牌数组（避免公屏泄露卡名）；4.武将牌标记隐私视图：重写技能intro的mark与content，判断if(player==game.me||player.isUnderControl())dialog.addAuto(cards)展现卡面，其他角色仅return字符串'共有X张冥牌'做脱敏展示。",
+      "keywords": [
+        "deadTarget",
+        "死者目标",
+        "knower",
+        "暗置牌",
+        "intro",
+        "权限",
+        "脱敏",
+        "storage"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T03:36:44.668Z",
+      "updatedAt": "2026-10-17T03:36:44.668Z"
+    },
+    {
+      "id": "kb-9ee42f6c",
+      "kind": "pitfall",
+      "title": "与死者拼点避坑指南（chooseToCompare手牌为0取消、chooseButton传参崩溃与fixedResult注入）",
+      "body": "避坑1：原生chooseToCompare在step 0检测双方手牌，若死者手牌为0且无fixedResult，拼点直接取消（cancelled:true），发起者永远判定不赢；避坑2：死者自主选牌必须使用target.chooseButton(['标题',cards],true).set('ai',...)标准签名，若传对象{dialog:['标题',cards]}，底层读取event.dialog.buttons会抛出TypeError: buttons is not iterable导致异步崩溃断流；避坑3：死者选牌后必须从存储区移除，通过chooseToCompare.set('fixedResult',{[target.playerid]:deadCard})注入，系统自动跳过死者无手牌UI并接管弃牌。死者身份在dieAfter后完全明置（identityShown=true），get.attitude真实有效，AI根据阵营会做出精妙博弈（如发起者赢了扣血时，敌方死者故意出小牌认输以害敌，己方死者全力出大牌争胜以护主）。",
+      "keywords": [
+        "拼点",
+        "chooseToCompare",
+        "fixedResult",
+        "chooseButton",
+        "buttons is not iterable",
+        "死者身份",
+        "get.attitude"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T03:36:52.709Z",
+      "updatedAt": "2026-10-17T03:36:52.709Z"
     }
   ]
 }
