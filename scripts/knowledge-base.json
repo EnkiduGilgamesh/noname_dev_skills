@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-17T06:16:12.922Z",
+  "updatedAt": "2026-10-17T06:29:15.263Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2394,6 +2394,45 @@
       "confidence": "verified",
       "createdAt": "2026-10-17T05:54:35.539Z",
       "updatedAt": "2026-10-17T05:54:35.539Z"
+    },
+    {
+      "id": "kb-1238b6ba",
+      "kind": "pattern",
+      "title": "对自己使用限制性锦囊牌（决斗/乐不/兵粮）的范式与机制",
+      "body": "★原理：无名杀角色对自身距离为0，底层结算和事件系统（如 useCard 提示 #b自己、决斗自伤）完全兼容对自己使用。默认受限仅因卡牌定义声明了 target !== player。\n★开发范式：\n1.【视为技/主动技范式（参考立牧、怠战）】：在技能定义中直接覆写 selectTarget: -1 与 filterTarget(card, player, target) { return player === target; }。注意延时锦囊需在 filter/filterCard 中前置校验 target.canAddJudge(card)；\n2.【锁定技/修改技范式】：声明 mod: { playerEnabled(card, player, target) { if (player === target && ['juedou', 'lebu', 'bingliang'].includes(card.name)) { if (get.type(card) === 'delay' && !target.canAddJudge(card)) return false; return true; } } }。引擎 targetEnabled 优先读取 checkMod('playerEnabled')，返回 true 直接短路跳过卡牌 filterTarget；\n3.【代码直接调用】：在 content 中调用 player.useCard(card, player)，底层接收 targets 不二次校验 filterTarget；\n4.【自用结算特性】：决斗对自己使用会因 [source, turn] 交换后仍为自己而持续要求自身出杀，直至不出杀对自己造成 1 点伤害（正常触发自残/卖血）；乐不/兵粮正常入判定区下回合判定。",
+      "keywords": [
+        "对自己使用",
+        "决斗",
+        "乐不思蜀",
+        "兵粮寸断",
+        "playerEnabled",
+        "viewAs",
+        "filterTarget",
+        "canAddJudge",
+        "立牧",
+        "怠战"
+      ],
+      "refs": [
+        "xinfu_limu @ apps/core/character/sp/skill.js:47482-47597",
+        "nsdaizhan @ apps/core/character/diy/skill.js:4263-4350"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/sp/skill.js",
+          "start": 47482,
+          "end": 47597,
+          "hash": "6cf2dfcc3a98"
+        },
+        {
+          "file": "apps/core/character/diy/skill.js",
+          "start": 4263,
+          "end": 4350,
+          "hash": "866aa790b80c"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T06:29:15.263Z",
+      "updatedAt": "2026-10-17T06:29:15.263Z"
     }
   ]
 }
