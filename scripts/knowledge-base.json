@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-17T05:46:49.557Z",
+  "updatedAt": "2026-10-17T05:54:35.539Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2374,6 +2374,26 @@
       "confidence": "verified",
       "createdAt": "2026-10-17T05:46:49.557Z",
       "updatedAt": "2026-10-17T05:46:49.557Z"
+    },
+    {
+      "id": "kb-078fe4e9",
+      "kind": "recipe",
+      "title": "游戏外区域（special）卡牌的死亡与离场回堆回收范式",
+      "body": "1.问题机制：通过 game.cardsGotoSpecial 放入 special 区域或角色自定义 storage 的卡牌，不属于引擎 hejsx（手、装、判、特、木牛）区域，因此角色死亡时 Content.die 执行的 player.discard(getCards('hejsx')) 无法触及它们，若不主动处理会导致卡牌永久滞留游戏外造成牌堆缩水；2.死亡回收范式：父技能挂载 group:'<skill>_die'，子技能声明 trigger:{player:'die'}, forced:true, forceDie:true（必须声明 forceDie 以通过编译器与触发过滤器）。在 content 中遍历全场（game.players.concat(game.dead)）收缴关联 storage 牌，先调用 card.addKnower('everyone') 恢复可见性，再通过 await game.cardsDiscard(cards) 将其正规送入弃牌堆；3.离场兜底：同时在父技能定义 onremove(player, skill) 钩子执行相同的回收逻辑，确保因断肠、化身换将等失去技能时卡牌也能安全回堆。",
+      "keywords": [
+        "special",
+        "游戏外区域",
+        "冥牌",
+        "死亡回堆",
+        "cardsDiscard",
+        "forceDie",
+        "onremove"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T05:54:35.539Z",
+      "updatedAt": "2026-10-17T05:54:35.539Z"
     }
   ]
 }
