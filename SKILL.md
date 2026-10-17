@@ -1,6 +1,6 @@
 ---
 name: noname-general-extension
-description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技、蓄力技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、11 类技能模板与蓄力技开发范式、API 速查与避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
+description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技、蓄力技、多势力技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、12 类技能模板与蓄力/多势力技开发范式、API 速查与十七大避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
 ---
 
 # 开发《无名杀》武将扩展
@@ -415,9 +415,15 @@ mypack_guanyu: {
     names: "关|羽",            // 「姓|名」竖排；"null|null" 表示不显示
     img: "extension/我的扩展/image/character/mypack_guanyu.jpg",
     isBoss: false,            // BOSS
-    doubleGroup: ["shu", "wu"], // 多势力（国战）
+    doubleGroup: ["wei", "qun", "jin"], // 多势力：天然支持3个或更多势力（官方实例：刘伶魏群晋，爱凌6势力）
 },
 ```
+
+> **★ 多势力（doubleGroup）关键机制**：
+> - **底层数据结构**：虽然命名为 `doubleGroup`，但底层是 `string[]` 数组（传统 trash 格式为 `"doublegroup:wei:shu:jin"`），支持任意数量势力。
+> - **普通/身份局**：开局自动通过 `get.selectGroup(name)` 获取全部候选势力，弹窗供玩家自选其一作为本局代表势力（`player.group`）。换将时也会触发 `chooseControl` 重新选择。
+> - **国战模式**：配将时通过集合交集运算（`some`/`includes`）检查；若与副将交集唯一直接确定，交集大于1则弹窗二选一。
+> - **UI自适应**：武将牌势力角标由 `reduce` 动态渲染小 div，势力超过4个（如5、6、9个）时引擎自动压缩高度（48px/64px）。详情弹窗自动用 `/` 拼接展示（如 `魏/群/晋`）。
 
 ### ⚠️ 不存在的字段（别写）
 
@@ -468,6 +474,7 @@ mypack_wusheng_info: "将一张红色牌当【杀】使用。",  // 技能描述
 | 技能由多部分协作 | 附属技能 | `subSkill / group` | `templates/10-附属技能.js` |
 | 限时生效的子技能 | 临时技能 | `addTempSkill(skill, expire)` | `templates/11-临时技能.js` |
 | 限制每轮/每角色/每点数 | 维度限制技 | 轮次重置 + storage去重 + precontent | 见 §6.13 专章 |
+| 多势力/同时享用多势力特性 | 多势力技 | 动态切换 / 借壳Trigger / Hook isGroup | 见 §6.14 专章 |
 
 路径前缀：`docs/YRD/templates/templates/`
 
@@ -1141,6 +1148,119 @@ yxsre_biangui: {
 
 ---
 
+### 6.14 多势力角色与局内同时享受多势力特性开发范式
+
+#### 1. 底层机制与痛点剖析
+- **武将牌多势力资质**：武将定义中的 `doubleGroup: string[]`（或垃圾桶 `doublegroup:x:y:z`）完全支持 3 个或更多势力（如 `mp_liuling` 魏/群/晋三势力，`gz_key_ushio` 六势力）。开局在身份局自动通过 `get.selectGroup(name)` 弹窗全选一，国战通过交集算法自动配对。
+- **局内运行时的单值限制**：但在游戏实际运行中，角色的当前势力 `player.group` **始终是一个单一字符串**。
+- **核心痛点**：原生技能与主公技（如曹操【护驾】、刘备【激将】、袁绍【血裔】）大多硬编码检查 `current.group === "wei"` 或 `target.group == "qun"`。若武将想要在局内“同时享受多个势力的特性（如既能响应护驾、又能响应激将、受到全势力技能影响）”，必须采用特定技术路线。
+
+#### 2. 四大主流实现路线对比与代码骨架
+
+##### 路线一：动态切换流（推荐：战术切换/正统机制）
+利用官方标准 API `player.changeGroup(group)`，在回合开始、出牌阶段或特定时机让玩家主动/自动切换势力。
+- **代码范式**：
+  ```js
+  // 转换技或准备阶段选择切换
+  my_group_change: {
+      trigger: { player: "phaseZhunbeiBegin" },
+      async content(event, trigger, player) {
+          const list = ["wei", "shu", "wu", "qun"].remove(player.group);
+          const { control } = await player.chooseControl(list).set("prompt", "请选择本回合你要变更为的势力");
+          await player.changeGroup(control);
+      }
+  }
+  ```
+- **优缺点**：原生支持度最高，血条、名称颜色、边框、聊天播报完美联动；但某一时刻仍是单一势力，无法在被动计算数量时同时被计入。
+
+##### 路线二：临时借壳流（★推荐：单将想“蹭”全场主公技）
+玩家最强烈的诉求通常是“既能替曹操出闪，又能替刘备出杀”。由于主公技（`hujia`/`jijiang`）在发动时会经过 `chooseToRespondBefore` / `useSkillBefore`，可以为武将添加全局伴生 Trigger，在主公技发起时临时将 `player.group` 设为对应势力，结算后恢复。
+- **代码范式**：
+  ```js
+  my_multigroup_proxy: {
+      charlotte: true,
+      forced: true,
+      popup: false,
+      trigger: {
+          global: ["useSkillBefore", "chooseToRespondBefore", "chooseToUseBefore"]
+      },
+      filter(event, player) {
+          // 仅在主公发起相关技能且自身未处于借壳状态时拦截
+          if (["hujia", "jijiang"].includes(event.skill) && !player.storage._realGroup) return true;
+          return false;
+      },
+      async content(event, trigger, player) {
+          player.storage._realGroup = player.group;
+          if (trigger.skill === "hujia") player.group = "wei";
+          else if (trigger.skill === "jijiang") player.group = "shu";
+      },
+      group: ["my_multigroup_proxy_restore"],
+      subSkill: {
+          restore: {
+              trigger: {
+                  global: ["useSkillAfter", "chooseToRespondAfter", "chooseToUseAfter"]
+              },
+              forced: true,
+              popup: false,
+              filter(event, player) {
+                  return Boolean(player.storage._realGroup);
+              },
+              async content(event, trigger, player) {
+                  player.group = player.storage._realGroup;
+                  delete player.storage._realGroup;
+              }
+          }
+      }
+  }
+  ```
+- **优缺点**：完全自包含在单武将技能内，无需侵入全局；但只对匹配到的技能清单有效。
+
+##### 路线三：属性代理流（黑魔法：Getter 上下文嗅探）
+使用 `Object.defineProperty` 劫持角色实例的 `group` 属性，通过嗅探全局 `_status.event` 动态返回欺骗值。
+- **代码范式**：
+  ```js
+  init(player) {
+      let rawGroup = player.group;
+      Object.defineProperty(player, "group", {
+          get() {
+              const evt = _status.event;
+              if (evt) {
+                  if (evt.name === "hujia" || evt.skill === "hujia") return "wei";
+                  if (evt.name === "jijiang" || evt.skill === "jijiang") return "shu";
+              }
+              return rawGroup;
+          },
+          set(val) { rawGroup = val; },
+          configurable: true
+      });
+  }
+  ```
+
+##### 路线四：底层 Hook 流（★推荐：大型机制扩展）
+在扩展包初始化（`precontent` 或 `load`）中，为 Player 原型注入多势力通用判定，并轻量 Patch 原生关键技能与计数函数：
+- **代码范式**：
+  ```js
+  // 1. 注入抽象判断方法
+  lib.element.player.isGroup = function (group) {
+      if (Array.isArray(this.multiGroup)) {
+          return this.multiGroup.includes(group);
+      }
+      return this.group === group;
+  };
+
+  // 2. Patch 关键主公技判定（如袁绍血裔计算群势力）
+  if (lib.skill.olxueyi) {
+      const originContent = lib.skill.olxueyi.content;
+      lib.skill.olxueyi.content = async function (event, trigger, player) {
+          const num = game.countPlayer(current => current.isGroup("qun"));
+          if (num) player.addMark("olxueyi", num * 2);
+      };
+  }
+  ```
+- **优缺点**：一劳永逸，最彻底支持“全势力共存”和“人数计数”，适合大型扩展。
+
+---
+
 ## 7. API 速查
 
 ### 效果类（均可 await）
@@ -1192,7 +1312,7 @@ player.removeSkill(id)
 player.hasSkill(id)
 ```
 
-## 8. 十六大避坑（按危害排序）
+## 8. 十七大避坑（按危害排序）
 
 1. **`cost` 忘记 `event.result = ...`** → 技能永不发动，**且无任何报错**（最难查）
 2. **忘记 `.forResult()`** → 拿到事件对象而非结果，`bool` 判定异常
@@ -1210,6 +1330,7 @@ player.hasSkill(id)
 14. **`chooseButton` 传参格式错误导致 `buttons is not iterable`** → 传卡牌列表让角色弹窗选择时，必须传标准数组参数 `target.chooseButton(["标题", cards], true).set("ai", ...)`；若传成对象 `{ dialog: ["标题", cards] }`，底层会将 JS 数组误当做 Dialog DOM 实例读取 `.buttons` 从而抛出 `TypeError: buttons is not iterable` 导致异步流程彻底崩溃断流。
 15. **与死亡角色交互/拼点陷阱（手牌为0取消与编译器熔断）** → 死亡角色手牌数为 0，直接对其调用 `chooseToCompare` 会在 step 0 被底层直接取消（`cancelled: true`），发起者永远判定不赢；必须通过 `fixedResult: { [target.playerid]: deadCard }` 注入拼点牌！且底层 `ContentCompilerBase.ts` 在事件执行前硬性检查 `if (player.isDead() && !event.forceDie)`，给死者调用的普通事件若缺少 `forceDie: true` 会被直接掐死。死者严禁持有手牌，应使用 `storage` + `game.cardsGotoSpecial`，或带 `forceDie: true` 的扩展区。
 16. **视为技/转化技维度限制（点数/花色/次数）在 dialog 或 filterCard 中扣减导致状态泄漏** → 使用 `chooseButton + backup` 架构的技能，绝对不能在 dialog 生成或 filter 中记录扣减！若玩家在选牌界面点击取消，出牌并未发生，但点数/次数已被提前扣减。必须在 `chooseButton.backup` 返回对象的 `async precontent(event, trigger, player)` 中记录！此时玩家已确认出牌并指定卡牌，取消时引擎不会进入 precontent，保证消耗精准不泄漏。
+17. **直接给 `player.group` 赋数组（如 `player.group = ['wei', 'shu']`）** → 原生引擎严格依赖 `player.group` 为单值 string（在 `get.groupnature`、DOM `dataset.nature` 处直接按字符串拼接）。若赋为数组，会导致 UI 渲染崩溃、样式属性破损，且所有 `current.group === 'wei'` 的全等判断全部返回 false！想要局内享受多势力特性，务必参考 §6.14 的四大路线（`changeGroup` 动态切换、Trigger 临时借壳或底层 Hook）。
 
 ## 9. 过时写法（**新代码不要用**）
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-17T06:29:15.263Z",
+  "updatedAt": "2026-10-17T14:47:05.216Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2433,6 +2433,57 @@
       "confidence": "verified",
       "createdAt": "2026-10-17T06:29:15.263Z",
       "updatedAt": "2026-10-17T06:29:15.263Z"
+    },
+    {
+      "id": "kb-81f80e4c",
+      "kind": "fact",
+      "title": "多势力武将支持三个或更多势力（doubleGroup）",
+      "body": "无名杀底层将多势力存储为字符串数组 doubleGroup: string[]（传统 trash 格式为 doublegroup:wei:shu:wu），天然支持任意数量势力，而非仅限双势力。官方已有现成实例：刘伶 mp_liuling（魏群晋3势力）、国战神谷爱凌 gz_key_ushio（key魏蜀吴群晋6势力）。机制表现：①普通/身份局开局通过 get.selectGroup(name) 弹窗全选一；②国战模式通过集合交集（some / includes）自动判定配将合法性，交集为1直接确定，交集大于1则弹窗二选一；③卡牌UI使用 reduce 动态渲染小标签，并在超过4个势力时自适应高度（48px/64px）。",
+      "keywords": [
+        "多势力",
+        "双势力",
+        "doubleGroup",
+        "三势力",
+        "六势力",
+        "势力选择",
+        "国战交集"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T14:47:00.119Z",
+      "updatedAt": "2026-10-17T14:47:00.119Z"
+    },
+    {
+      "id": "kb-827d2983",
+      "kind": "pattern",
+      "title": "局内同时享受多个势力特性的四种实现路线",
+      "body": "引擎中技能对势力的判定（如主公技护驾、激将、血裔计数）多直接硬编码访问单值 current.group === 'wei'。要让武将在局内同时享受多势力特性，有四大主流路线：①动态切换流：通过转换技或准备阶段触发 player.changeGroup(group)，最稳定、UI和动画完美联动，但瞬间仍为单势力；②临时借壳流（单将推荐）：挂全局 Trigger 在主公发动主公技前（chooseToRespondBefore/useSkillBefore）监听目标技能（如 hujia/jijiang），临时将 player.group 篡改为对应势力，结算后（useSkillAfter）恢复原势力，精准解决蹭主公技痛点；③属性代理流：通过 Object.defineProperty 劫持 player.group 的 getter，嗅探 _status.event 动态返回匹配势力；④底层 Hook 流（扩展包推荐）：向 Player 注入抽象判断方法 player.isGroup(g)，并对原生目标主公技及计数函数进行轻量 Patch 替换写死的 group === 'xxx'。",
+      "keywords": [
+        "多势力",
+        "同时享受",
+        "主公技",
+        "护驾",
+        "激将",
+        "血裔",
+        "changeGroup",
+        "trigger伪装",
+        "isGroup"
+      ],
+      "refs": [
+        "hujia @ apps/core/character/standard/skill.js:246-330"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/standard/skill.js",
+          "start": 246,
+          "end": 330,
+          "hash": "9333e41632b4"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T14:47:05.215Z",
+      "updatedAt": "2026-10-17T14:47:05.215Z"
     }
   ]
 }
