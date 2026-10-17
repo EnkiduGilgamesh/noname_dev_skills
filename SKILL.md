@@ -467,6 +467,7 @@ mypack_wusheng_info: "将一张红色牌当【杀】使用。",  // 技能描述
 | 选多个目标 | 多目标技 | `selectTarget / targets.forEach` | `templates/09-多目标技.js` |
 | 技能由多部分协作 | 附属技能 | `subSkill / group` | `templates/10-附属技能.js` |
 | 限时生效的子技能 | 临时技能 | `addTempSkill(skill, expire)` | `templates/11-临时技能.js` |
+| 限制每轮/每角色/每点数 | 维度限制技 | 轮次重置 + storage去重 + precontent | 见 §6.13 专章 |
 
 路径前缀：`docs/YRD/templates/templates/`
 
@@ -1094,7 +1095,51 @@ yxsre_biangui: {
 }
 ```
 
+---
 
+### 6.13 技能多维度限制开发范式（每轮限制、每角色限制、每个点数/花色限制）
+
+在设计高复杂度或强力技能时，通常需要施加“每轮限一次”、“每名角色限一次”或“每个点数/花色限一次”的限制。无名杀对此有非常严谨的生命周期与记录范式：
+
+#### 1. 每轮限制（Per-round Limits）
+- **触发原理**：无名杀在轮首角色回合开始前（`player == _status.roundStart`），引擎自增 `game.roundNumber++` 并触发全局 `await event.trigger("roundStart")`。
+- **标准写法**：
+  - 判定：`if (player.hasSkill(skill + "_round")) return false;`
+  - 记录：`player.addTempSkill(skill + "_round", "roundStart");`
+  - 子技能声明（自动清理）：
+    ```javascript
+    subSkill: {
+        round: { charlotte: true, onremove: true },
+    }
+    ```
+  - 无需手写定时器或轮次监听器，引擎在 `roundStart` 到达时会自动卸载该临时技能并执行 `onremove: true` 清空存储。
+
+#### 2. 每名角色限制（Per-target Limits）
+- **触发场景**：“出牌阶段每名角色限一次”、“每轮每名角色限一次”。
+- **标准写法**：
+  - 存储：在 `player.storage[skill]` 中保存目标数组。
+  - 过滤：
+    ```javascript
+    filterTarget(card, player, target) {
+        return !player.getStorage(skill, []).includes(target);
+    }
+    ```
+  - 记录：发动时调用 `player.markAuto(skill, [target]);`（`markAuto` 会自动去重追加）。
+  - 重置时机：
+    - **阶段限一次**：绑定阶段结束清空 `player.addTempSkill(skill + "_phase", "phaseUseAfter");`
+    - **回合限一次**：绑定回合结束清空 `player.addTempSkill(skill + "_phase", "phaseAfter");`
+    - **每轮限一次**：绑定轮次清空 `player.addTempSkill(skill + "_round", "roundStart");`
+
+#### 3. 每个点数/花色限制（如【三语】：每轮每个点数的牌限一次）
+- **核心原则：全链路六处拦截，缺一不可**：
+  1. **响应预检拦截**：`hiddenCard(player, name)` 与 `hiddenWuxie(player, info)` 必须校验点数未被消耗，否则锦囊结算时引擎预检会误判。
+  2. **可用性判定**：`filter` 与 `viewAsFilter` 排除手牌中已消耗点数。
+  3. **选择界面分组**：`chooseButton.dialog` 收集点数时过滤已消耗点数，已用栏目不再展示。
+  4. **选牌与执行拦截**：`chooseButton.filter` 与 `chooseButton.backup.filterCard` 拦截已用点数。
+  5. **★关键消耗时机**：**必须在 `backup.precontent(event, trigger, player)` 中记录！** 提取 `event.result.cards[0]` 的点数并写入 `player.markAuto(skill + "_round", [num])`。若玩家在选牌界面点取消，引擎不会调用 `precontent`，次数不会被误消耗。
+  6. **UI 实时感知**：子技能声明 `mark: true` 与 `intro.content(storage)`，角色头像徽标实时提示已消耗点数。
+
+---
 
 ## 7. API 速查
 
@@ -1147,7 +1192,7 @@ player.removeSkill(id)
 player.hasSkill(id)
 ```
 
-## 8. 十五大避坑（按危害排序）
+## 8. 十六大避坑（按危害排序）
 
 1. **`cost` 忘记 `event.result = ...`** → 技能永不发动，**且无任何报错**（最难查）
 2. **忘记 `.forResult()`** → 拿到事件对象而非结果，`bool` 判定异常
@@ -1164,6 +1209,7 @@ player.hasSkill(id)
 13. **卡牌标记（`gaintag`）遗漏翻译映射** → 卡牌表面直接裸露英文内部标识符（如 `xxx_tag` 或父技能 ID）。使用 `next.gaintag = [tag]` 或 `card.addGaintag(tag)` 时，必须在 `translate` 中显式定义该 `tag` 的中文名称（如 `my_tag: '标记名'`）。发牌时建议显式覆盖赋值 `next.gaintag = ['my_tag']` 防止混入父事件名。
 14. **`chooseButton` 传参格式错误导致 `buttons is not iterable`** → 传卡牌列表让角色弹窗选择时，必须传标准数组参数 `target.chooseButton(["标题", cards], true).set("ai", ...)`；若传成对象 `{ dialog: ["标题", cards] }`，底层会将 JS 数组误当做 Dialog DOM 实例读取 `.buttons` 从而抛出 `TypeError: buttons is not iterable` 导致异步流程彻底崩溃断流。
 15. **与死亡角色交互/拼点陷阱（手牌为0取消与编译器熔断）** → 死亡角色手牌数为 0，直接对其调用 `chooseToCompare` 会在 step 0 被底层直接取消（`cancelled: true`），发起者永远判定不赢；必须通过 `fixedResult: { [target.playerid]: deadCard }` 注入拼点牌！且底层 `ContentCompilerBase.ts` 在事件执行前硬性检查 `if (player.isDead() && !event.forceDie)`，给死者调用的普通事件若缺少 `forceDie: true` 会被直接掐死。死者严禁持有手牌，应使用 `storage` + `game.cardsGotoSpecial`，或带 `forceDie: true` 的扩展区。
+16. **视为技/转化技维度限制（点数/花色/次数）在 dialog 或 filterCard 中扣减导致状态泄漏** → 使用 `chooseButton + backup` 架构的技能，绝对不能在 dialog 生成或 filter 中记录扣减！若玩家在选牌界面点击取消，出牌并未发生，但点数/次数已被提前扣减。必须在 `chooseButton.backup` 返回对象的 `async precontent(event, trigger, player)` 中记录！此时玩家已确认出牌并指定卡牌，取消时引擎不会进入 precontent，保证消耗精准不泄漏。
 
 ## 9. 过时写法（**新代码不要用**）
 

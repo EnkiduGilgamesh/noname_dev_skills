@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-17T03:36:52.710Z",
+  "updatedAt": "2026-10-17T05:46:49.557Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2243,6 +2243,137 @@
       "confidence": "verified",
       "createdAt": "2026-10-17T03:36:52.709Z",
       "updatedAt": "2026-10-17T03:36:52.709Z"
+    },
+    {
+      "id": "kb-fa3b9174",
+      "kind": "pattern",
+      "title": "动态视为技响应无懈可击机制（hiddenWuxie与hiddenCard）",
+      "body": "★做法：多功能视为技（viewAs不是固定wuxie的技能）在响应无懈可击时必须注意：1.锦囊牌结算前引擎用 current.hasWuxie() 遍历全场，若角色手牌无实体无懈且技能未声明 hiddenWuxie/hiddenCard，角色会被直接移出询问列表，根本不会弹出询问窗口；2.技能必须显式实现 hiddenWuxie(player, info) 及 hiddenCard(player, name)，判定手牌中是否存在能转化为 wuxie 的卡牌；3.在 ai 配置中添加 wuxieRespond: true 及 skillTagFilter(player, 'wuxieRespond')，以支持 AI 自主无懈。",
+      "keywords": [
+        "无懈可击",
+        "wuxie",
+        "hiddenWuxie",
+        "hiddenCard",
+        "视为技",
+        "三语"
+      ],
+      "refs": [
+        "yxsre_sanyu @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:653-971"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/nanbei.js",
+          "start": 653,
+          "end": 971,
+          "hash": "cefd1056207c"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T04:06:10.261Z",
+      "updatedAt": "2026-10-17T05:46:27.868Z"
+    },
+    {
+      "id": "kb-d9b0b06b",
+      "kind": "pattern",
+      "title": "转化技(viewAs)使用时附带后续效果的范式",
+      "body": "转化技（如将一张特定牌当做锦囊使用）并附带额外效果（如非基本牌摸一张牌）时，最佳实践是在 viewAs 中添加 storage 标记（如 { name: 'lebu', storage: { guose: true } }），再通过 group/subSkill 挂载 useCard2 触发器。在 filter 中判断 (event.skill === 'guose' || event.card?.storage?.guose)，并通过 event.cards[0] 获取被转化的真实原始牌，用 get.type(card) !== 'basic' 判断类型并执行摸牌，能完美兼容手动出牌、连选与 AI 自动视角。",
+      "keywords": [
+        "viewAs",
+        "转化技",
+        "useCard2",
+        "摸牌",
+        "subSkill",
+        "非基本牌"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T04:44:06.863Z",
+      "updatedAt": "2026-10-17T04:44:06.863Z"
+    },
+    {
+      "id": "kb-a5d5d0ca",
+      "kind": "pattern",
+      "title": "多重增益触发技的条件分发范式",
+      "body": "类似许褚【裸衣】这种在阶段开始时弃置任意张特定类型牌（selectCard: [1, Infinity]）并根据弃置牌的 subtype 分发多种并行增益的技能，最佳实践是将基础效果与各项条件增益拆分为独立的临时子技能（如 luoyi_damage, luoyi_weapon, luoyi_armor, luoyi_horse），统一设定有效期为 phaseAfter。在主技能 content 中遍历 cards.some(c => get.subtype(c) === ...) 并分发对应的 tempSkill，配合 mark/intro 提供清晰的悬浮提示，AI 标签（damageBonus, directHit_ai）独立生效，模块化程度最高且逻辑互不干扰。",
+      "keywords": [
+        "xuzhu",
+        "裸衣",
+        "装备牌",
+        "多增益",
+        "subtype",
+        "directHit",
+        "cardUsable",
+        "attackRange"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T04:58:17.313Z",
+      "updatedAt": "2026-10-17T04:58:17.313Z"
+    },
+    {
+      "id": "kb-80ead433",
+      "kind": "pattern",
+      "title": "技能维度与时机限制开发范式（每轮限制、每角色限制、每点数限制）",
+      "body": "★做法：在无名杀中开发各种限制维度的技能标准范式：1.【每轮限制】：轮首角色回合开始前引擎触发全局 roundStart 并自增 game.roundNumber。单次每轮限制使用 player.addTempSkill(skill + '_round', 'roundStart')，配合 subSkill: { round: { charlotte: true, onremove: true } }，无需手写定时器，到轮首由引擎自动清理重置。2.【每名角色限制】：利用 storage 记录已选目标。filterTarget 校验 !player.getStorage(skill).includes(target)；发动后 player.markAuto(skill, [target]) 去重追加；跨时限重置绑定对应时机（阶段限一次用 phaseUseAfter，每轮限一次用 roundStart）。3.【每个点数/花色限制（如三语）】：用数组记录已用点数（1~13），必须做到全链路拦截：①hiddenCard/hiddenWuxie 预检排除已用点数；②filter/viewAsFilter 排除已用点数；③chooseButton.dialog 分栏排除已用点数；④backup.filterCard 执行时拦截已用点数；⑤在 backup.precontent 中记录已用点数并赋予轮次临时技能；⑥subSkill.round 配置 mark:true 与 intro 呈现剩余/已用点数。",
+      "keywords": [
+        "每轮限制",
+        "每名角色限制",
+        "每个点数限制",
+        "轮次重置",
+        "roundStart",
+        "addTempSkill",
+        "precontent",
+        "markAuto",
+        "维度限制",
+        "三语"
+      ],
+      "refs": [
+        "yxsre_sanyu @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:653-971"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/nanbei.js",
+          "start": 653,
+          "end": 971,
+          "hash": "cefd1056207c"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T05:46:41.607Z",
+      "updatedAt": "2026-10-17T05:46:41.607Z"
+    },
+    {
+      "id": "kb-1680fa77",
+      "kind": "pitfall",
+      "title": "转化技/视为技维度限制（点数/花色/次数）必须在 backup.precontent 中记录",
+      "body": "⚠坑点：使用 chooseButton + backup 架构的转化技或视为技（如【三语】），若技能包含每轮/每阶段每个点数、每种花色或次数限制，绝对不能在 dialog 生成阶段、button.filter 或 backup.filterCard 中记录消耗！原因：1.dialog 和 filter 会在每次打开界面或卡牌重绘时高频调用，在其中记录会造成状态污染或提前扣减；2.若玩家在选牌界面点击『取消』，出牌失败，但点数/次数已被扣减，造成状态泄漏。★正确做法：在 backup 返回的对象中声明 async precontent(event, trigger, player)，此时玩家已确认出牌并指定选牌，卡牌位于 event.result.cards[0]，在此处提取手牌点数/花色并 markAuto 写入 storage，取消时引擎不会进入 precontent，保证严丝合缝。",
+      "keywords": [
+        "转化技",
+        "视为技",
+        "维度限制",
+        "backup",
+        "precontent",
+        "取消回退",
+        "状态泄漏",
+        "消耗时机",
+        "三语"
+      ],
+      "refs": [
+        "yxsre_sanyu @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:653-971"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/nanbei.js",
+          "start": 653,
+          "end": 971,
+          "hash": "cefd1056207c"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T05:46:49.557Z",
+      "updatedAt": "2026-10-17T05:46:49.557Z"
     }
   ]
 }
