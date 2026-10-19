@@ -215,7 +215,14 @@ function collectGroupedSkillIds() {
         const slice = text.split(/\r?\n/).slice(s.line - 1, s.endLine).join("\n");
 
         // 描述里出现的数字（体力/牌数/距离等），实现里应能看到
-        const nums = [...new Set((s.desc.match(/[0-9]+/g) || []))].filter(n => n !== "1" && n.length <= 2);
+        //
+        // ⚠️ 必须先剔除「1.」「2.」「1、」这类**选项编号**——它们是排版标记，不是数值语义。
+        //    实测：一条二选一技能（如「选择一项：1.xx；2.xx」）若照原样取数字，
+        //    「2」几乎必然在实现里找不到，于是每条含二选一的技能都会被误报一次。
+        //    中文圈号 ①②③ 不是 ASCII 数字，本就不会命中，无需处理。
+        //    剔除范围刻意收紧：仅「行首 / 分号 / 句号 / 冒号」之后、且带 . 或 、 的编号。
+        const descForNums = s.desc.replace(/(^|[；;。：:])\s*\d+\s*[.、]/g, "$1");
+        const nums = [...new Set((descForNums.match(/[0-9]+/g) || []))].filter(n => n !== "1" && n.length <= 2);
         const missingNums = nums.filter(n => !new RegExp(`\\b${n}\\b`).test(slice));
         if (missingNums.length && nums.length) {
             add("info", s.id, "描述/实现",

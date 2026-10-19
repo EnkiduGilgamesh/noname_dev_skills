@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-17T14:47:05.216Z",
+  "updatedAt": "2026-10-19T15:48:33.045Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2484,6 +2484,241 @@
       "confidence": "verified",
       "createdAt": "2026-10-17T14:47:05.215Z",
       "updatedAt": "2026-10-17T14:47:05.215Z"
+    },
+    {
+      "id": "kb-1ac7f2f7",
+      "kind": "pitfall",
+      "title": "UI扩展样式直链引入与选择器特异性压制",
+      "body": "★ 做法：扩展引入样式表切勿使用 lib.init.css(path, file)（因其拼接规则容易造成 404），应动态创建 <link rel='stylesheet'> 直链注入 head。无名杀原生 layout.css 广泛使用 #arena .player（特异性 0,1,1,0），类选择器会被彻底压制，席位与桌面样式必须带 #window #arena .player 前缀并以 !important 钉死。⚠ 不要只写 .player 或使用未验证的路径拼接。",
+      "keywords": [
+        "UI",
+        "CSS",
+        "样式表",
+        "特异性",
+        "lib.init.css",
+        "important",
+        "arena",
+        "player"
+      ],
+      "refs": [
+        "docs/YRD/15-ui-development.md",
+        "docs/YRD/appendix-c-pitfalls.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T16:11:31.667Z",
+      "updatedAt": "2026-10-17T16:11:31.667Z"
+    },
+    {
+      "id": "kb-e5a2f760",
+      "kind": "pattern",
+      "title": "席位UI热装配三重防线与原生组件隐藏",
+      "body": "★ 做法：自定义席位 HUD 采用三重防线挂载：① 劫持 Player.prototype.build；② 初始化遍历 querySelectorAll('#arena .player') 扫描存量；③ 全局 MutationObserver 监听子节点插入捕获重连、换将和联机席位，并打上 player.__enhanced 标记防重。自定义勾玉与血条时，原生 .hp 必须通过 :not(.custom-wrap) 显式隐藏，避免双层血条与重影。⚠ 不要假设所有席位都会触发 build()。",
+      "keywords": [
+        "UI",
+        "player",
+        "席位",
+        "渲染",
+        "MutationObserver",
+        "build",
+        "热装配",
+        "勾玉",
+        "血条"
+      ],
+      "refs": [
+        "docs/YRD/15-ui-development.md",
+        "docs/YRD/appendix-c-pitfalls.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T16:11:38.800Z",
+      "updatedAt": "2026-10-17T16:11:38.800Z"
+    },
+    {
+      "id": "kb-bbb5d342",
+      "kind": "pitfall",
+      "title": "扩展初次加载配置防空：init: true 必须用 !== false 判定",
+      "body": "★ 做法：在扩展配置声明中即使设置了 init: true，用户未在配置界面手动保存前，lib.config['extension_扩展名'] 对应键仍为 undefined。业务逻辑判定默认开启功能时，必须写成 if (config.key !== false)，将 undefined 作为默认启用处理。⚠ 不要直接写 if (config.key)，会导致新玩家初次导入扩展时所有默认特性全部静默失效。",
+      "keywords": [
+        "扩展",
+        "配置",
+        "config",
+        "init",
+        "undefined",
+        "布尔值",
+        "默认开启"
+      ],
+      "refs": [
+        "docs/YRD/15-ui-development.md",
+        "docs/YRD/appendix-c-pitfalls.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-17T16:11:43.349Z",
+      "updatedAt": "2026-10-17T16:11:43.349Z"
+    },
+    {
+      "id": "kb-b57965e4",
+      "kind": "pattern",
+      "title": "英雄杀RE 魔势力与入魔/典论式临时技能",
+      "body": "★ 魔势力用核心组 devil（lib.translate.devil='魔'、lib.groupnature.devil='devil'），扩展需在 content 中把 devil 补进 lib.group。入魔状态可复用 core 的 olrumo，或自建同效果的 charlotte 技能（roundEnd 未造成伤害失去1点体力）。『直到下回合开始』的临时技能用 addTempSkill(skills,{player:'phaseBegin'})；传字符串会被当成 global 时机，导致提前失效。",
+      "keywords": [
+        "魔势力",
+        "devil",
+        "入魔",
+        "olrumo",
+        "典论",
+        "临时技能",
+        "phaseBegin",
+        "英雄杀RE"
+      ],
+      "refs": [
+        "olrumo @ apps/core/character/onlyOL/skill.js:8824-8839"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/onlyOL/skill.js",
+          "start": 8824,
+          "end": 8839,
+          "hash": "887660dbf669"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-19T14:02:45.511Z",
+      "updatedAt": "2026-10-19T14:02:45.511Z"
+    },
+    {
+      "id": "kb-b5d0cbb2",
+      "kind": "pattern",
+      "title": "观看牌堆顶N张并取走其中一部分（不抽走牌堆）",
+      "body": "★做法：需要「观看牌堆顶 N 张牌、获得其中 X 张、其余留在牌堆顶」时，标准写法是 get.cards(N, true) —— 第二参 putBack=true 表示抽出后按原序放回牌堆顶，等于只「看」不拿；随后 player.chooseButton([提示, cards], X, true) 让玩家/AI 选牌，player.gain(links, 'draw') 取走选中的牌。★未选中的牌本来就还在牌堆顶，不要再 cardsGotoPile 回填（任何回填入口都可能打乱顺序）。生产代码同范式：stdaocai（sixiang/skill.js）、olhuyi（collab/skill.js:8840）。⚠️ 若要把牌堆顶的牌直接置于武将牌上：addToExpansion({cards:[card], source, gaintag:[tag]}) 支持 position=='c' 的牌（content.ts 的 addToExpansion 会置 event.updatePile 并在末尾 updateRoundNumber），但必须自己 game.addCardKnower([card], 'everyone') 明置，否则牌面显示为未知。",
+      "keywords": [
+        "观看牌堆顶",
+        "获得其中",
+        "get.cards",
+        "putBack",
+        "牌堆顶",
+        "置于武将牌上",
+        "addToExpansion"
+      ],
+      "refs": [
+        "olhuyi @ apps/core/character/collab/skill.js:8656-8851",
+        "stdaocai @ apps/core/character/sixiang/skill.js:2841-2863"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/collab/skill.js",
+          "start": 8656,
+          "end": 8851,
+          "hash": "ba3014652dce"
+        },
+        {
+          "file": "apps/core/character/sixiang/skill.js",
+          "start": 2841,
+          "end": 2863,
+          "hash": "0b4fd3a69d87"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-19T15:48:32.635Z",
+      "updatedAt": "2026-10-19T15:48:32.635Z"
+    },
+    {
+      "id": "kb-d4651189",
+      "kind": "pitfall",
+      "title": "同扩展内两个武将技能重名：用后缀隔离 + gaintag 同步改名",
+      "body": "★做法：同一扩展里若已有 A 武将用【肃纲】【典论】等技能名，再做一个同名技能的新武将（如魔曹丕 vs 魏曹丕），**绝不能沿用同名技能 ID**：lib.skill / lib.translate 是全局键，后定义的会被 duplicated 逻辑跳过或互相覆盖。给新武将的全部技能 ID 统一加后缀（如 \\_sd\\），中文名保持不变（translate 以 ID 为键，同名中文没问题）。★凡是由技能派生、需要跨对局共存的扩展牌标记（gaintag）也必须换名（如 yxsre_gang → yxsre_gang_sd），否则两个武将的「纲」会互相被 getExpansions(tag) 取到。⚠️ 新增的 gaintag 必须同时写进 translate（如 yxsre_gang_sd: '纲'），否则牌角裸露英文 ID。⚠️ 若新武将还要建新分组：extension.js 需同时改 4 处 —— import、applyGroup(...)、characterSort 新键、translate 新键；只改前两处会导致武将不进任何分组、选将界面看不到。",
+      "keywords": [
+        "技能重名",
+        "重名",
+        "后缀",
+        "gaintag",
+        "分组",
+        "characterSort",
+        "applyGroup",
+        "扩展"
+      ],
+      "refs": [
+        "yxsre_sugang @ apps/core/extension/英雄杀RE/character/skills/sanguo_caopi.js:21-64"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/sanguo_caopi.js",
+          "start": 21,
+          "end": 64,
+          "hash": "9459d53ee0cb"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-19T15:48:32.776Z",
+      "updatedAt": "2026-10-19T15:48:32.776Z"
+    },
+    {
+      "id": "kb-53de92cf",
+      "kind": "pattern",
+      "title": "无牌可选的出牌阶段主动技：prompt + manualConfirm + delay:false",
+      "body": "★做法：出牌阶段主动技不必依赖 filterCard —— enable:'phaseUse' + filter(event,player) 即可，点技能按钮直接进 content。若要玩家点一次后再**二次确认**（避免误点消耗 usable:1），照 kurou（standard/skill.js）写三件套：①prompt（技能按钮提示文案，否则按钮无说明）；②manualConfirm:true（chooseToUse 里 skillinfo?.manualConfirm 会强制 game.pause 弹确认）；③delay:false（跳过出牌延时）。⚠️ 若 content 里后续用的是 forced 的 chooseButton（不可取消），manualConfirm 尤其重要——没有它，误点一次就会被迫走完整流程。★AI 侧还必须在 ai:{order: 数字, result:{player: 正数}} 中给出正向收益，否则 AI 不会主动发动。",
+      "keywords": [
+        "主动技",
+        "phaseUse",
+        "manualConfirm",
+        "prompt",
+        "costless",
+        "无牌可选",
+        "kurou",
+        "AI"
+      ],
+      "refs": [
+        "kurou @ apps/core/character/standard/skill.js:1686-1715"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/standard/skill.js",
+          "start": 1686,
+          "end": 1715,
+          "hash": "2eebfccec64f"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-19T15:48:32.912Z",
+      "updatedAt": "2026-10-19T15:48:32.912Z"
+    },
+    {
+      "id": "kb-117cf20f",
+      "kind": "mechanism",
+      "title": "subSkill 只定义不挂载：带 trigger 的子技能必须写进父技能 group",
+      "body": "★结论：subSkill: { xxx: {...} } 只负责**定义并注册** lib.skill['父ID_xxx']，**不会**让角色自动获得该子技能。带 trigger 的子技能若不写进父技能 group: ['<父ID>_<短名>', ...]，会静默不触发（无任何报错）。源码实证：player.addSkillTrigger() → game.expandSkills(skills)（game/index.js 的 expandSkills、player.js 的 addSkillTrigger）只展开 group；subSkill 分支只在 expandSkills(skills, true) 时展开，而引擎所有调用处都没传 true。★例外（合法）：用完即弃/按需挂载的子技能靠 player.addTempSkill('父ID_短名', expire) 或 init(player, skill){ player.addSkill(skill+'_xxx') } 动态挂载 —— 核心包 potnigu / potshishi / twsbfangzhu 即此写法。⚠️ 模板 docs/YRD/templates/templates/10-附属技能.js 的「写法 A」省略了 group，照抄会让子技能完全不触发（参考实现 longdan 其实是 group + subSkill 双写）。",
+      "keywords": [
+        "subSkill",
+        "子技能",
+        "group",
+        "不触发",
+        "静默失效",
+        "expandSkills",
+        "addTempSkill",
+        "init"
+      ],
+      "refs": [
+        "yxsre_zifa @ apps/core/extension/英雄杀RE/character/skills/sanguo.js:14-92",
+        "potshishi @ apps/core/character/bingshi/skill.js:1761-1850"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/sanguo.js",
+          "start": 14,
+          "end": 92,
+          "hash": "539354aa64d0"
+        },
+        {
+          "file": "apps/core/character/bingshi/skill.js",
+          "start": 1761,
+          "end": 1850,
+          "hash": "9ca7cdb20eee"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-19T15:48:33.045Z",
+      "updatedAt": "2026-10-19T15:48:33.045Z"
     }
   ]
 }

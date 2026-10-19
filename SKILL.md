@@ -478,6 +478,15 @@ mypack_wusheng_info: "将一张红色牌当【杀】使用。",  // 技能描述
 
 路径前缀：`docs/YRD/templates/templates/`
 
+> ⚠️ **`subSkill` 只负责「定义并注册」，不会自动挂到角色身上** —— 带 `trigger` 的子技能
+> **必须**同时写进父技能的 `group: ["<父ID>_<短名>", ...]`，否则**静默不触发**。
+> 源码实证：`player.addSkillTrigger` → `game.expandSkills(skills)` 只展开 `group`；
+> `subSkill` 分支仅在 `expandSkills(skills, true)` 时才展开，而引擎所有调用处都**没有**传
+> `true`（`game/index.js:10166-10187`、`player.js:11075-11080`）。
+> 只有「用完即弃 / 按需挂载」的子技能才靠 `addTempSkill` 或在 `init(player, skill)` 里
+> `player.addSkill(skill + "_xxx")` 动态挂载（如 `potshishi`、`potnigu`、`rejuzhan`）。
+> ⚠️ 模板 10 的「写法 A」省略了 `group`，照抄会导致子技能完全不触发 —— 以 `group` 为准。
+
 ---
 
 ### 6.1 锁定技开发范式（Compulsory Skill）
