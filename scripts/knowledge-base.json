@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-20T13:14:21.985Z",
+  "updatedAt": "2026-10-20T13:24:38.785Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2876,6 +2876,35 @@
       "confidence": "verified",
       "createdAt": "2026-10-20T13:14:21.984Z",
       "updatedAt": "2026-10-20T13:14:21.984Z"
+    },
+    {
+      "id": "kb-ea6a4d69",
+      "kind": "recipe",
+      "title": "把目标的【杀】/【决斗】转移给别人：改 useCard 的 targets 与 triggeredTargets2",
+      "body": "★做法：实现『当X成为【杀】/【决斗】的目标时，可将目标转移给Y』，照抄标准包流离 liuli（standard/skill.js:1873-1884）：在 useCardToTarget 时机拿到 trigger.getParent()（即 useCard 事件 evt），执行 evt.triggeredTargets2.remove(原目标) → evt.targets.remove(原目标) → evt.targets.push(新目标)。引擎的 _triggerTo（content.ts:10153-10190）会在该阶段结束后 event.redo()，按『未触发过的 targets』重新取目标，所以新目标会重新走一遍 useCardToTarget 之后的完整结算（包括后续的 useCardToTargeted/闪响应）。★时机选 trigger:{target:'useCardToTarget'}（自己在事件里是 target）；若技能挂在别人身上（如袒护：保护对象成为目标时自己决定是否代受），改写成 global:'useCardToTarget' 并用 event.target===被保护者 过滤。★两条护栏：①event.player===自己 时不转移（否则自己用自己的杀打自己）；②用 lib.filter.targetEnabled2(event.card,event.player,自己) 确认新目标合法，避免绕过空城类限制。★实例：xy_tanhu（英雄杀RE jinzhao.js）。",
+      "keywords": [
+        "转移目标",
+        "useCardToTarget",
+        "triggeredTargets2",
+        "流离",
+        "杀",
+        "决斗",
+        "代受"
+      ],
+      "refs": [
+        "liuli @ apps/core/character/standard/skill.js:1818-1915"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/standard/skill.js",
+          "start": 1818,
+          "end": 1915,
+          "hash": "762b10d092f1"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-20T13:24:38.784Z",
+      "updatedAt": "2026-10-20T13:24:38.784Z"
     }
   ]
 }
