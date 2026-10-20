@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-20T12:59:26.747Z",
+  "updatedAt": "2026-10-20T13:14:21.985Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2856,6 +2856,26 @@
       "confidence": "verified",
       "createdAt": "2026-10-20T12:59:24.410Z",
       "updatedAt": "2026-10-20T12:59:24.410Z"
+    },
+    {
+      "id": "kb-46d5c211",
+      "kind": "pattern",
+      "title": "「可重复X次」类技能：第一次询问放 cost，后续轮次在 content 里循环",
+      "body": "★写法：写「结束阶段可重复X+1次，你可以弃置所有手牌然后摸两张牌」这类带次数上限的重复技时，若把询问全放进 content 并保持技能非 forced，引擎会先弹一次「是否发动【技能】」、再弹一次自己的「是否弃牌摸牌」，连续两个窗口很别扭。★做法：把【第一次】询问写进 async cost(event, trigger, player){ event.result = await player.chooseBool(...).set('ai', fn).forResult(); }（引擎据此判定是否发动，取消即不触发，也不会二次弹窗）；content 里先直接结算第一轮，再用 for(var i=1;i<max;i++) 循环 chooseBool 询问是否继续，拒绝即 break。★次数上限 max 用 player.getDamagedHp()+1 之类实时算，别写进 usable（usable 是按阶段计数的，动态上限不直观且难与他人的次数修正共存）。★实例：xy_duochuan（英雄杀RE jinzhao.js），满血1次、1血4次，每轮弃光手牌再摸2张。",
+      "keywords": [
+        "重复X次",
+        "可重复",
+        "cost",
+        "chooseBool",
+        "循环",
+        "结束阶段",
+        "次数上限"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-20T13:14:21.984Z",
+      "updatedAt": "2026-10-20T13:14:21.984Z"
     }
   ]
 }
