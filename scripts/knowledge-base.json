@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-20T00:27:08.520Z",
+  "updatedAt": "2026-10-20T00:40:54.448Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2774,6 +2774,33 @@
       "confidence": "verified",
       "createdAt": "2026-10-20T00:26:44.222Z",
       "updatedAt": "2026-10-20T00:27:08.520Z"
+    },
+    {
+      "id": "kb-6daba006",
+      "kind": "pitfall",
+      "title": "chooseToDiscard 的多参数按类型解析：'h' 是位置而非提示语",
+      "body": "⚠️坑：player.chooseToDiscard 的多参数形态（player.js:6068-6097）按【类型】逐个解析，不看位置：number→selectCard=[n,n]（强制弃 n 张）、boolean→forced、get.itemtype(arg)=='position'→position（h/he/e/j 等）、function→filterCard（若已有 filterCard 则当 ai）、其余字符串→get.evtprompt（提示语）。所以 chooseToDiscard(2,'h',true) 就是「强制从手牌弃 2 张」，'h' 不会被当成提示。★要做「弃至场上最少手牌数」：先 const min=Math.min(...game.players.map(p=>p.countCards('h')))，再 n=自己手牌-min，n>0 时才 chooseToDiscard(n,'h',true)。★实证：extra/skill.js ol_shenfen:1177（chooseToDiscard(4,'h',true)）。",
+      "keywords": [
+        "chooseToDiscard",
+        "参数解析",
+        "position",
+        "强制弃牌",
+        "弃至最少手牌"
+      ],
+      "refs": [
+        "ol_shenfen @ apps/core/character/extra/skill.js:1153-1197"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/extra/skill.js",
+          "start": 1153,
+          "end": 1197,
+          "hash": "f7c2ce57bf73"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-20T00:40:47.740Z",
+      "updatedAt": "2026-10-20T00:40:54.448Z"
     }
   ]
 }
