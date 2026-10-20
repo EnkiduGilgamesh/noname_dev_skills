@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-20T13:24:38.785Z",
+  "updatedAt": "2026-10-20T13:32:07.963Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2905,6 +2905,24 @@
       "confidence": "verified",
       "createdAt": "2026-10-20T13:24:38.784Z",
       "updatedAt": "2026-10-20T13:24:38.784Z"
+    },
+    {
+      "id": "kb-4d55ee45",
+      "kind": "fact",
+      "title": "判定『你的回合内/回合外』用 _status.currentPhase === player",
+      "body": "★做法：技能里要区分『你的回合内』与『你的回合外』，直接用 _status.currentPhase === player 判定——currentPhase 在该玩家的回合开始时被设为该玩家，覆盖其准备/判定/摸牌/出牌/弃牌/结束全部阶段，额外回合（如放权、连破）也会正确切换。★注意不要用 game.me、player.phaseNumber、_status.event.player 之类代替：前者是本地视角而非回合归属。★配套护栏：『回合外减体力上限』这类锁定技务必在 filter 里加 player.maxHp>1，否则玩家会在回合外把自己的上限压到 0 直接被判死亡。★实例：xy_yuanluan（英雄杀RE jinzhao.js，回合内 useCard 加 1 上限、回合外 useCard 减 1 上限），与限定技 xy_fengpan『摸至体力上限』形成『回合内堆上限、限定技兑现』的闭环。",
+      "keywords": [
+        "回合内",
+        "回合外",
+        "currentPhase",
+        "体力上限",
+        "锁定技"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-20T13:32:07.963Z",
+      "updatedAt": "2026-10-20T13:32:07.963Z"
     }
   ]
 }
