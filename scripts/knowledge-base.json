@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-20T12:44:31.884Z",
+  "updatedAt": "2026-10-20T12:59:26.747Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2803,33 +2803,6 @@
       "updatedAt": "2026-10-20T00:40:54.448Z"
     },
     {
-      "id": "kb-8b1eb4f7",
-      "kind": "pitfall",
-      "title": "trigger 的 global 作用域包含自己，必须手动排除",
-      "body": "⚠️坑：lib.filter.filterTrigger（library/index.js:11106-11110）对四个作用域只做一件事——role!=='global' 时要求 player===event[role]；对 global 干脆不做比对。也就是说 trigger:{global:'xxx'} 会在【包括自己在内的所有角色】的事件上触发，不是『其他角色』。★做法：写『当一名其他角色…』时必须加 filter: (event,player)=>event.player!=player（官方 renxin:yijiang/skill.js:14526 就是这么写的）；反之若想连自己一起算，global 天然就够。★反例：先写 global 再在 filter 里漏掉这一条，自己的事件会让技能误触发（实测：敦弛会在自己摸牌时白送自己一张牌）。",
-      "keywords": [
-        "global作用域",
-        "其他角色",
-        "filterTrigger",
-        "trigger",
-        "包含自己"
-      ],
-      "refs": [
-        "renxin @ apps/core/character/yijiang/skill.js:14525-14563"
-      ],
-      "fingerprints": [
-        {
-          "file": "apps/core/character/yijiang/skill.js",
-          "start": 14525,
-          "end": 14563,
-          "hash": "19e50e96736f"
-        }
-      ],
-      "confidence": "verified",
-      "createdAt": "2026-10-20T12:44:28.811Z",
-      "updatedAt": "2026-10-20T12:44:28.811Z"
-    },
-    {
       "id": "kb-0403a7cb",
       "kind": "fact",
       "title": "通用 draw 事件只有 drawBegin（没有 drawBegin2），改 num 在这里生效",
@@ -2856,6 +2829,33 @@
       "confidence": "verified",
       "createdAt": "2026-10-20T12:44:31.883Z",
       "updatedAt": "2026-10-20T12:44:31.883Z"
+    },
+    {
+      "id": "kb-586f4dd8",
+      "kind": "pitfall",
+      "title": "trigger 的 global 作用域包含自己，是否排除要写清楚",
+      "body": "⚠️坑：lib.filter.filterTrigger（library/index.js:11106-11110）对四个作用域只做一件事——role!=='global' 时要求 player===event[role]；对 global 干脆不做比对。也就是说 trigger:{global:'xxx'} 会在【包括自己在内的所有角色】的事件上触发，并不等于『其他角色』。★做法：文本写『当一名其他角色…』时必须自己加 filter: (event,player)=>event.player!=player（官方 renxin:yijiang/skill.js:14526 就是如此）；文本写『一名角色…』（含自己）时则什么都不用加，global 天然覆盖。★若确实要连自己一起算（如敦弛：自己在摸牌阶段外摸牌可多摸一张），要注意『追加摸牌』会再次触发同一 drawBegin 造成自我递归——在 content 首行先 addTempSkill(标记技) 挂上标记，filter 里 hasSkill(标记) 即挡住递推，再靠每回合一次的上限兜底。★实测案例：xy_dunchi（英雄杀RE jinzhao.js）就是这样既能自己摸牌发动、又不会无限循环。",
+      "keywords": [
+        "global作用域",
+        "其他角色",
+        "filterTrigger",
+        "包含自己",
+        "自我递归"
+      ],
+      "refs": [
+        "renxin @ apps/core/character/yijiang/skill.js:14525-14563"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/yijiang/skill.js",
+          "start": 14525,
+          "end": 14563,
+          "hash": "19e50e96736f"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-20T12:59:24.410Z",
+      "updatedAt": "2026-10-20T12:59:24.410Z"
     }
   ]
 }
