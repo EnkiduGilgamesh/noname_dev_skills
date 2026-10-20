@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-19T15:48:33.045Z",
+  "updatedAt": "2026-10-20T00:27:08.520Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2719,6 +2719,61 @@
       "confidence": "verified",
       "createdAt": "2026-10-19T15:48:33.045Z",
       "updatedAt": "2026-10-19T15:48:33.045Z"
+    },
+    {
+      "id": "kb-eb46f4c0",
+      "kind": "pitfall",
+      "title": "触发技 cost 选的目标不在 event.result，content 用 event.targets",
+      "body": "⚠️坑：trigger 类技能用 async cost 选目标（chooseTarget 等）时，引擎只把 cost 的 result 拆分拷贝到技能事件（content.ts:4258-4300：result.targets 若为 players 拷成 event.targets、result.cards 拷成 event.cards、cost_data 拷成 event.cost_data），并没有 next.result = result。所以 content 里写 event.result.targets[0] 会拿到 undefined 并抛 TypeError。★做法：async content(event, trigger, player){ const target = event.targets[0]; }；只有在 cost 内部才写 event.result（那里 result 正是本次 cost 的产物）。★实证：bingshi/skill.js potqizhou（:293 cost 的 chooseTarget、:309 content 读 event.targets）、xianding/skill.js dcfuji:13265。",
+      "keywords": [
+        "cost",
+        "event.result",
+        "event.targets",
+        "触发技",
+        "选目标",
+        "TypeError"
+      ],
+      "refs": [
+        "potqizhou @ apps/core/character/bingshi/skill.js:282-354"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/bingshi/skill.js",
+          "start": 282,
+          "end": 354,
+          "hash": "dea555645036"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-20T00:26:42.011Z",
+      "updatedAt": "2026-10-20T00:27:06.165Z"
+    },
+    {
+      "id": "kb-0e80dcc0",
+      "kind": "pitfall",
+      "title": "AI ai.result.target / result.player 的形参是 (发动者, 目标)",
+      "body": "⚠️坑：get/index.js:6894-6902 里 result1 = result.player_use || result.player 与 result2 = result.target_use || result.target 都被调用为 (player, target, card, linking)。即 result.target 的【第一个参数是技能发动者】，第二个才是候选目标；写反不会报错，但会让 AI 敌我不分。★做法：result: { target(player, target) { return get.attitude(player, target); } }。★统计：全库 target(player,target) 427 处 vs target(target,player) 1 处。★实证：yijiang/skill.js ganlu:14130 的 result.target(player,target) 用 player.maxHp-player.hp 表示发动者已损失体力。",
+      "keywords": [
+        "AI",
+        "result.target",
+        "result.player",
+        "形参顺序",
+        "敌我判断"
+      ],
+      "refs": [
+        "ganlu @ apps/core/character/yijiang/skill.js:14102-14174"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/yijiang/skill.js",
+          "start": 14102,
+          "end": 14174,
+          "hash": "9edb13865c84"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-20T00:26:44.222Z",
+      "updatedAt": "2026-10-20T00:27:08.520Z"
     }
   ]
 }
