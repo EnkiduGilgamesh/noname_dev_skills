@@ -668,6 +668,9 @@ for (const f of skillFiles) {
     for (const [k, v] of extractInfoTranslationsWithPos(text, relT)) {
         if (!infoPosBySkill.has(k)) infoPosBySkill.set(k, v);
     }
+    for (const [k, v] of extractNameTranslations(text)) {
+        if (!nameBySkill.has(k)) nameBySkill.set(k, v);
+    }
 }
 console.log(`收集描述: ${infoBySkill.size} 条（含位置 ${infoPosBySkill.size} 条），名称: ${nameBySkill.size} 条`);
 

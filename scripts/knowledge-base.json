@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-20T13:32:07.963Z",
+  "updatedAt": "2026-10-20T23:41:19.743Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2923,6 +2923,62 @@
       "confidence": "verified",
       "createdAt": "2026-10-20T13:32:07.963Z",
       "updatedAt": "2026-10-20T13:32:07.963Z"
+    },
+    {
+      "id": "kb-2d3c55f9",
+      "kind": "pattern",
+      "title": "任意牌响应无懈：chooseonly + respond + all_excluded",
+      "body": "在 useCard 时机让角色打出一张【无懈可击】时，用 player.chooseToUse({filterCard: 无懈, chooseonly:true}) 只选不用，再 player.respond({card,cards,source}) 真正打出；不要用 player.useCard，否则会执行无懈自身的 useCard content（依赖 _wuxie 父链）。令牌无效用 trigger.targets.length=0; trigger.all_excluded=true; 让 useCard 正常走完弃牌流程（参考 jdkanpo）。素染这类'打出无懈后'必须同时监听 useCardAfter（普通使用）与 respond（若梦打出）。",
+      "keywords": [
+        "无懈可击",
+        "chooseonly",
+        "respond",
+        "all_excluded",
+        "useCardAfter",
+        "若梦",
+        "竭诚"
+      ],
+      "refs": [
+        "xy_ruomeng @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:82-113"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 82,
+          "end": 113,
+          "hash": "b5173ac34b23"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-20T13:40:26.491Z",
+      "updatedAt": "2026-10-20T13:40:26.491Z"
+    },
+    {
+      "id": "kb-bb856454",
+      "kind": "pattern",
+      "title": "出牌阶段限一次触发技的标准范式",
+      "body": "出牌阶段限一次的触发技（如心恋），不能仅依赖 usable:1（usable在trigger技中默认按回合计数）。标准做法：①filter中检查 player.isPhaseUsing() 与 !player.hasSkill(skill+'_phase')；②发动后通过 player.addTempSkill(skill+'_phase', 'phaseUseAfter') 绑定出牌阶段结束自动清理；③subSkill声明 phase: { charlotte: true, onremove: true }。若涉及多项效果二选一，在 cost 中通过 chooseControl + choiceList 弹窗询问，取消返回 cancel2 避免误消耗。",
+      "keywords": [
+        "出牌阶段限一次",
+        "触发技",
+        "phaseUseAfter",
+        "chooseControl",
+        "isPhaseUsing"
+      ],
+      "refs": [
+        "xy_xinlian @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:1123-1179"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 1123,
+          "end": 1179,
+          "hash": "4d10e6fb7c2c"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-20T23:41:19.742Z",
+      "updatedAt": "2026-10-20T23:41:19.742Z"
     }
   ]
 }
