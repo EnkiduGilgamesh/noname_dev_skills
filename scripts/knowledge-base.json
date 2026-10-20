@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-20T00:40:54.448Z",
+  "updatedAt": "2026-10-20T12:44:31.884Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2801,6 +2801,61 @@
       "confidence": "verified",
       "createdAt": "2026-10-20T00:40:47.740Z",
       "updatedAt": "2026-10-20T00:40:54.448Z"
+    },
+    {
+      "id": "kb-8b1eb4f7",
+      "kind": "pitfall",
+      "title": "trigger 的 global 作用域包含自己，必须手动排除",
+      "body": "⚠️坑：lib.filter.filterTrigger（library/index.js:11106-11110）对四个作用域只做一件事——role!=='global' 时要求 player===event[role]；对 global 干脆不做比对。也就是说 trigger:{global:'xxx'} 会在【包括自己在内的所有角色】的事件上触发，不是『其他角色』。★做法：写『当一名其他角色…』时必须加 filter: (event,player)=>event.player!=player（官方 renxin:yijiang/skill.js:14526 就是这么写的）；反之若想连自己一起算，global 天然就够。★反例：先写 global 再在 filter 里漏掉这一条，自己的事件会让技能误触发（实测：敦弛会在自己摸牌时白送自己一张牌）。",
+      "keywords": [
+        "global作用域",
+        "其他角色",
+        "filterTrigger",
+        "trigger",
+        "包含自己"
+      ],
+      "refs": [
+        "renxin @ apps/core/character/yijiang/skill.js:14525-14563"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/yijiang/skill.js",
+          "start": 14525,
+          "end": 14563,
+          "hash": "19e50e96736f"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-20T12:44:28.811Z",
+      "updatedAt": "2026-10-20T12:44:28.811Z"
+    },
+    {
+      "id": "kb-0403a7cb",
+      "kind": "fact",
+      "title": "通用 draw 事件只有 drawBegin（没有 drawBegin2），改 num 在这里生效",
+      "body": "★机制：摸牌分两种事件——①摸牌阶段是 phaseDraw（多步 content，有 phaseDrawBegin1/Begin2 等分步时机）；②其余『摸牌』是通用 draw 事件（content.ts:10825 的 async draw 是单步 content），其触发时机只有 drawBefore / drawBegin / drawEnd / drawAfter 四档，【不存在 drawBegin2】。★做法：要做『令其少摸/多摸一张』对任意摸牌生效，监听全局 drawBegin，在 content 里直接改 trigger.num（引擎在 Begin 之后才进 content 读 num，改动生效）；官方先例：collab/skill.js:6411 dcluankui 的子技能用 trigger:{player:'drawBegin'} + trigger.num*=2。★要判断『是不是在摸牌阶段』用 event.getParent('phaseDraw') 回溯，phase.player===event.player 即本人摸牌阶段（注意 getParent 找不到时返回的是真值空对象 {}，要用 phase.player 而不是 !!phase 判断）。★起手摸牌走 gameDraw 事件（get.cards + gain），不会产生 draw 事件。",
+      "keywords": [
+        "drawBegin",
+        "draw事件",
+        "摸牌",
+        "phaseDraw",
+        "trigger.num",
+        "少摸一张"
+      ],
+      "refs": [
+        "dcluankui @ apps/core/character/collab/skill.js:6350-6421"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/collab/skill.js",
+          "start": 6350,
+          "end": 6421,
+          "hash": "a9cb25d85c8f"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-20T12:44:31.883Z",
+      "updatedAt": "2026-10-20T12:44:31.883Z"
     }
   ]
 }
