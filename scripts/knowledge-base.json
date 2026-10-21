@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-21T00:41:48.578Z",
+  "updatedAt": "2026-10-21T15:00:28.754Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3112,6 +3112,235 @@
       "confidence": "verified",
       "createdAt": "2026-10-21T00:41:48.577Z",
       "updatedAt": "2026-10-21T00:41:48.577Z"
+    },
+    {
+      "id": "kb-73caa703",
+      "kind": "pattern",
+      "title": "死后延迟复活与防终局结算范式（reserveOut与forceDie）",
+      "body": "★机制与写法：角色死亡后延迟若干轮/回合复活时，需根据需求选择是否跳过终局判定：①正常胜负判定（主流）：若要求『死亡后正常判定胜负，无人达成胜利才延迟复活』，【不设置】trigger.reserveOut，正常触发dieAfter执行game.checkResult与击杀奖惩；只要对局未终局（!_status.over），死者依靠forceDie:true在global:'roundStart'中正常倒计时并复活。②强行防终局（十常侍/Boss类）：若要求『即使主公阵亡或全队覆灭也绝不提前判负』，才在dieBefore设置trigger.reserveOut=true跳过dieAfter；③标记保护：在dieBefore设置trigger.excludeMark.push('skill_id')防止倒计时角标在死亡弃牌阶段被清理；④原位置复活：调用player.revive(hp)底层会自动根据previousSeat/nextSeat缝合回原座次链表与桌面UI。",
+      "keywords": [
+        "复活",
+        "死亡",
+        "dieBefore",
+        "reserveOut",
+        "forceDie",
+        "roundStart",
+        "revive",
+        "延迟复活",
+        "胜负判定"
+      ],
+      "refs": [
+        "mbmowang @ apps/core/character/mobile/skill.js:17498-17667"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/mobile/skill.js",
+          "start": 17498,
+          "end": 17667,
+          "hash": "214ebc709de9"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T14:21:28.430Z",
+      "updatedAt": "2026-10-21T14:29:06.454Z"
+    },
+    {
+      "id": "kb-81a8a413",
+      "kind": "pattern",
+      "title": "展示 vs 亮出机制：showCards 的 isFlash、处理区与生命周期",
+      "body": "★ 做法与底层区别：无名杀中展示与亮出均基于 showCards(cards, str, flashAnimation, isFlash)。①展示（Show）：默认 flashAnimation=false 且 isFlash=false，卡牌【不改变区域】（留在手牌/装备区），以 dialog 弹窗展示，战报记为“展示了”。②亮出（Flash）：传 flashAnimation=true（默认联动 isFlash=true）或 isFlash=true，卡牌会从手牌/牌堆【移入处理区 ui.ordering】（手牌通过 chooseToCompareLose，牌堆通过 cardsGotoOrdering），屏幕中央播放居中高亮飞牌动画，战报记为“亮出了”。③控制属性：若亮出但不想将牌移入处理区，须 .set(\"noOrdering\", true)；若多次亮出或等待后续挑选牌，须设置 .set(\"relatedEvent\", event.getParent())，避免卡牌在当前 showCards 事件结束后被 orderingDiscard 过早清理入弃牌堆；若只触发时机自身已有动画，用 .set(\"triggeronly\", true)。牌堆顶亮牌挑选参考曹冲〖称象〗。",
+      "keywords": [
+        "展示",
+        "亮出",
+        "showCards",
+        "showHandcards",
+        "isFlash",
+        "flashAnimation",
+        "noOrdering",
+        "ordering",
+        "处理区",
+        "relatedEvent"
+      ],
+      "refs": [
+        "chengxiang @ apps/core/character/yijiang/skill.js:14286-14379"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/yijiang/skill.js",
+          "start": 14286,
+          "end": 14379,
+          "hash": "dc95a3bc0831"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T14:36:39.783Z",
+      "updatedAt": "2026-10-21T14:36:39.783Z"
+    },
+    {
+      "id": "kb-3c488134",
+      "kind": "pattern",
+      "title": "武将牌明置与亮将规范：showCharacter 与时机链",
+      "body": "★ 做法：国战/双将/暗将模式中明置/亮出武将牌统一调用 player.showCharacter(num, log)，参数 0=亮主将、1=亮副将、2=主副将全亮。底层行为：①调用 $showCharacter 移除 DOM 的 unseen/unseen_show 类名并刷新立绘；②恢复武将的势力与性别，挂载其技能；③事件链依次触发 showCharacterBegin -> showCharacterEnd -> showCharacterAfter（身份场主公额外触发 zhuUpdate）。判定武将牌暗置状态请使用 player.isUnseen(0|1|2)。",
+      "keywords": [
+        "亮将",
+        "明置",
+        "亮出武将牌",
+        "showCharacter",
+        "unseen",
+        "showCharacterBegin",
+        "showCharacterEnd",
+        "国战",
+        "双将"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T14:36:39.860Z",
+      "updatedAt": "2026-10-21T14:36:39.860Z"
+    },
+    {
+      "id": "kb-32ec9439",
+      "kind": "pattern",
+      "title": "武将牌扩展区卡牌当桃使用的chooseButton范式",
+      "body": "将武将牌上的扩展牌（getExpansions）作为【桃】使用的标准范式是：主/子技能配置 enable: 'chooseToUse'，filter 判断 player.getExpansions(skill).length > 0 && event.filterCard(get.autoViewAs({ name: 'tao' }, 'unsure'), player, event)；通过 chooseButton.dialog 弹出扩展牌，在 backup(links) 中返回 { selectCard: -1, position: 'x', filterCard: () => false, viewAs: { name: 'tao' }, card: links[0] }。该写法无缝适配出牌阶段主动吃桃与濒死响应（save / respondTao: true），且无需手动处理卡牌移动，引擎会自动从武将牌扩展区扣除该牌并进入弃牌堆。",
+      "keywords": [
+        "扩展牌",
+        "桃",
+        "chooseToUse",
+        "chooseButton",
+        "position:x",
+        "viewAs"
+      ],
+      "refs": [
+        "xy_fanbu @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:1741-1844"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 1741,
+          "end": 1844,
+          "hash": "4c3ff6beddf1"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T14:47:22.261Z",
+      "updatedAt": "2026-10-21T14:47:22.261Z"
+    },
+    {
+      "id": "kb-a20346f3",
+      "kind": "pattern",
+      "title": "统计同势力已阵亡角色数与摸牌阶段增量范式",
+      "body": "统计同势力阵亡角色应直接遍历 game.dead 数组：game.dead.filter(current => current.group === player.group).length。无名杀中阵亡角色移出 game.players 并推入 game.dead，但其势力（group）、身份（identity）等核心属性均保留。配合摸牌阶段增益应监听 phaseDrawBegin2，在 filter 中校验 !event.numFixed，并在 content 中通过 trigger.num += count 增量，避免与设定摸牌数的技能冲突。",
+      "keywords": [
+        "game.dead",
+        "group",
+        "势力",
+        "阵亡角色",
+        "phaseDrawBegin2",
+        "numFixed"
+      ],
+      "refs": [
+        "xy_henzeng @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:1850-1869"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 1850,
+          "end": 1869,
+          "hash": "15115bc10802"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T14:47:28.018Z",
+      "updatedAt": "2026-10-21T14:47:28.018Z"
+    },
+    {
+      "id": "kb-a6bb67a9",
+      "kind": "pattern",
+      "title": "非限次出牌阶段滤牌技能的边界检查与AI防死循环范式",
+      "body": "类似『摸X弃X+1』等净负卡差但无usable限制的滤牌技能，开发时需注意：1.边界校验：filter必须要求player.countCards('he') > 0，防止无牌角色在摸牌后无法付足弃牌代价（形成白嫖摸牌）；2.交互体验：主动技无卡牌目标选择时，配置prompt、manualConfirm:true与delay:false实现弹窗二次确认防误触；3.AI防死循环：因为无usable限制，AI的result.player必须读取player.getStat('skill')?.[skill]，若本阶段已发动过则除非濒死找救命牌否则返回-1，防止AI将手牌持续消耗至空。",
+      "keywords": [
+        "滤牌",
+        "非限次",
+        "manualConfirm",
+        "getStat",
+        "countCards",
+        "边界校验"
+      ],
+      "refs": [
+        "xy_hanzhi @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:1876-1919"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 1876,
+          "end": 1919,
+          "hash": "97d751253f25"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T14:56:22.755Z",
+      "updatedAt": "2026-10-21T14:56:22.755Z"
+    },
+    {
+      "id": "kb-8d8516f9",
+      "kind": "pattern",
+      "title": "护甲机制与伤害抵扣全流程（changeHujia、伤害判定、nohujia与上限）",
+      "body": "★护甲核心规则：1. 护甲属性为 player.hujia，增减必须用 await player.changeHujia(num, type, limit)。传 limit 为 true 则自动应用官方默认的 5 点护甲上限。2. 伤害抵扣发生在 changeHp 阶段，优先抵扣等量护甲。关键：即便伤害被护甲全额抵扣，damage 事件的 num 不减，依然正常触发 damage/damageEnd（遗计、奸雄等受到伤害技能均正常发动），但 changeHp 的实际扣血为 0，不触发濒死。3. 失去体力（loseHp）不属于 damage 事件，完全绕过并无视护甲。4. 穿透机制：通过 player.damage({nohujia: true}) 或赋予 nohujia 技能标签可穿透护甲直接扣血。5. 伤害事件对象携带 trigger.hujia，记录当次伤害抵扣的护甲点数（如谋于禁【狭援】）。",
+      "keywords": [
+        "护甲",
+        "hujia",
+        "shield",
+        "changeHujia",
+        "伤害抵扣",
+        "nohujia",
+        "伤害判定"
+      ],
+      "refs": [
+        "sbxiayuan @ apps/core/character/sb/skill.js:10807-10839",
+        "docs/hujia-mechanism.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/sb/skill.js",
+          "start": 10807,
+          "end": 10839,
+          "hash": "567b7d31abd6"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T15:00:21.337Z",
+      "updatedAt": "2026-10-21T15:00:21.337Z"
+    },
+    {
+      "id": "kb-0cb89c4e",
+      "kind": "pitfall",
+      "title": "护甲避坑：damageEnd在护甲全抵扣时依然触发，区分受到伤害与扣减体力",
+      "body": "⚠避坑要点：1. 护甲抵扣伤害后，伤害流程仍然完整走完（trigger.num 保持原伤害值），因此所有监听 damage/damageEnd 的技能（如卖血摸牌、反伤、得牌）都会正常发动，不要以为护甲抵消了伤害就不会触发 damageEnd。2. 如果自建技能要求【只有实际扣减了体力才发动】，不要单纯依赖 trigger.num > 0，必须检查 trigger.num > (trigger.hujia || 0) 或在 changeHpEnd 中监听实际体力变化。3. 不要直接用 player.hujia += 1，否则跳过 changeHujia 事件且 UI 标记不会及时正确刷新。4. 失去体力（player.loseHp）是规则流失，护甲绝对不防失去体力。",
+      "keywords": [
+        "护甲",
+        "hujia",
+        "damageEnd",
+        "受到伤害",
+        "扣减体力",
+        "避坑",
+        "loseHp"
+      ],
+      "refs": [
+        "sbkeji @ apps/core/character/sb/skill.js:10640-10726",
+        "docs/hujia-mechanism.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/sb/skill.js",
+          "start": 10640,
+          "end": 10726,
+          "hash": "88f3fbfa5a67"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T15:00:28.754Z",
+      "updatedAt": "2026-10-21T15:00:28.754Z"
     }
   ]
 }
