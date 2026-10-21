@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-21T15:03:47.562Z",
+  "updatedAt": "2026-10-21T15:19:10.655Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3370,6 +3370,31 @@
       "confidence": "verified",
       "createdAt": "2026-10-21T15:03:47.561Z",
       "updatedAt": "2026-10-21T15:03:47.561Z"
+    },
+    {
+      "id": "kb-20f0213d",
+      "kind": "fact",
+      "title": "未受伤使用【桃】与卡牌结算重写的标准范式",
+      "body": "★ 核心要点：\n1. 开启满血用桃：【桃】在无名杀底层默认 selectTarget: -1，且 targetEnabled 检查 target.isDamaged()。若要允许未受伤时使用【桃】，需在技能 mod 中同时覆盖 cardEnabled, cardUsable, playerEnabled, targetEnabled（在 card.name === 'tao' && !player.isDamaged() 时返回 true）。\n2. 重写卡牌结算效果：监听 trigger: { target: 'taoBegin' }，在 filter 中判断 !player.isDamaged()，并在 content 中通过 trigger.setContent(async (event, trigger, player) => { await player.changeHujia(1); }) 重定向卡牌执行体，安全替换原生回血为加护甲等自定义效果。\n3. 护甲上限控制：监听 trigger: { player: 'changeHujiaBefore' }，当 event.num > 0 且 player.hujia + event.num > MAX 时，在 content 中设置 trigger.num = Math.max(0, MAX - player.hujia)，保证全局护甲上限不被突破。",
+      "keywords": [
+        "桃",
+        "未受伤",
+        "满血用桃",
+        "taoBegin",
+        "setContent",
+        "护甲",
+        "护甲上限",
+        "changeHujiaBefore",
+        "卡牌效果重写"
+      ],
+      "refs": [
+        "xy_dunwei @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:1995-2025",
+        "xy_shanxiu @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2026-2075"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T15:19:10.655Z",
+      "updatedAt": "2026-10-21T15:19:57.071Z"
     }
   ]
 }
