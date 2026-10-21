@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-21T00:30:14.835Z",
+  "updatedAt": "2026-10-21T00:41:48.578Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3075,6 +3075,43 @@
       "confidence": "verified",
       "createdAt": "2026-10-21T00:30:14.834Z",
       "updatedAt": "2026-10-21T00:30:14.834Z"
+    },
+    {
+      "id": "kb-1fefadc9",
+      "kind": "pattern",
+      "title": "特殊区卡牌（以木牛流马为例）的可见性机制与全员公开范式",
+      "body": "★ 机制原理：\n1. 区域限制：引擎原生手牌透视标签 viewHandcard 仅对手牌区（'h'）生效（底层 ui.click.count 与 card.isKnownBy 仅检查 target.getCards('h')）；木牛流马中的卡牌并不在手牌区，而是在特殊区（position 为 's'，附带 gaintag: ['muniu']），同时挂载在装备实体的 muniu.storages 数组上。\n2. 为什么原生不可见：muniu_skill 的 intro.mark 内部严格硬编码了 if (player.isUnderControl(true)) dialog.addAuto(cards); 否则对其他所有玩家仅返回 \"共有X张牌\"，因此即使赋予全场 viewHandcard，其他角色点击也无法看到木牛中的牌面。\n\n★ 做法（木牛流马卡牌全员公开的最佳实现）：\n1. 聚合提取：编写统一读取方法，同时获取手牌与木牛牌 —— muniuCards = target.getVCards('e', c => c.name === 'muniu').flatMap(m => m.storages || []).concat(target.getCards('s', c => c.hasGaintag('muniu')))。\n2. 标记公开：在武将自身公开标记（intro.mark）中，同时为手牌与木牛牌调用 dialog.addSmall([cards, 'card'])，使得任何玩家随时点击该角色标记即可清晰浏览手牌与木牛明牌。\n3. 知情者同步：在牌进入手牌或特殊区时（监听 gainAfter / loseToSpecialAfter），调用 game.addCardKnower(cards, 'everyone')，确保卡牌底层 _knowers 永久包含 'everyone'，在顺拆/判定等所有引擎判定中均视为已知。",
+      "keywords": [
+        "木牛流马",
+        "muniu",
+        "手牌可见",
+        "viewHandcard",
+        "特殊区",
+        "special",
+        "isKnownBy",
+        "addCardKnower"
+      ],
+      "refs": [
+        "muniu_skill @ apps/core/card/extra.js:960-990",
+        "card.isKnownBy @ apps/core/noname/library/element/card.js:790-815"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/card/extra.js",
+          "start": 960,
+          "end": 990,
+          "hash": "5c6f3d36069f"
+        },
+        {
+          "file": "apps/core/noname/library/element/card.js",
+          "start": 790,
+          "end": 815,
+          "hash": "50a3e67ad351"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T00:41:48.577Z",
+      "updatedAt": "2026-10-21T00:41:48.577Z"
     }
   ]
 }
