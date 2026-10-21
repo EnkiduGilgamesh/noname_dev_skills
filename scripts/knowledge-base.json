@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-21T00:00:55.943Z",
+  "updatedAt": "2026-10-21T00:20:49.030Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3007,6 +3007,35 @@
       "confidence": "verified",
       "createdAt": "2026-10-21T00:00:55.942Z",
       "updatedAt": "2026-10-21T00:00:55.942Z"
+    },
+    {
+      "id": "kb-cdfb62df",
+      "kind": "pattern",
+      "title": "双性别双人武将定义与判定规范",
+      "body": "★ 做法：双性别或双人武将性别必须配置为字符串 'double'（如 sex: 'double' 或数组定义第一项为 'double'），姓名分词配置为 names: '姓|名-姓|名'。不要写成数组 ['male', 'female']。\\n⚠ 机制：引擎底层 player.hasSex('male') 与 player.hasSex('female') 在 sex 为 'double' 时均返回 true；sameSexAs 与 differentSexFrom 在任一方为 'double' 时均返回 true（与男女比较既视为同性又视为异性）。\\n⚠ 避坑：判定角色性别时，切勿使用 target.sex === 'male' 硬编码比较，必须统一调用 target.hasSex('male')；通用卡牌出牌语音在 'double' 时默认回退男声。",
+      "keywords": [
+        "双性别",
+        "双人武将",
+        "double",
+        "hasSex",
+        "differentSexFrom",
+        "sameSexAs",
+        "性别"
+      ],
+      "refs": [
+        "twjuntun @ apps/core/character/tw/skill.js:14490-14541"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/tw/skill.js",
+          "start": 14490,
+          "end": 14541,
+          "hash": "803964047c83"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T00:20:49.030Z",
+      "updatedAt": "2026-10-21T00:20:49.030Z"
     }
   ]
 }
