@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-20T23:41:19.743Z",
+  "updatedAt": "2026-10-21T00:00:55.943Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2979,6 +2979,34 @@
       "confidence": "verified",
       "createdAt": "2026-10-20T23:41:19.742Z",
       "updatedAt": "2026-10-20T23:41:19.742Z"
+    },
+    {
+      "id": "kb-ab9df65a",
+      "kind": "pattern",
+      "title": "连续N次阶段条件觉醒技开发范式",
+      "body": "开发『连续N个阶段满足条件则觉醒』的技能时，严禁在filter里产生副作用，也不能把计数和觉醒混在一个skillAnimation觉醒技内（会导致前N-1次未达成时提前弹出动画）。标准解法：①主技能filter纯判定『本次摸牌/阶段数满足 且 前序连续计数已达N-1』，满足时直接进入content触发觉醒；②通过group子技能在阶段结束后（如phaseDrawAfter晚于phaseDrawEnd）执行计数更新：若本次满足则计数+1，若中断则清零，并调用markSkill与syncStorage实时呈现进度。",
+      "keywords": [
+        "连续",
+        "觉醒技",
+        "phaseDrawEnd",
+        "phaseDrawAfter",
+        "计数",
+        "juexingji"
+      ],
+      "refs": [
+        "xy_xurui @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:1239-1298"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 1239,
+          "end": 1298,
+          "hash": "4902dff15848"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T00:00:55.942Z",
+      "updatedAt": "2026-10-21T00:00:55.942Z"
     }
   ]
 }
