@@ -481,6 +481,7 @@ mypack_wusheng_info: "将一张红色牌当【杀】使用。",  // 技能描述
 | 限时生效的子技能 | 临时技能 | `addTempSkill(skill, expire)` | `templates/11-临时技能.js` |
 | 限制每轮/每角色/每点数 | 维度限制技 | 轮次重置 + storage去重 + precontent | 见 §6.13 专章 |
 | 多势力/同时享用多势力特性 | 多势力技 | 动态切换 / 借壳Trigger / Hook isGroup | 见 §6.14 专章 |
+| 全员自顶向下查看牌堆/联机透视 | 牌堆预览技 | mark + intro + requestSkillData + sync | 见 §6.15 专章 |
 
 路径前缀：`docs/YRD/templates/templates/`
 
@@ -1273,6 +1274,127 @@ yxsre_biangui: {
   }
   ```
 - **优缺点**：一劳永逸，最彻底支持“全势力共存”和“人数计数”，适合大型扩展。
+
+---
+
+### 6.15 牌堆全员自顶向下查看与联机数据同步范式（Mark + Intro + Sync 范式）
+
+#### 1. 核心机制与顺序原理
+- **牌堆 DOM 顺序**：在无名杀底层，摸牌堆实体为 `ui.cardPile`（DOM 容器）。
+  - `ui.cardPile.firstChild` (`childNodes[0]`) 对应**牌堆顶**（`get.cards` 摸牌时移除该节点）。
+  - `ui.cardPile.lastChild` 对应**牌堆底**。
+  - **核心结论**：`Array.from(ui.cardPile.childNodes)` 天然严格按照**自顶向下**顺序排列，无需任何二次排序或反转。
+- **为什么推荐方案 A（Mark + Intro 悬停查看）**：
+  - **零阻塞体验**：不插入任何 `GameEvent`，绝不打断出牌、判定、响应等游戏事件流。
+  - **全时段查看**：任何阶段（包括他人回合、拼点/响应/濒死时）玩家均可随时查看。
+  - **AI 零干扰**：AI 玩家根本不会触发悬停或点击，避免因未处理 AI 交互导致的卡顿或超时。
+
+#### 2. 联机模式（ConnectMode）特殊处理（极为关键）
+- **客机无 DOM 实体**：联机对战（`game.online`）中，客机为防作弊透视不持有完整的 `ui.cardPile` 卡牌 DOM（仅有张数 `_status.cardPileNum`）。客机若直接读取 `ui.cardPile.childNodes` 会得到空数组。
+- **协议与权限要求**：
+  - 客机必须调用 `game.requestSkillData(skill, key, timeout)` 异步向主机请求数据。
+  - 主机底层 `game.respondSkillData` 会做硬性权限校验（`!lib.skill.global.includes(skill) && !player.hasSkill(skill)` 时直接驳回），因此该技能**必须**挂载在 `lib.skill.global` 或角色拥有列表中。
+- **异步 Promise 状态处理**：
+  - 必须封装统一的 `getCards(player)`：单机/主机端同步返回 DOM 卡牌数组，客机端返回 Promise。
+  - UI 端必须判断 `if (cards instanceof Promise)`：客机先渲染加载提示，在 `.then(([ok, result]) => ...)` 回调中再动态渲染卡牌。
+
+#### 3. 标准代码模板（支持单机 + 联机客机无缝兼容）
+
+```js
+// 主技能：挂在武将上（通过 global 将子标记技能下发给全场所有角色）
+lib.skill.kuizhen = {
+    forced: true,
+    global: "kuizhen_mark",
+};
+
+// 全场角色获得的标记技能
+lib.skill.kuizhen_mark = {
+    charlotte: true,
+    mark: true,
+    intro: {
+        mark(dialog, storage, player) {
+            const intronode = ui.create.div(".menubutton.pointerdiv", "点击查看牌堆", function () {
+                if (!this.classList.contains("disabled")) {
+                    lib.skill.kuizhen_mark.showPileDialog(player);
+                }
+            });
+            dialog.add(intronode);
+        },
+    },
+    // 统一获取牌堆数据：单机/主机同步返回，客机返回 Promise
+    getCards(player) {
+        if (game.online) {
+            // 客机向主机异步请求牌堆数据（超时 10 秒）
+            return game.requestSkillData("kuizhen_mark", "getAllCards", 10000);
+        }
+        if (ui.cardPile?.hasChildNodes?.()) {
+            return Array.from(ui.cardPile.childNodes);
+        }
+        return [];
+    },
+    // 主机端响应客机的数据请求
+    sync: {
+        getAllCards(client) {
+            if (ui.cardPile?.hasChildNodes?.()) {
+                // 返回实体卡牌数组（无名杀网络层会自动序列化卡牌数据）
+                return Array.from(ui.cardPile.childNodes);
+            }
+            return [];
+        },
+    },
+    // 渲染牌堆弹窗（支持单机与联机异步回调）
+    showPileDialog(player) {
+        function renderDialog(cards) {
+            const dialog = ui.create.dialog("摸牌堆（自顶向下）", "peaceDialog");
+            if (!cards?.length) {
+                dialog.addText("当前摸牌堆为空");
+            } else {
+                dialog.add(`<div class="text center">共 ${cards.length} 张牌（左上为堆顶，右下为堆底）</div>`);
+                const startIndex = dialog.buttons.length;
+                // 使用 addSmall 渲染紧凑缩略牌，防止 100+ 张牌导致 DOM 性能卡顿
+                dialog.addSmall([cards, "card"]);
+                // 为卡牌添加序号角标
+                for (let i = startIndex; i < dialog.buttons.length; i++) {
+                    const btn = dialog.buttons[i];
+                    const order = i - startIndex + 1;
+                    btn.style.position = "relative";
+                    const isTop = order === 1;
+                    const isBottom = order === cards.length;
+                    const badge = ui.create.div("", isTop ? "#1 顶" : isBottom ? `#${order} 底` : `#${order}`, btn);
+                    badge.style.cssText = `
+                        position: absolute; top: 2px; left: 2px; font-size: 10px; line-height: 12px;
+                        background: ${isTop ? "rgba(220,50,50,0.85)" : isBottom ? "rgba(50,150,250,0.85)" : "rgba(0,0,0,0.6)"};
+                        color: #fff; padding: 1px 3px; border-radius: 2px; pointer-events: none; z-index: 10;
+                    `;
+                }
+            }
+            const control = ui.create.control("确定", () => dialog.close());
+            dialog._close = dialog.close;
+            dialog.hide = dialog.close = function (...args) {
+                control.close();
+                return dialog._close(...args);
+            };
+            dialog.open();
+        }
+
+        const cards = lib.skill.kuizhen_mark.getCards(player);
+        if (cards instanceof Promise) {
+            // 联机客机异步等待主机数据
+            const loading = ui.create.dialog("摸牌堆", "peaceDialog");
+            loading.addText("正在从主机同步牌堆数据，请稍候...");
+            loading.open();
+            cards.then(([ok, result]) => {
+                loading.close();
+                if (ok && Array.isArray(result)) {
+                    renderDialog(result);
+                }
+            });
+        } else {
+            renderDialog(cards);
+        }
+    },
+};
+```
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-21T00:20:49.030Z",
+  "updatedAt": "2026-10-21T00:30:14.835Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3036,6 +3036,45 @@
       "confidence": "verified",
       "createdAt": "2026-10-21T00:20:49.030Z",
       "updatedAt": "2026-10-21T00:20:49.030Z"
+    },
+    {
+      "id": "kb-377b0b06",
+      "kind": "pattern",
+      "title": "牌堆全员自顶向下查看与联机数据同步范式",
+      "body": "★ 做法（方案A：标记悬停 + 零阻塞查看）：\n1. 架构：主技能声明 global: \"子标记技能\" 赋予全场；子技能配置 mark: true 与 intro: { mark(dialog, storage, player) }。该方案零时机限制、全时段随时可看、不产生阻塞性 GameEvent（不打断出牌/判定/响应流程），AI 自动静默。\n2. 牌堆顺序：底层 ui.cardPile.childNodes 天然为自顶向下顺序（index 0 / firstChild 为堆顶，index length - 1 为堆底），无需二次反转。必须使用 dialog.addSmall([cards, \"card\"]) 缩略渲染并加序号角标（如 #1 顶），切勿直接全屏大图渲染 100+ 张牌防卡顿。\n\n⚠ 联机特殊处理（极为关键）：\n1. 客机无 DOM：联机模式（game.online）下客机为防作弊不持有 ui.cardPile 真实卡牌 DOM（仅有张数 _status.cardPileNum），客机直接读取 ui.cardPile.childNodes 为空数组。\n2. 同步协议：客机必须通过 game.requestSkillData(skill, key, timeout) 异步向主机请求牌堆数据；主机在 sync: { key(client) { ... } } 中读取主机的实体牌堆并返回。\n3. 权限要求：主机底层 game.respondSkillData 强制校验权限（!lib.skill.global.includes(skill) && !player.hasSkill(skill) 时驳回），因此该技能必须挂载在 lib.skill.global 或角色拥有列表中。\n4. 异步渲染：封装统一的 getCards(player)，单机/主机端同步返回 Array.from(ui.cardPile.childNodes)，客机端返回 Promise；UI 端判定 if (cards instanceof Promise) 先展示「正在从主机同步牌堆数据...」，在 .then(([ok, result]) => ...) 回调中再动态渲染卡牌列表。",
+      "keywords": [
+        "牌堆",
+        "自顶向下",
+        "cardPile",
+        "viewCards",
+        "intro",
+        "mark",
+        "requestSkillData",
+        "sync",
+        "联机",
+        "connectMode"
+      ],
+      "refs": [
+        "smyyingshi @ apps/core/character/yingbian/skill.js:2208-2294",
+        "sxrmfubei @ apps/core/character/sxrm/skill.js:1264-1497"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/yingbian/skill.js",
+          "start": 2208,
+          "end": 2294,
+          "hash": "70eb9d44f3de"
+        },
+        {
+          "file": "apps/core/character/sxrm/skill.js",
+          "start": 1264,
+          "end": 1497,
+          "hash": "ccc25677ee06"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T00:30:14.834Z",
+      "updatedAt": "2026-10-21T00:30:14.834Z"
     }
   ]
 }
