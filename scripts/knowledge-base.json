@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-21T15:00:28.754Z",
+  "updatedAt": "2026-10-21T15:03:47.562Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3341,6 +3341,35 @@
       "confidence": "verified",
       "createdAt": "2026-10-21T15:00:28.754Z",
       "updatedAt": "2026-10-21T15:00:28.754Z"
+    },
+    {
+      "id": "kb-493353e1",
+      "kind": "pattern",
+      "title": "伤害来源重定向（改为该角色）的标准范式",
+      "body": "★ 做法：在 damageBefore 或 damageBegin 时机（即 damage 事件 step 4 读取 source 之前）直接修改 trigger.source = target。可配合 target.line(trigger.player, 'fire') 与 game.log(target, '成为伤害来源') 呈现动画与战报。\\n⚠ 机制：引擎在 content.ts 的 damage step 4 才会解构 const { source } = event 并记入 sourceDamage 统计；在 damageBefore 时修改能确保后续所有流程（伤害飘字归属、击杀奖惩、卖血技能反噬、damageSource 触发）全部正确归属于新角色。\\n⚠ 避坑：若同时监听 source: 'damageBefore' 与 player: 'damageBefore'（造成或受到伤害），当产生自身造成的伤害时会在同一事件触发两次，filter 中必须加防重入判断（如 event._skill 检查）。",
+      "keywords": [
+        "伤害来源",
+        "伤害重定向",
+        "damageBefore",
+        "source",
+        "构陷",
+        "诬诽",
+        "嫁祸"
+      ],
+      "refs": [
+        "wufei @ apps/core/character/mobile/skill.js:16967-17017"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/mobile/skill.js",
+          "start": 16967,
+          "end": 17017,
+          "hash": "d3e321fe39eb"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T15:03:47.561Z",
+      "updatedAt": "2026-10-21T15:03:47.561Z"
     }
   ]
 }
