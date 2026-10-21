@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-21T15:19:10.655Z",
+  "updatedAt": "2026-10-21T15:41:34.820Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3395,6 +3395,37 @@
       "confidence": "verified",
       "createdAt": "2026-10-21T15:19:10.655Z",
       "updatedAt": "2026-10-21T15:19:57.071Z"
+    },
+    {
+      "id": "kb-f45e78c7",
+      "kind": "pitfall",
+      "title": "弃牌堆底层机制与顺序遍历陷阱",
+      "body": "⚠ 核心机制与避坑：\\n1. ui.discardPile 本质是离屏 HTMLDivElement 容器，所有新弃置卡牌均通过 appendChild 追加到末尾。\\n2. 物理时序上：firstChild (childNodes[0]) 是最早弃置的卡牌（弃牌堆底），lastChild 是最新弃置的卡牌（弃牌堆顶，如国战徽识 gzhuishi 查牌堆顶直接取 lastChild 与 previousSibling）。\\n3. 引擎通用查询方法 get.discardPile(pattern, 'top') 继承摸牌堆逻辑，默认从 0 开始正向遍历，查到的反而是最早弃置的陈旧卡牌！\\n\\n★ 正确做法：\\n1. 获取最新/最近弃牌：应使用 ui.discardPile.lastChild、倒序数组（如 Array.from(ui.discardPile.childNodes).reverse()），或显式调用 get.discardPile(pattern, 'bottom')。\\n2. 回合/阶段内弃牌追踪：每回合 phaseChange 引擎重置 _status.discarded = []。追踪当前阶段/回合进入弃牌堆的牌，优先检查 _status.discarded 或从卡牌移动历史（cardMove）结合 filterInD('d') 过滤（如张昭张纮固政 guzheng）。\\n3. 洗牌生命周期：摸牌堆空时触发 game.washCard()，过滤并销毁衍生牌（vanish 标记），打乱重组为摸牌堆并彻底清空 ui.discardPile。",
+      "keywords": [
+        "弃牌堆",
+        "discardPile",
+        "get.discardPile",
+        "顺序",
+        "lastChild",
+        "firstChild",
+        "洗牌",
+        "washCard",
+        "固政"
+      ],
+      "refs": [
+        "guzheng @ apps/core/character/shenhua/skill.js:4669-4813"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/shenhua/skill.js",
+          "start": 4669,
+          "end": 4813,
+          "hash": "5bad8d2edf4a"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-21T15:40:27.329Z",
+      "updatedAt": "2026-10-21T15:41:34.820Z"
     }
   ]
 }
