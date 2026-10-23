@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-21T15:41:34.820Z",
+  "updatedAt": "2026-10-23T12:45:03.217Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3426,6 +3426,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-21T15:40:27.329Z",
       "updatedAt": "2026-10-21T15:41:34.820Z"
+    },
+    {
+      "id": "kb-extension-esm-precontent",
+      "kind": "pitfall",
+      "title": "扩展迁移须保留模块依赖，connect:false 不跳过 precontent",
+      "body": "英雄杀RE 的现代入口遗漏 applyGroup 与13个分组导入，precontent 注册武将包时 ReferenceError。恢复显式ESM导入和五字段合并后，浏览器已可进入联机地址页。connect 标记仅在后续loadExtension装配阶段过滤content，precontent此前已执行；语法检查不能发现此类未定义符号。见项目事故记录及验证边界。",
+      "keywords": [
+        "applyGroup",
+        "precontent",
+        "connect:false",
+        "ESM入口迁移",
+        "拆分模块",
+        "ReferenceError"
+      ],
+      "refs": [
+        "docs/yxsre-extension-loading-fix.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T12:45:03.217Z",
+      "updatedAt": "2026-10-23T12:45:03.217Z"
     }
   ]
 }

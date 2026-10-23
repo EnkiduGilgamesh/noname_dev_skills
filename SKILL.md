@@ -326,6 +326,8 @@ export default extensionPackage;   // 扩展主体
 
 依据：`apps/core/noname/init/import.ts:72-77`
 
+**迁移拆分模块入口时，要保留 ESM 导入与辅助函数。** `node --check` 不能发现调用处的未定义变量。已验证 `connect:false` 只在后续装配阶段过滤 content，precontent 仍会先执行；不能据此跳过入口依赖检查。应在武将包合并后核对 character、skill、translate、characterIntro、characterTitle，再验证立绘路径。事故与验证记录见项目 `docs/yxsre-extension-loading-fix.md`。
+
 ### ② precontent 是引入武将包的唯一时机
 
 ```js
