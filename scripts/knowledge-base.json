@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-23T12:45:03.217Z",
+  "updatedAt": "2026-10-23T13:37:37.509Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3447,6 +3447,47 @@
       "confidence": "verified",
       "createdAt": "2026-10-23T12:45:03.217Z",
       "updatedAt": "2026-10-23T12:45:03.217Z"
+    },
+    {
+      "id": "kb-54089bef",
+      "kind": "pattern",
+      "title": "联机 UI 生命周期与 Vue 宿主边界",
+      "body": "Vue UI 扩展使用 connect:true，precontent/content/arenaReady 共用单例与一次自动初始化；reinit 包含 loadModeAsync 后续重建，需同时观察原生 DOM。原生 CSS 会将普通 div 绝对定位并压成零尺寸，Vue 宿主要显式宽高。原生回退清理本扩展资源并保留当前选择，不重载或清除连接凭据。详见项目 P1 记录。",
+      "keywords": [
+        "联机UI",
+        "Vue宿主",
+        "reinit",
+        "场景清理",
+        "原生回退"
+      ],
+      "refs": [
+        "docs/online-ui-p1.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T13:35:26.934Z",
+      "updatedAt": "2026-10-23T13:35:26.934Z"
+    },
+    {
+      "id": "kb-d813d12c",
+      "kind": "pitfall",
+      "title": "game.over 经网络传源码，禁止闭包包装",
+      "body": "game.over 会被 Player.send(game.over, ...) 序列化给客机执行。将其包装为引用 original/listeners 的闭包会在客机结算报 original is not defined。UI 扩展必须保留 game.over 原函数对象，使用 lib.onover 及 DOM 观察结算；包装其他入口前也要检查是否以函数参数发送。P1 双端联调已复现并修正该问题。",
+      "keywords": [
+        "game.over",
+        "Player.send",
+        "函数序列化",
+        "original is not defined",
+        "联机结算",
+        "闭包包装"
+      ],
+      "refs": [
+        "docs/online-ui-p1.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T13:37:37.509Z",
+      "updatedAt": "2026-10-23T13:37:37.509Z"
     }
   ]
 }

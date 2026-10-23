@@ -27,6 +27,8 @@
 
 扩展入口迁移排查还需检查拆分模块的 ESM 导入、辅助合并函数和 precontent 执行路径；`connect:false` 不能保证 precontent 在联机入口不执行。相关事故可检索知识库关键词 `applyGroup`、`precontent`、`ESM入口迁移`。
 
+联机 UI 扩展的可重复装配、异步 reinit 清理和 Vue 宿主定位，见 SKILL.md 的“扩展目录结构”；知识库可检索 `联机UI`、`Vue宿主`、`原生回退`。
+
 ---
 
 ## 安装

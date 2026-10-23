@@ -292,6 +292,10 @@ pnpm -F @noname/fs dev --debug --dirname=../../apps/core    # 文件服务 8089
 
 ## 2. 扩展目录结构
 
+**联机 UI 专用扩展（Vue 源码包）**：使用 `packages/extension/<名称>/` 为源码、`apps/core/extension/<名称>/` 为构建产物；扩展要显式 `connect:true`。`precontent/content/arenaReady` 应共用单例与一次自动初始化，避免用户回退后被后续加载回调重新启用。`message.client.reinit` 返回时异步重建可能尚未完成，结合原生 DOM 变化重新装配。原生 CSS 会将普通 div 绝对定位，Vue 宿主必须显式宽高。已在项目 `docs/online-ui-p1.md` 记录实现与验证；纯 UI 扩展无需添加空武将包，也不适用 `verify-skill --pack` 的武将技能验收。
+
+**不要给网络按源码传输的函数套闭包包装。** 当前内核用 `Player.send(game.over, ...)` 将结算函数发送到客机；若把 `game.over` 替换成捕获 `original` 的函数，客机重建函数后会报 `original is not defined`。UI 跟踪结算使用 `lib.onover` 与 DOM 观察，保留原函数对象。其他适配点也先检查是否作为函数参数发送。
+
 ```
 apps/core/extension/我的扩展/
 ├── extension.js          ★ 必需：必须 export type 与 default
