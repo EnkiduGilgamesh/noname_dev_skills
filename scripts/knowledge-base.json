@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-23T16:11:39.055Z",
+  "updatedAt": "2026-10-23T17:23:35.308Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3798,6 +3798,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-23T16:05:55.013Z",
       "updatedAt": "2026-10-23T16:05:55.013Z"
+    },
+    {
+      "id": "kb-ui-p2-regions",
+      "kind": "pattern",
+      "title": "联机 UI 原型独立入口与手机战局区域验收",
+      "body": "P2 主题原型应独立打包 Vue、明确展示数据且不导入 noname，不把本地确认态当作内核结果。八人战局公共区应置于顶部席位下缘，避免提示遮挡选目标；密集手牌至少保留可读露出边，超宽使用区域滚动。新宇杀原型在四视口两档字号共48组浏览器检查中验证关键控件边界与命中，详见文档。",
+      "keywords": [
+        "联机UI",
+        "P2",
+        "响应式原型",
+        "公共区",
+        "手牌滚动",
+        "展示数据"
+      ],
+      "refs": [
+        "docs/online-ui-p2.md",
+        "docs/online-ui-theme.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T17:23:35.308Z",
+      "updatedAt": "2026-10-23T17:23:35.308Z"
     }
   ]
 }
