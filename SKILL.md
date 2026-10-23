@@ -16,7 +16,7 @@ description: 开发《无名杀》武将扩展、编写武将技能，或在已�
 - 源码核心：`apps/core/noname/`
 - 扩展目录：`apps/core/extension/<扩展名>/`
 - 武将包目录：`apps/core/character/<包名>/`
-- 事件系统文档：`docs/YRD/`（自顶向下 22 篇：00~18 + 3 篇附录，含源码行号）
+- 事件系统文档：`docs/YRD/`（自顶向下 23 篇：00~19 + 3 篇附录，含源码行号）
   > 17 篇为**打包与构建**（扩展产物在哪、`pnpm build` 做了什么、各端怎么打包）。
   > 18 篇为**安卓打包实战**（JDK 21 硬校验、Capacitor 同步三件事、签名与 SAF）。
   > ℹ️ 该目录属于**《无名杀》仓库本体**，不由本技能包安装。
@@ -1404,6 +1404,19 @@ lib.skill.kuizhen_mark = {
 
 ---
 
+### 6.16 目标过滤与技能发动检测（速查）
+
+- **牌**：`mod.targetEnabled` 是集中式过滤（`lib.filter.targetEnabled*` 会查）。**技能**：`chooseTarget` 只认发起技能自带 `filterTarget`，缺省 `lib.filter.all`，`mod` 不生效；【谦逊】挡不住【突袭】。
+- **让角色不能被技能选**：全局 `onChooseTarget` 包 `event.filterTarget`；`chooseCardTarget` / `chooseButtonTarget` 再包 `game.Check.target`（只有 UI/AI 选目标走这里）。
+- **技能发动**：触发技 `logSkillBegin` / `logSkill`；主动技 `useSkillBegin` / `useSkill` / `useSkillAfter`；视为牌 `logSkillBegin` + `useCard`。
+- **技能目标**：主动技 `useSkill.targets`；触发技技能事件 `targets`；视为牌 `useCard.targets`（`logSkillBegin.targets` 是 `false`）；content 里的 `chooseTarget` 只在 `result.targets` 与 `childEvents` 里。
+- **发动时摸牌、结算后弃牌**：两段触发 + 共享事件标记（`logSkillBegin`/`logSkill` 用 `log_event`；`useSkillBegin`/`useSkillAfter` 用 `useSkill`），后半段用隐藏 `group` 子技能 + `forced`。
+- ⚠ `event.getParent(name)` 找不到返回 `{}`（truthy），必须 `getParent(name, true)`，否则 filter 恒 false。
+- ⚠ `ai.viewHandcard` 必须配 `skillTagFilter`，否则 `hasSkillTag` 每次打印整只 Player DOM。
+- 完整案例、事件树收集目标、调试脚本：`docs/YRD/19-target-filtering-and-skill-activation.md`。
+
+---
+
 ## 7. API 速查
 
 ### 效果类（均可 await）
@@ -1577,7 +1590,8 @@ player.getStat("triggerSkill")                     // 发动次数
 | 需求 | 文档 |
 |------|------|
 | **检索参考实现** | `scripts/README.md`（工具详解与检索技巧） |
-| 系统理解事件系统 | `docs/YRD/README.md`（自顶向下 22 篇） |
+| 系统理解事件系统 | `docs/YRD/README.md`（自顶向下 23 篇） |
+| **目标过滤 / 技能发动检测 / 两段触发** | `docs/YRD/19-target-filtering-and-skill-activation.md` |
 | 触发机制原理 | `docs/YRD/08-trigger-system.md` |
 | 技能执行链路 | `docs/YRD/09-skill-execution.md` |
 | **自定义界面 / UI 排障** | `docs/YRD/15-ui-development.md` |
@@ -1778,7 +1792,7 @@ node skill-search.mjs stats      # 技能总数、含描述比例
 - 新增篇章要同步更新 `docs/YRD/README.md` 的**三层索引**：
   ① 分层目录表 ② 快速导航 ③ 开发工具链/速查表
 - 同时检查 `SKILL.md` 里对篇数的描述（"自顶向下 N 篇"）并同步
-  （当前：**22 篇 = 00~18 共 19 章 + 3 篇附录**）
+  （当前：**23 篇 = 00~19 共 20 章 + 3 篇附录**）
 - **成篇后回填知识库**：用 `--link` 让知识库条目指向新文档
   （见 §12 ②），否则检索仍只在文档里找得到、知识库却无入口
 

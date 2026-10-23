@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-23T13:37:37.509Z",
+  "updatedAt": "2026-10-23T16:01:38.948Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3428,6 +3428,63 @@
       "updatedAt": "2026-10-21T15:41:34.820Z"
     },
     {
+      "id": "kb-7f6f7aec",
+      "kind": "pattern",
+      "title": "摸牌阶段摸牌后获取摸牌、展示与极值条件弃牌范式",
+      "body": "摸牌阶段摸牌后的技能标准写法：1.时机选择：使用 trigger: { player: 'phaseDrawEnd' }；2.安全获取摸牌：利用 (trigger.cards || []).concat(player.getHistory('gain', evt => evt.getParent('phaseDraw') === trigger).reduce(...)).filter(...) 双重保障获取本阶段真正进入手牌且依然在场的卡牌；3.展示与子集弃牌：await player.showCards(drawnCards) 后接 chooseToDiscard，设置 filterCard 仅允许选择所摸牌，selectCard: [1, drawnCards.length]；4.极值计算与多分支结算：计算 Math.max 与 Math.min，遍历 discarded 检查是否命中最大点数、最小点数或指定类型，支持单张牌多重命中（如既是最小点数又是装备牌）。",
+      "keywords": [
+        "phaseDrawEnd",
+        "摸牌后",
+        "showCards",
+        "chooseToDiscard",
+        "极值",
+        "点数最大",
+        "点数最小"
+      ],
+      "refs": [
+        "xy_lingping @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2120-2212"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2120,
+          "end": 2212,
+          "hash": "e917943bd202"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-22T12:25:18.271Z",
+      "updatedAt": "2026-10-22T12:25:18.271Z"
+    },
+    {
+      "id": "kb-e6483e86",
+      "kind": "pattern",
+      "title": "禁止指定其他角色为目标与弃牌堆计数觉醒范式",
+      "body": "1.限制用牌目标：使用牌不能指定其他角色为目标的标准写法为 mod: { playerEnabled(card, player, target) { if (player !== target) return false; } }，引擎底层 targetEnabled 会拦截包括 AOE 在内的所有其他目标；2.弃牌堆计数：统计弃牌堆卡牌数量统一通过 Array.from(ui.discardPile.childNodes).filter(card => get.name(card) === name).length；3.巨额上限扣减：觉醒技在执行 loseMaxHp(X) 时若导致 maxHp <= 0 会立即结算死亡，后续的 draw(X) 与 removeSkills 必须包裹 if (player.isAlive()) 防御性判断；4.进度提示：配置 intro.markcount 与 content 动态返回当前弃牌堆计数，提供极佳的觉醒进度感知。",
+      "keywords": [
+        "playerEnabled",
+        "不能指定其他角色",
+        "弃牌堆计数",
+        "ui.discardPile",
+        "觉醒技",
+        "loseMaxHp"
+      ],
+      "refs": [
+        "xy_juyi @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2236-2275"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2236,
+          "end": 2275,
+          "hash": "cb4a180236dd"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-22T13:59:54.516Z",
+      "updatedAt": "2026-10-22T13:59:54.516Z"
+    },
+    {
       "id": "kb-extension-esm-precontent",
       "kind": "pitfall",
       "title": "扩展迁移须保留模块依赖，connect:false 不跳过 precontent",
@@ -3488,6 +3545,227 @@
       "confidence": "verified",
       "createdAt": "2026-10-23T13:37:37.509Z",
       "updatedAt": "2026-10-23T13:37:37.509Z"
+    },
+    {
+      "id": "kb-dc50984c",
+      "kind": "pattern",
+      "title": "技能目标过滤：mod.targetEnabled 只管牌，技能目标需 onChooseTarget/Check.target",
+      "body": "★结论：牌的目标过滤是集中的，技能目标过滤不是。①牌：lib.filter.targetEnabled/targetEnabled2/targetEnabledx（library/index.js:11639-11750）会 game.checkMod(..., 'targetEnabled', 目标)，遍历目标方技能（含 lib.skill.global）的 mod.targetEnabled，返回 false 即该牌不能指定此目标；谦逊即 standard/skill.js:1916 这一行；延时锦囊走 lib.filter.judge（library/index.js:11981）同样受限；使用者侧用 mod.playerEnabled（mobile/skill.js:17200）。②⚠技能目标没有集中入口：chooseTarget 用技能自带的 filterTarget，未指定时默认 lib.filter.all（player.js:6755），引擎不会自动套 mod；UI/AI 只调 event.filterTarget（game/check.js:144）。只有技能自己把 lib.filter.targetEnabled/canUse 写进 filterTarget 才间接经过 mod。故张辽突袭（standard/skill.js:620）可无视谦逊。③★做法：全局钩子技能（注册进 lib.skill.global）+ onChooseTarget(event)（content.ts:7905）里包一层 event.filterTarget，排除 target.hasSkill(锁定技ID, null, null, false)；只覆盖 chooseTarget，不覆盖 chooseCardTarget/chooseButtonTarget（约200处）。④★要全覆盖：precontent 里 patch game.Check.target，先包一次 filterTarget 再调原函数；UI 与 AI 都经过这里（AI 依赖 game.check 设置的 selectable 类）。⑤⚠直接 player.useCard(card, targets) 或直接执行效果（target.draw 等）不经过任何过滤，只能事后用 useCardToTarget 取消/移除目标。",
+      "keywords": [
+        "目标过滤",
+        "不能成为目标",
+        "谦逊",
+        "targetEnabled",
+        "onChooseTarget",
+        "chooseTarget",
+        "filterTarget",
+        "技能目标"
+      ],
+      "refs": [
+        "qianxun @ apps/core/character/standard/skill.js:1916-1925",
+        "tuxi @ apps/core/character/standard/skill.js:607-648"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/standard/skill.js",
+          "start": 1916,
+          "end": 1925,
+          "hash": "abd0909e7dec"
+        },
+        {
+          "file": "apps/core/character/standard/skill.js",
+          "start": 607,
+          "end": 648,
+          "hash": "d5eba83e952e"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T14:12:48.491Z",
+      "updatedAt": "2026-10-23T14:12:48.491Z"
+    },
+    {
+      "id": "kb-6b61ba1d",
+      "kind": "fact",
+      "title": "目标过滤与技能发动检测（文档索引）",
+      "body": "★结论：① 牌的目标过滤是集中式的（mod.targetEnabled）；技能目标没有集中过滤（chooseTarget 默认 lib.filter.all），所以谦逊拦不住突袭；让角色不能被技能选需要 onChooseTarget + game.Check.target。② 技能发动分触发技（logSkillBegin/logSkill）、主动技（useSkillBegin/useSkill/useSkillAfter）、视为牌（logSkillBegin+useCard）；目标要从 event.targets / log_event.targets / 事件树 chooseTarget.result.targets 取。③ 发动时摸牌、结算后弃牌用两段触发 + 共享事件标记（log_event / useSkill）。★两个高频坑：event.getParent(name) 找不到返回 {}，必须 getParent(name,true)；ai.viewHandcard 必须配 skillTagFilter。完整源码链路、事件树收集目标、调试脚本、英雄杀RE 接入手册见文档。",
+      "keywords": [
+        "目标过滤",
+        "谦逊",
+        "突袭",
+        "onChooseTarget",
+        "game.Check.target",
+        "技能发动",
+        "logSkillBegin",
+        "useSkillAfter",
+        "两段触发",
+        "getParent",
+        "viewHandcard"
+      ],
+      "refs": [
+        "xy_xunling @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2435-2448",
+        "docs/YRD/19-target-filtering-and-skill-activation.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2435,
+          "end": 2448,
+          "hash": "82fb9d2ae76e"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T15:54:07.122Z",
+      "updatedAt": "2026-10-23T15:54:07.122Z"
+    },
+    {
+      "id": "kb-9ca53c25",
+      "kind": "recipe",
+      "title": "循灵式：发动时摸牌、结算后按技能目标弃牌（若梦式两段触发）",
+      "body": "★结论：要「发动时摸牌、结算后判断目标」，拆成两段，并用共享事件上的标记配对。① 摸牌段：trigger:{global:['logSkillBegin','useSkillBegin']}；logSkillBegin 覆盖触发技/视为牌技/视为打出（在 cost 后、content 前，等价若梦的 <id>Before），useSkillBegin 覆盖主动技（参考若梦，在弃牌/播报前）。content 里给共享父事件打标记：logSkillBegin 用 trigger.log_event，useSkillBegin 用 trigger(useSkill 事件)，然后 player.draw()。② 弃牌段：隐藏 group 子技能，trigger:{global:['logSkill','useSkillAfter']}，forced:true/silent/popup:false/charlotte；filter 只接受带 _xy_xunling 标记的根事件，content 删除标记后遍历 root.childEvents 收集 chooseTarget/chooseCardTarget/chooseButtonTarget 的 result.targets 与 useCard/useSkill 的 targets，再决定是否弃牌。★标记必须打在「两段共享的事件」上：logSkillBegin/logSkill 的 log_event 相同；useSkillBegin/useSkillAfter 的 useSkill 事件相同——嵌套发动也不会串。★filter 参数陷阱：logSkillBegin 的 event 是 logSkillBegin 事件；useSkillBegin/useSkillAfter 的 event 是 useSkill 事件，用 triggername 区分。★去重：logSkillBegin 在技能内部再次用牌时，若 log_event.name===skill 或 skill+'_cost'，或 log_event.getParent(skill,true) 命中，则跳过；⚠getParent 默认找不到返回 {}（truthy），必须传 forced=true。★非锁定技：放行 juexingji/dutySkill/limited，再判 info.locked/info.mod/info.forced；排除 _/player_when_、charlotte、sub、equipSkill。⚠popup:false/direct 的触发技没有 logSkillBegin，仍会漏；要全覆盖可照若梦用动态 trigger 监听 <id>Before。完整源码链路与调试脚本见文档。",
+      "keywords": [
+        "循灵",
+        "两段触发",
+        "logSkillBegin",
+        "useSkillBegin",
+        "logSkill",
+        "useSkillAfter",
+        "标记",
+        "childEvents",
+        "chooseTarget",
+        "若梦",
+        "getParent"
+      ],
+      "refs": [
+        "xy_xunling @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2435-2448",
+        "xy_xunling_after @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2450-2463",
+        "docs/YRD/19-target-filtering-and-skill-activation.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2435,
+          "end": 2448,
+          "hash": "82fb9d2ae76e"
+        },
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2450,
+          "end": 2463,
+          "hash": "2652aecc9040"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T15:54:29.207Z",
+      "updatedAt": "2026-10-23T15:54:29.207Z"
+    },
+    {
+      "id": "kb-1bd8000b",
+      "kind": "pitfall",
+      "title": "GameEvent.getParent 找不到时返回 {} 而非 undefined",
+      "body": "★结论：event.getParent(name) 默认 forced=false，找不到匹配祖先时返回空对象 {}（truthy），不是 undefined。★后果：if (event.getParent('xxx')) 恒真，会把所有事件误判为「在 xxx 内部」，典型表现是 filter 永远返回 false、技能永不触发。★做法：只关心「是否存在」时用 event.getParent(name, true)（第二参数 forced=true），找不到返回 undefined；需要拿对象时再判返回值是否为空对象/是否有 name。⚠同类 API：getParent(predicate, true) 也一样；不要用真值判断默认返回。详见 docs/YRD/19-target-filtering-and-skill-activation.md §5。",
+      "keywords": [
+        "getParent",
+        "undefined",
+        "空对象",
+        "truthy",
+        "filter",
+        "技能不触发"
+      ],
+      "refs": [
+        "xy_xunling @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2435-2448",
+        "docs/YRD/19-target-filtering-and-skill-activation.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2435,
+          "end": 2448,
+          "hash": "82fb9d2ae76e"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T15:54:58.663Z",
+      "updatedAt": "2026-10-23T15:54:58.663Z"
+    },
+    {
+      "id": "kb-14af0902",
+      "kind": "pitfall",
+      "title": "观牌 AI：viewHandcard 必须配 skillTagFilter，否则 hasSkillTag 刷警告",
+      "body": "★结论：hasSkillTag('viewHandcard', ..., 某玩家) 会对每个带 ai.viewHandcard===true 且没有 ai.skillTagFilter 的技能打印「疑似忘给…加 skillTagFilter了」，并把 arg（Player DOM）整个打到控制台，量大时严重拖慢游戏。★做法：把 viewHandcard 放到全局观牌子技能上，并写 skillTagFilter(player, tag, target){ return player.hasSkill('本源技能') || (target && target.hasSkill('本源技能')); }；本源技能本体不要重复声明 ai.viewHandcard。参考实现：xy_kuncheng / xy_kuncheng_view。详见 docs/YRD/19-target-filtering-and-skill-activation.md §5。",
+      "keywords": [
+        "viewHandcard",
+        "skillTagFilter",
+        "hasSkillTag",
+        "观牌",
+        "警告",
+        "控制台"
+      ],
+      "refs": [
+        "xy_kuncheng @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:214-388",
+        "docs/YRD/19-target-filtering-and-skill-activation.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 214,
+          "end": 388,
+          "hash": "836416256d11"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T15:54:58.802Z",
+      "updatedAt": "2026-10-23T15:54:58.802Z"
+    },
+    {
+      "id": "kb-8492e275",
+      "kind": "recipe",
+      "title": "目标免疫（攻击范围外不能选你）：牌用 mod.targetEnabled，技能用 onChooseTarget + game.Check.target",
+      "body": "★结论：『不能成为目标』要分两层实现。①牌：在目标方技能写 mod.targetEnabled(card,player,target){ if(player!==target&&!target.inRange(player)) return false; }，可拦所有牌（含 AOE、视为牌），并天然被 lib.filter.filterTarget/targetEnabled 调用；②技能 chooseTarget：主技能写 global:'xxx_global'，把全局子技能注册进 lib.skill.global，在其 onChooseTarget(event) 里包一层 event.filterTarget，排除 target.hasSkill(免疫技ID,null,null,false) 且 !target.inRange(player) 的目标；③chooseCardTarget / chooseButtonTarget 引擎没有对应钩子，需在持有者 init 中给 game.Check.target 包一层，只对 hasSkill 免疫技的角色生效。★判定方向：!target.inRange(player) 即 player 不在免疫者攻击范围内；inRange 会计算装备/攻击范围 mod。⚠直接 player.useCard(card,targets) 或直接执行效果（draw/gain）不经过目标选择，仍可绕过。⚠用 hasSkill(id,null,null,false) 避免被【封印】类效果绕过。完整链路与【罢争】案例见 docs/YRD/19-target-filtering-and-skill-activation.md §2。",
+      "keywords": [
+        "目标过滤",
+        "不能成为目标",
+        "攻击范围",
+        "inRange",
+        "onChooseTarget",
+        "game.Check.target",
+        "chooseCardTarget",
+        "targetEnabled"
+      ],
+      "refs": [
+        "xy_bazheng @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2400-2415",
+        "docs/YRD/19-target-filtering-and-skill-activation.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2400,
+          "end": 2415,
+          "hash": "c37fb4d3c0ed"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T15:55:03.833Z",
+      "updatedAt": "2026-10-23T15:55:03.833Z"
+    },
+    {
+      "id": "kb-2261b6fa",
+      "kind": "pattern",
+      "title": "『直至此回合结束』的临时效果与回合内计数（addTempSkill + global:phaseAfter）",
+      "body": "★做法：要实现『本回合内累计N次→获得某效果直至此回合结束』，用两层临时技能：①计数层 addTempSkill('标记技',{global:'phaseAfter'}) + addMark，标记技写 mark:true / marktext / intro:{content:'已发动#次'}（# 会被替换成标记数），并在 onremove(player,skill){delete player.storage[skill]} 里清计数——不清就会跨回合累计，是最容易漏的 bug；②效果层 addTempSkill('守护技',{global:'phaseAfter'})，守护技自己带 trigger（如 {player:'damageBegin4'} + trigger.cancel() 防伤害）。★两种到期写法别混：{global:'phaseAfter'} = 当前这个回合结束时（可能是别人的回合，适合『直至此回合结束』）；{player:'phaseBegin'} = 只在自己下回合开始时失效（适合『直到你下回合开始』）。传字符串（如 'phaseAfter'）会被当成 global 时机。★带 trigger 的子技能若靠 addTempSkill 动态挂载，就不必写进父技能 group（写进 group 反而是常驻生效）。★实例：xy_xiuji（英雄杀RE jinzhao.js，修己）：循灵每发动一次计数+1，计数≥当前体力值时挂 xy_xiuji_guard 免伤到回合结束。",
+      "keywords": [
+        "直至此回合结束",
+        "addTempSkill",
+        "phaseAfter",
+        "回合内计数",
+        "标记技",
+        "onremove",
+        "防伤害"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T16:01:38.947Z",
+      "updatedAt": "2026-10-23T16:01:38.947Z"
     }
   ]
 }

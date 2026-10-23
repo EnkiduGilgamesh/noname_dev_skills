@@ -226,7 +226,7 @@ function extractCharsObjectForm(text) {
  */
 function extractCharsCompactForm(text) {
     const chars = [];
-    const re = /^[ \t]{1,40}([A-Za-z_$][\w$]*)\s*:\s*\[\s*['"](male|female)['"]\s*,\s*['"]([^'"]*)['"]\s*,\s*(\d+)\s*,\s*\[([^\]]*)\]/gm;
+    const re = /^[ \t]{1,40}([A-Za-z_$][\w$]*)\s*:\s*\[\s*['"](male|female|none|double|unknown)['"]\s*,\s*['"]([^'"]*)['"]\s*,\s*(\d+)\s*,\s*\[([^\]]*)\]/gm;
     let m;
     while ((m = re.exec(text)) !== null) {
         const skills = m[5]
