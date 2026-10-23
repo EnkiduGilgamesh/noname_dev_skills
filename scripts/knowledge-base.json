@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-23T16:01:38.948Z",
+  "updatedAt": "2026-10-23T16:11:39.055Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -2806,14 +2806,15 @@
       "id": "kb-0403a7cb",
       "kind": "fact",
       "title": "通用 draw 事件只有 drawBegin（没有 drawBegin2），改 num 在这里生效",
-      "body": "★机制：摸牌分两种事件——①摸牌阶段是 phaseDraw（多步 content，有 phaseDrawBegin1/Begin2 等分步时机）；②其余『摸牌』是通用 draw 事件（content.ts:10825 的 async draw 是单步 content），其触发时机只有 drawBefore / drawBegin / drawEnd / drawAfter 四档，【不存在 drawBegin2】。★做法：要做『令其少摸/多摸一张』对任意摸牌生效，监听全局 drawBegin，在 content 里直接改 trigger.num（引擎在 Begin 之后才进 content 读 num，改动生效）；官方先例：collab/skill.js:6411 dcluankui 的子技能用 trigger:{player:'drawBegin'} + trigger.num*=2。★要判断『是不是在摸牌阶段』用 event.getParent('phaseDraw') 回溯，phase.player===event.player 即本人摸牌阶段（注意 getParent 找不到时返回的是真值空对象 {}，要用 phase.player 而不是 !!phase 判断）。★起手摸牌走 gameDraw 事件（get.cards + gain），不会产生 draw 事件。",
+      "body": "★机制：摸牌分两种事件——①摸牌阶段是 phaseDraw（多步 content，有 phaseDrawBegin1/Begin2 等分步时机）；②其余『摸牌』是通用 draw 事件（content.ts:10825 的 async draw 是单步 content），其触发时机只有 drawBefore / drawBegin / drawEnd / drawAfter 四档，【不存在 drawBegin2】。★做法：要做『令其少摸/多摸一张』对任意摸牌生效，监听全局 drawBegin，在 content 里直接改 trigger.num；官方先例：collab/skill.js:6411 dcluankui 的子技能用 trigger:{player:'drawBegin'} + trigger.num*=2。★要判断『是不是在摸牌阶段』用 event.getParent('phaseDraw') 回溯，phase.player===event.player 即本人摸牌阶段（注意 getParent 找不到时返回真值空对象 {}，要用 phase.player 而非 !!phase 判断）。★摸到几张：draw 的 content 只写 event.result={bool:true,cards}，【不写 event.cards】；所以在 drawAfter 里取张数用 event.result.cards.length（拿不到再降级 trigger.num），不要用 trigger.cards。★起手摸牌走 gameDraw 事件（get.cards + gain），不会产生 draw 事件。",
       "keywords": [
         "drawBegin",
+        "drawAfter",
         "draw事件",
         "摸牌",
         "phaseDraw",
         "trigger.num",
-        "少摸一张"
+        "result.cards"
       ],
       "refs": [
         "dcluankui @ apps/core/character/collab/skill.js:6350-6421"
@@ -2828,7 +2829,7 @@
       ],
       "confidence": "verified",
       "createdAt": "2026-10-20T12:44:31.883Z",
-      "updatedAt": "2026-10-20T12:44:31.883Z"
+      "updatedAt": "2026-10-23T16:11:39.054Z"
     },
     {
       "id": "kb-586f4dd8",
@@ -3766,6 +3767,37 @@
       "confidence": "verified",
       "createdAt": "2026-10-23T16:01:38.947Z",
       "updatedAt": "2026-10-23T16:01:38.947Z"
+    },
+    {
+      "id": "kb-49413823",
+      "kind": "recipe",
+      "title": "矜持式：只拦其他角色的非锁定技目标（普通牌放行）",
+      "body": "★结论：只拦「其他角色的非锁定技」、不拦普通牌时，不能写 mod.targetEnabled；要做「这次目标选择属于哪个技能」的识别。① chooseToUse：event.skill 就是已选中的技能（主动技/视为技）；② chooseTarget/chooseCardTarget/chooseButtonTarget：向上找 <skill>_cost 或技能事件。找到后若 info 是锁定技则放行，否则把 target.hasSkill(矜持ID) 且 target!==owner 的目标剔除。用 global 子技能 onChooseTarget 覆盖 chooseTarget；用 init 包 game.Check.target 覆盖 chooseCardTarget/chooseButtonTarget（以及 chooseToUse 的目标选择）。普通牌（event.skill 为空、父链无技能）不包装；视为技因 event.skill 非空而算技能目标。完整代码、测试矩阵见 docs/YRD/19-target-filtering-and-skill-activation.md §2.5。",
+      "keywords": [
+        "矜持",
+        "非锁定技",
+        "目标免疫",
+        "chooseToUse",
+        "event.skill",
+        "chooseCardTarget",
+        "onChooseTarget",
+        "game.Check.target"
+      ],
+      "refs": [
+        "xy_jinchi @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2590-2598",
+        "docs/YRD/19-target-filtering-and-skill-activation.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2590,
+          "end": 2598,
+          "hash": "38e8ac55c380"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T16:05:55.013Z",
+      "updatedAt": "2026-10-23T16:05:55.013Z"
     }
   ]
 }
