@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T14:30:22.305Z",
+  "updatedAt": "2026-10-24T14:49:19.165Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4104,6 +4104,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T14:30:22.304Z",
       "updatedAt": "2026-10-24T14:30:22.304Z"
+    },
+    {
+      "id": "kb-0371051d",
+      "kind": "pattern",
+      "title": "半透明圆角聊天面板去掉实色衬底并仅对纹理层降透明度",
+      "body": "带透明圆角的saydiv纹理下再铺实色圆角矩形会露出黑边，并使面板不透明。将纹理放入独立伪元素，以isolation限制负层级，只降低该背景层不透明度，正文与关闭按钮保持清晰；常用语和聊天记录共用字体简写，发送者继承字重。验证时用明暗两种下层背景比较截图像素：角落应完全透出场景，中央应有明显但部分变化，比只检查CSS透明度更可靠。实现与截图见链接文档。",
+      "keywords": [
+        "UI",
+        "聊天",
+        "圆角",
+        "黑边",
+        "半透明",
+        "字体",
+        "opacity",
+        "伪元素"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-tools.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T14:49:19.165Z",
+      "updatedAt": "2026-10-24T14:49:19.165Z"
     }
   ]
 }
