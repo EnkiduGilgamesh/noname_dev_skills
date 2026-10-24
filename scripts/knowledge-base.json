@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T01:51:11.392Z",
+  "updatedAt": "2026-10-24T02:01:47.628Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3519,7 +3519,7 @@
         "原生回退"
       ],
       "refs": [
-        "docs/online-ui-p1.md"
+        "packages/extension/新宇杀-UI/docs/online-ui-p1.md"
       ],
       "fingerprints": [],
       "confidence": "verified",
@@ -3540,7 +3540,7 @@
         "闭包包装"
       ],
       "refs": [
-        "docs/online-ui-p1.md"
+        "packages/extension/新宇杀-UI/docs/online-ui-p1.md"
       ],
       "fingerprints": [],
       "confidence": "verified",
@@ -3813,8 +3813,8 @@
         "展示数据"
       ],
       "refs": [
-        "docs/online-ui-p2.md",
-        "docs/online-ui-theme.md"
+        "packages/extension/新宇杀-UI/docs/online-ui-p2.md",
+        "packages/extension/新宇杀-UI/docs/online-ui-theme.md"
       ],
       "fingerprints": [],
       "confidence": "verified",
@@ -3835,7 +3835,7 @@
         "图集裁切"
       ],
       "refs": [
-        "docs/online-ui-p2-reference.md"
+        "packages/extension/新宇杀-UI/docs/online-ui-p2-reference.md"
       ],
       "fingerprints": [],
       "confidence": "verified",
@@ -3856,7 +3856,7 @@
         "WebGL"
       ],
       "refs": [
-        "docs/online-ui-lamps.md"
+        "packages/extension/新宇杀-UI/docs/online-ui-lamps.md"
       ],
       "fingerprints": [],
       "confidence": "verified",
@@ -3878,7 +3878,7 @@
         "层级"
       ],
       "refs": [
-        "docs/online-ui-p2-reference.md"
+        "packages/extension/新宇杀-UI/docs/online-ui-p2-reference.md"
       ],
       "fingerprints": [],
       "confidence": "verified",
@@ -3900,7 +3900,7 @@
         "纹理"
       ],
       "refs": [
-        "docs/online-ui-p2-reference.md"
+        "packages/extension/新宇杀-UI/docs/online-ui-p2-reference.md"
       ],
       "fingerprints": [],
       "confidence": "verified",
@@ -3922,12 +3922,34 @@
         "首帧锚点"
       ],
       "refs": [
-        "docs/online-ui-lobby-effects.md"
+        "packages/extension/新宇杀-UI/docs/online-ui-lobby-effects.md"
       ],
       "fingerprints": [],
       "confidence": "verified",
       "createdAt": "2026-10-24T01:51:11.392Z",
       "updatedAt": "2026-10-24T01:51:11.392Z"
+    },
+    {
+      "id": "kb-d75fcee5",
+      "kind": "fact",
+      "title": "UI扩展开发文档与引擎通用文档分开归档",
+      "body": "用户约定：新宇杀-UI 的开发计划、阶段记录、扩展API、布局、主题、动画、参考配置及验收附件统一维护在 packages/extension/新宇杀-UI/docs/；无名杀UI引擎通用API、DOM、事件、联机和生命周期机制保留根 docs/。仓库及扩展 AGENTS.md 固化规则，新增文档更新索引，迁移同步知识库与脚本输出路径；构建目录不能手工维护文档。",
+      "keywords": [
+        "文档",
+        "UI",
+        "归档",
+        "API",
+        "布局",
+        "动画",
+        "AGENTS"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/README.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T02:01:47.628Z",
+      "updatedAt": "2026-10-24T02:01:47.628Z"
     }
   ]
 }
