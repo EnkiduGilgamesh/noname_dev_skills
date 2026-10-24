@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T01:42:50.330Z",
+  "updatedAt": "2026-10-24T01:46:00.630Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3884,6 +3884,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T01:42:50.329Z",
       "updatedAt": "2026-10-24T01:42:50.329Z"
+    },
+    {
+      "id": "kb-68bf91ef",
+      "kind": "pattern",
+      "title": "大厅顶部绿金加号位于 VIP 与元宝底座纹理内",
+      "body": "大厅顶部的绿金倒角加号不是单独图标，已包含在经典主题 vipbg1/vipbg2（160×38）中，后者还含元宝。以整块原始纹理作底，数字和 VIP 等级独立覆盖，透明原生按钮覆盖加号位置可保留键盘焦点和可访问名称。资料展开 lvlup 原图为76×35，按原始宽高比缩放以保留边缘厚度。",
+      "keywords": [
+        "大厅",
+        "VIP",
+        "元宝",
+        "加号",
+        "绿金",
+        "边框",
+        "纹理"
+      ],
+      "refs": [
+        "docs/online-ui-p2-reference.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T01:46:00.630Z",
+      "updatedAt": "2026-10-24T01:46:00.630Z"
     }
   ]
 }
