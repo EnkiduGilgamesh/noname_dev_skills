@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T02:28:34.657Z",
+  "updatedAt": "2026-10-24T13:26:41.593Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3993,6 +3993,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T02:28:34.656Z",
       "updatedAt": "2026-10-24T02:28:34.656Z"
+    },
+    {
+      "id": "kb-8e276a2c",
+      "kind": "pattern",
+      "title": "复合角饰保留原生手牌底条与图标的连续像素",
+      "body": "新宇杀UI右下角shoupai1将底纹、手牌图标和金色底条合在同一图内。裁掉原手牌区域再以独立图标底条替换会出现矩形断口；保留完整原图并按内部可见区域定位，仅叠数字，可保证缩放时连续。技能按钮应按透明画布中的可见区域裁切，并对标签做视觉居中。参考btn2.png实际为RIFF/WebP，导入应检查文件头并保留正确格式。详细坐标与浏览器断言见链接文档。",
+      "keywords": [
+        "UI",
+        "角饰",
+        "手牌",
+        "底纹",
+        "技能按钮",
+        "WebP",
+        "拼接"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-corners.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T13:26:41.593Z",
+      "updatedAt": "2026-10-24T13:26:41.593Z"
     }
   ]
 }
