@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T01:19:02.103Z",
+  "updatedAt": "2026-10-24T01:34:19.800Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3841,6 +3841,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T01:19:02.103Z",
       "updatedAt": "2026-10-24T01:19:02.103Z"
+    },
+    {
+      "id": "kb-ui-lamp-sprites",
+      "kind": "pattern",
+      "title": "将灯图集使用 CSS 阶梯帧动画与可见性暂停",
+      "body": "如真似幻将灯由 light.json/light.png 提供，24 灯中 16 动态、8 静态，共535帧。恢复 TexturePacker 旋转与130×130透明留白后横向拼接，用 CSS steps(n) 播放背景位置，避免逐帧JS与新WebGL上下文。页面隐藏、离开视口和弹窗暂停，切场景清理监听，低动态偏好固定首帧。验证实际像素变化、暂停位置稳定及卸载后动画归零；重导入素材应保留已生成的派生固定帧清单。",
+      "keywords": [
+        "将灯",
+        "图集",
+        "steps帧动画",
+        "透明留白",
+        "可见性暂停",
+        "WebGL"
+      ],
+      "refs": [
+        "docs/online-ui-lamps.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T01:34:19.800Z",
+      "updatedAt": "2026-10-24T01:34:19.800Z"
     }
   ]
 }

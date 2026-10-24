@@ -298,6 +298,8 @@ pnpm -F @noname/fs dev --debug --dirname=../../apps/core    # 文件服务 8089
 
 **独立 UI 预览先控制渲染负载。** `ResizeObserver` 只收集尺寸，按帧去重发布，卸载取消待处理帧；Vite 库模式显式替换 `process.env.NODE_ENV` 并在真实浏览器验证。装饰骨骼可离线生成固定帧，运行页不创建 WebGL；素材必须看纹理核对，图集名不等于显示内容，负裁切偏移应保留全部像素。验证要覆盖无运行时骨骼请求、连续切场景、浏览器返回、弹窗焦点及滚动区最后一张牌。项目实证见 `docs/online-ui-p2-reference.md`；这类项目隐患不能直接等同于操作系统黑屏根因。
 
+**小型图集流光可使用 CSS 阶梯帧动画。** 先恢复每帧旋转、裁切及相同透明留白，再横向拼接，以 `steps(帧数)` 播放背景位置；不能按可见像素边界裁紧各帧，否则光圈跳动。页面隐藏、离开视口或展示弹窗时暂停，切场景清理可见性监听；尊重低动态偏好，不用逐帧 JS 定时器。验证实际像素变化与暂停后位置稳定，参考 `docs/online-ui-lamps.md`。
+
 ```
 apps/core/extension/我的扩展/
 ├── extension.js          ★ 必需：必须 export type 与 default

@@ -31,6 +31,8 @@
 
 独立 UI 预览的尺寸调度、静态装饰与运行时 WebGL 隔离，以及图集帧名／负裁切偏移的实证，检索 `预览稳定性`、`ResizeObserver`、`固定帧`；对应项目记录为 `docs/online-ui-p2-reference.md`。
 
+小型将灯流光的 CSS 阶梯帧动画、透明留白与隐藏暂停，检索 `将灯`、`steps帧动画`，见项目 `docs/online-ui-lamps.md`。
+
 ---
 
 ## 安装
