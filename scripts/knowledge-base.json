@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T18:57:24.833Z",
+  "updatedAt": "2026-10-24T18:58:28.877Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3800,6 +3800,66 @@
       "updatedAt": "2026-10-23T16:05:55.013Z"
     },
     {
+      "id": "kb-afa9a945",
+      "kind": "pitfall",
+      "title": "老式 step content：event 是技能事件，trigger 才是触发源（getl 在 trigger 上）",
+      "body": "★结论：老式 step content（function(){ 'step 0' ... }）里，第一个参数 event 是「技能事件」（name=技能ID），第二个参数 trigger 才是「触发源事件」（如 gain/equip/lose/loseAsync）。★因此 event.card / event.getl(...) / trigger.cards 这类触发源字段必须写 trigger.xxx；技能事件没有 getl，写 event.getl 会抛 event.getl is not a function，错误上下文会显示 event.name: 技能ID、event.parent.name: trigger。★做法：var l = typeof trigger.getl === 'function' ? trigger.getl(player) : null; event.numx = l?.cards2?.length ?? 0; 若为 0 直接 event.finish()。filter(event,player) 的 event 本来就是触发源，可以用 event.getl，但也建议加 typeof 守卫。参考：xy_danmei。详见 docs/YRD/19-target-filtering-and-skill-activation.md §5 第 12 条。",
+      "keywords": [
+        "StepCompiler",
+        "event.getl",
+        "trigger.getl",
+        "老式content",
+        "step",
+        "技能事件",
+        "触发源",
+        "xy_danmei"
+      ],
+      "refs": [
+        "xy_danmei @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:1066-1102",
+        "docs/YRD/19-target-filtering-and-skill-activation.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 1066,
+          "end": 1102,
+          "hash": "a714d06daf8b"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T16:34:21.558Z",
+      "updatedAt": "2026-10-23T16:34:21.558Z"
+    },
+    {
+      "id": "kb-964bad67",
+      "kind": "pattern",
+      "title": "中止延时锦囊判定并搬走：cancelled+excluded，勿用 direct",
+      "body": "把一张正在判定的延时锦囊搬去另一名角色判定区，或『中止此判定』，必须用 phaseJudge（逐张判定的触发点）：引擎第2步已先 player.lose(card, ui.ordering) 把牌移出判定区，之后才 event.trigger('phaseJudge')，trigger.card 仍可用但 player.getCards('j') 已看不到它。★正确写法是 content 里同时置 trigger.cancelled = true（跳过判定）与 trigger.excluded = true（第4步最先判 excluded，跳过 cancel 内容与 effect 结算）。★绝不能只置 trigger.direct：引擎结构是 if(excluded){...} else if(cancelled && !direct){跑牌的cancel} else {跑牌的effect}，direct 为真会掉进 else 去结算 effect，而事件结果是 undefined，lebu.effect 里 result.bool 直接抛 TypeError（1.11.7 实测崩溃）。官方中止判定的同款用法见 tw/skill.js 2177、shiji/skill.js 3622（只 evt.excluded = true）。搬运本身用 target.addJudge(trigger.card)：处理区('o')的牌允许入判定区，判定阶段收尾的 orderingDiscard 只弃仍在处理区的牌；addJudge 触发 addJudgeBefore，定汉类可正常拦截。_wuxie priority=5 先结算且 filter 在 arrangeTrigger 先于 content 求值，cost 里要再查 trigger.cancelled。",
+      "keywords": [
+        "phaseJudge",
+        "延时锦囊",
+        "中止判定",
+        "excluded",
+        "迁祸",
+        "trigger.cancelled",
+        "trigger.direct"
+      ],
+      "refs": [
+        "xy_qianhuo @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2522-2608"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2522,
+          "end": 2608,
+          "hash": "fdace661c17d"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-23T16:47:41.957Z",
+      "updatedAt": "2026-10-23T16:47:41.957Z"
+    },
+    {
       "id": "kb-ui-p2-regions",
       "kind": "pattern",
       "title": "联机 UI 原型独立入口与手机战局区域验收",
@@ -4039,6 +4099,33 @@
       "updatedAt": "2026-10-24T13:54:58.283Z"
     },
     {
+      "id": "kb-cf0cdee6",
+      "kind": "pattern",
+      "title": "手牌卡牌名称改写与成为指定目标取消转决斗范式",
+      "body": "①手牌特定牌名转化：使用mod.cardname(card, player)，通过card.name === 'shan' && get.position(card, true) === 'h'返回'sha'，引擎会自动在手牌UI中渲染临时牌名，并完美支持chooseToUse、chooseToRespond、countCards('hs', 'sha')与AI识别；②成为【杀】目标后取消转为【决斗】：在trigger: { target: 'useCardToTargeted' }中过滤event.card.name === 'sha' && event.player !== player，使用trigger.targets.remove(player)、parent.targets.remove(player)、parent.excluded.add(player)与trigger.untrigger()取消原目标，随后调用await trigger.player.useCard({ name: 'juedou', isCard: true }, player)让来源对自身发起虚拟决斗。",
+      "keywords": [
+        "手牌转化",
+        "mod.cardname",
+        "取消目标",
+        "useCardToTargeted",
+        "决斗"
+      ],
+      "refs": [
+        "xy_nuozhan @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2769-2811"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2769,
+          "end": 2811,
+          "hash": "a2cc34e3531a"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T14:02:08.947Z",
+      "updatedAt": "2026-10-24T14:02:08.947Z"
+    },
+    {
       "id": "kb-e5478707",
       "kind": "pattern",
       "title": "圆框菜单按底图圆心及可见像素中心定位",
@@ -4081,6 +4168,33 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T14:17:02.279Z",
       "updatedAt": "2026-10-24T14:17:02.279Z"
+    },
+    {
+      "id": "kb-31e89db2",
+      "kind": "pattern",
+      "title": "群体锦囊结算后伤害人数检测与chooseDrawRecover集成",
+      "body": "判定群体锦囊（info.multitarget || info.selectTarget === -1 || get.tag(card, 'multitarget')）结算完毕时使用 trigger: { player: 'useCardAfter' }。通过 player.getHistory('sourceDamage', evt => (evt.getParent('useCard') === event || evt.card === event.card)) 结合 Set 统计对其他角色的受害人数。满足条件时使用 direct: true 与 await player.chooseDrawRecover({ num1: 2, num2: 1, prompt: '...', logSkill: skill }) 即可免除双层确认，直接弹出回复/摸牌/取消选项并自动完成技能宣告与AI调度。",
+      "keywords": [
+        "群体锦囊",
+        "multitarget",
+        "useCardAfter",
+        "sourceDamage",
+        "chooseDrawRecover"
+      ],
+      "refs": [
+        "xy_jugao @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2878-2908"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2878,
+          "end": 2908,
+          "hash": "893cb736cf1d"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T14:29:00.569Z",
+      "updatedAt": "2026-10-24T14:29:00.569Z"
     },
     {
       "id": "kb-79319387",
@@ -4150,6 +4264,508 @@
       "updatedAt": "2026-10-24T14:52:46.107Z"
     },
     {
+      "id": "kb-11886c83",
+      "kind": "pattern",
+      "title": "摸牌阶段增量与回合内使用牌目标分流结算范式",
+      "body": "①摸牌阶段增量：在global: 'phaseDrawBegin2'时机通过!event.numFixed && event.player !== player过滤，执行trigger.num += 2；②回合内使用牌目标分流：给目标角色添加临时技能target.addTempSkill('sub_effect', { player: 'phaseAfter' })，监听player: 'useCard'；判断trigger.targets?.includes(ruola)，若包含则施加者摸牌，若不包含且使用牌者有牌则强制弃牌（chooseToDiscard('he', 1, true)）；③弃牌阶段开始时手牌超额弃牌：监听global: 'phaseDiscardBegin'，通过target.countCards('h') > target.hp && target.countDiscardableCards(player, 'h') > 0判定，并调用player.discardPlayerCard(target, 'h', true)。",
+      "keywords": [
+        "摸牌阶段",
+        "目标分流",
+        "useCard",
+        "phaseDiscardBegin",
+        "discardPlayerCard"
+      ],
+      "refs": [
+        "xy_gualian @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2982-3041"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 2982,
+          "end": 3041,
+          "hash": "01d79585527f"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T14:54:50.130Z",
+      "updatedAt": "2026-10-24T14:54:50.130Z"
+    },
+    {
+      "id": "kb-0a538db2",
+      "kind": "pattern",
+      "title": "此阶段使用的上一张基本/通常锦囊转化技范式",
+      "body": "①界定此阶段：通过 player.getHistory('useCard') 逆序遍历，结合 evt.getParent('phaseUse') === currentPhaseUse 确保卡牌严格属于当前出牌阶段；通过 get.type(card) === 'basic' || get.type(card) === 'trick' 筛选基本牌与通常锦囊（排除延时锦囊 'delay'）。②合理使用校验：在技能 filter 中构造带 storage 标记的虚拟牌，调用 event.filterCard(vcard, player, event)，利用引擎底层 cardEnabled 与目标检测自动拦截不合法的转化（如满血吃桃、无目标锦囊）。③出牌次数免检：通过 mod.cardUsable 在 card?.storage 命中时返回 Infinity，并在 precontent 中设置 event.getParent().addCount = false，使转化的杀不受本阶段普通杀的使用次数限制。",
+      "keywords": [
+        "上一张牌",
+        "此阶段",
+        "viewAs",
+        "phaseUse",
+        "转化技",
+        "合理使用"
+      ],
+      "refs": [
+        "xy_fuwang @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:3072-3144"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 3072,
+          "end": 3144,
+          "hash": "a612a88d5a5e"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T15:16:58.304Z",
+      "updatedAt": "2026-10-24T15:16:58.304Z"
+    },
+    {
+      "id": "kb-3d732222",
+      "kind": "pattern",
+      "title": "全局上一张被使用或打出卡牌连续比对范式与respond历史陷阱",
+      "body": "⚠核心机制与陷阱：引擎底层 content.js 中只有 useCard 会 push 到全局 game.getGlobalHistory().useCard，而 respond（打出）仅写入角色的 actionHistory[...].respond，未进入全局历史，因此不能直接通过 getAllGlobalHistory 查全打出的牌。★正确范式：①在技能上声明 global: 'xxx_tracker' 挂载 charlotte 子技能（trigger: { global: ['useCard1', 'respond'] }, priority: 1000, silent: true），在全局卡牌生效时幂等推入统一时间序数组 _status.xy_history；②在主技能 trigger: { global: ['useCard', 'respond'] } 的 filter 中，调用 recordCard(trigger) 兜底并查取当前事件所在 index；③当 index > 0 时通过 history[index - 1] 获取上一张牌，比对牌名是否一致。该机制纯幂等、无多角色竞争脏写，且天然兼容嵌套结算与转化牌。",
+      "keywords": [
+        "上一张牌",
+        "使用或打出",
+        "respond",
+        "useCard",
+        "全局历史",
+        "牌名相同",
+        "锁定技"
+      ],
+      "refs": [
+        "xy_tanyi @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:3149-3209"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 3149,
+          "end": 3209,
+          "hash": "1ed389b86a27"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T15:17:05.191Z",
+      "updatedAt": "2026-10-24T15:17:05.191Z"
+    },
+    {
+      "id": "kb-06eb662f",
+      "kind": "pattern",
+      "title": "受伤害后目标选择与二选一增益交互范式",
+      "body": "①时机与时序：受到伤害后增益他人选择 trigger: { player: 'damageEnd' }，在伤害结算完毕与濒死救回后稳妥触发。②目标选择与AI权重：在 cost 阶段通过 player.chooseTarget 选择 target !== player；AI 评估中若 target.isDamaged() 则赋予更高权值（att * 3 + 已损失体力），满血友方赋予次高权值（att * 1.5），无友方时返回 0 拒绝发动。③二选一按钮避坑：调用 player.chooseControl('回复1点体力', '增加1点体力上限') 时直接传入中文选项，避免传入未翻译的英文 key 导致底部按钮裸露英文；AI 优先在 target.isDamaged() 时选择回血，否则选择加体力上限。④卖血技标签：在技能 ai 中配置 maixie: true 与 effect.target 判定，确保 AI 评估攻击方梓名的收益与代价。",
+      "keywords": [
+        "damageEnd",
+        "chooseTarget",
+        "chooseControl",
+        "recover",
+        "gainMaxHp",
+        "卖血技",
+        "二选一"
+      ],
+      "refs": [
+        "xy_yizuo @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:3215-3273"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 3215,
+          "end": 3273,
+          "hash": "750fc5b45d10"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T15:27:23.026Z",
+      "updatedAt": "2026-10-24T15:27:23.026Z"
+    },
+    {
+      "id": "kb-75d62d9b",
+      "kind": "pattern",
+      "title": "角色全域卡牌花色与点数改写的mod范式",
+      "body": "①花色改写机制：引擎底层 get.suit 在 player !== false 且有 owner 时，会执行 game.checkMod(card, card.suit, 'suit', owner)。在技能 mod 中声明 suit(card, suit) { return 'heart'; } 即可将该角色所有区域卡牌花色统一重写为红桃，get.color 会随之自动解析为 red。②点数改写机制：引擎底层 get.number 执行 game.checkMod(card, owner, number, 'cardnumber', owner)。在技能 mod 中声明 cardnumber(card, player, num) { return 13; } 即可将该角色所有卡牌点数固定为 13（即 K）。③全链路生效：该方式不仅在手牌/装备区 UI 渲染中直接展现为红桃 K，更在拼点（必胜优势）、花色判定、技能消耗等所有底层判定中无缝继承。",
+      "keywords": [
+        "mod.suit",
+        "mod.cardnumber",
+        "红桃",
+        "点数K",
+        "卡牌花色改写",
+        "拼点"
+      ],
+      "refs": [
+        "xy_yanhong @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:3279-3291"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 3279,
+          "end": 3291,
+          "hash": "b5654f61e994"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T15:37:30.848Z",
+      "updatedAt": "2026-10-24T15:37:30.848Z"
+    },
+    {
+      "id": "kb-83cadf48",
+      "kind": "pattern",
+      "title": "全场角色依次判定与花色比对二选一交互范式",
+      "body": "①全场按序遍历：弃置一张手牌后令全场其他角色依次判定，应使用 game.filterPlayer(current => current !== player).sortBySeat(_status.currentPhase || player)，从当前行动角色的下家起顺时针遍历。②串行异步判定：通过 await target.judge().forResult() 等待每名角色的判定与改判阶段结束，再比对 judgeResult.suit 与技能弃牌的 get.suit(card, player) 是否一致。③可用性防御与选项降级：当目标花色命中时，须通过 target.countGainableCards(player, 'he') 检查是否有牌可给；若无牌可被获得则自动降级执行令黄绍波摸牌，避免弹出非法获得牌选项导致结算卡死。④AI决策：队友优先选'令其摸两张牌'实现收益最大化，敌方优先选'被其获得一张牌'减少净差损失。",
+      "keywords": [
+        "judge",
+        "forResult",
+        "sortBySeat",
+        "chooseControl",
+        "gainPlayerCard",
+        "全场判定",
+        "澄吾"
+      ],
+      "refs": [
+        "xy_chengwu @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:3380-3449"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 3380,
+          "end": 3449,
+          "hash": "727f15569e80"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T15:51:53.587Z",
+      "updatedAt": "2026-10-24T15:51:53.587Z"
+    },
+    {
+      "id": "kb-71de2749",
+      "kind": "pattern",
+      "title": "通常锦囊目标增减与弃置判定牌拾取范式",
+      "body": "1. 目标增减：在 trigger: { player: 'useCard2' } 下，针对普通锦囊（get.type(card, null, false) === 'trick' 且非 multitarget），通过 lib.filter.targetEnabled2 检索场上未选合法目标增加至 trigger.targets；当 trigger.targets.length > 1 时从 targets 中移除指定目标实现减少。2. 弃置与判定牌拾取：拆分为两个子触发器：①弃置触发 global: ['loseAfter', 'loseAsyncAfter']，过滤 event.type === 'discard'，排除自身失去与判定区牌（card.original !== 'j'），检查 get.position(card, true) === 'd'；②判定触发 global: 'cardsDiscardAfter'，校验 event.getParent().relatedEvent.name === 'judge' 且 evt.player !== player。结合 chooseButton 弹窗实现精细化选择并由 player.gain 获得。",
+      "keywords": [
+        "目标增减",
+        "useCard2",
+        "通常锦囊",
+        "弃置获得",
+        "判定获得",
+        "loseAfter",
+        "cardsDiscardAfter"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T16:14:30.735Z",
+      "updatedAt": "2026-10-24T16:14:30.735Z"
+    },
+    {
+      "id": "kb-62072842",
+      "kind": "pattern",
+      "title": "虚拟判定区延时锦囊维持与无泄漏结算范式",
+      "body": "★做法：实现“视为判定区内有【闪电】/延时锦囊”的标准范式：\n1. 虚拟判定区维持：在 init(player) 钩子中向 player.vcardsMap.judges 压入 { name: \"shandian\", isCard: true }，使底层 player.hasJudge(\"shandian\") 恒为 true，防止外部技能与规则重复置入同名锦囊；在 onremove(player) 中安全剔除。\n2. 拦截重复置入：通过 trigger: { player: \"addJudgeBefore\" } 校验若待置入牌为该延时锦囊时执行 trigger.cancel() 彻底杜绝外置。\n3. 判定阶段自动结算与无泄漏：在 trigger: { player: \"phaseJudgeBegin\" } 触发时执行 await player.executeDelayCardEffect(\"shandian\")。该 API 内部生成 expired = true 的虚拟牌，判定不中时 addJudgeNext 自动终止向后传递并自然回收，不会造成卡牌泄漏或残留。",
+      "keywords": [
+        "虚拟判定区",
+        "延时锦囊",
+        "闪电",
+        "executeDelayCardEffect",
+        "vcardsMap",
+        "addJudgeBefore",
+        "避雷"
+      ],
+      "refs": [
+        "xy_bilei @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:3938-4046"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 3938,
+          "end": 4046,
+          "hash": "bec0bbed996c"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T16:39:33.929Z",
+      "updatedAt": "2026-10-24T16:39:33.929Z"
+    },
+    {
+      "id": "kb-f74c3274",
+      "kind": "pattern",
+      "title": "全域花色改写与判定结果即时闭环修正范式",
+      "body": "★做法：实现“特定点数/条件的卡牌花色均视为红桃”的全域闭环修正：\n1. 基础牌与使用打出牌：在 mod.suit(card, suit) 与 mod.cardsuit(card, player, suit) 中拦截，当卡牌点数匹配已记录点数（player.hasStorage(skill, get.number(card))）时返回 'heart'，get.color(card, player) 自动由其派生计算变为 'red'。\n2. 判定牌全域修正：判定牌由无主牌堆顶直接亮出，get.owner(card) 无法识别所属角色。引擎在生成 event.result 后执行 game.checkMod(player, event.result, \"judge\", player)。因此必须在 mod.judge(player, result) 中对匹配点数的判定牌直接改写 result.suit = 'heart' 与 result.color = 'red'，并重新调用 _status.event.judge(result) 重算正负 bool 判定值（如使黑桃2-9闪电判定失效），完成判定结果的闭环修正。",
+      "keywords": [
+        "mod.suit",
+        "mod.cardsuit",
+        "mod.judge",
+        "卡牌花色改写",
+        "判定牌花色",
+        "闪电免疫",
+        "避雷"
+      ],
+      "refs": [
+        "xy_bilei @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:3938-4046"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 3938,
+          "end": 4046,
+          "hash": "bec0bbed996c"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T16:39:42.306Z",
+      "updatedAt": "2026-10-24T16:39:42.306Z"
+    },
+    {
+      "id": "kb-74b74912",
+      "kind": "pattern",
+      "title": "弃牌与受伤害二选一额度动态分摊范式（共计X-Y）",
+      "body": "★做法：实现“其他角色需弃置牌和受到无来源伤害共计X-Y”的分配结算范式：\n1. 额度计算：在 damageEnd 触发时，按座次遍历其他角色，计算 X（trigger.num）与 Y（get.distance(current, player)），当总额度 total = X - Y > 0 时进入结算。\n2. 额度选择：若目标有可弃牌（maxDiscard = Math.min(total, current.countDiscardableCards(current, \"he\")) > 0），调用 current.chooseToDiscard(\"he\", [1, maxDiscard], prompt)。玩家选牌则扣除对应张数；点击取消则视为弃置0张（保留全手牌）。\n3. 差额结算：计算剩余伤害 remaining = total - discarded。若 remaining > 0 且角色依然在场，调用 await current.damage(remaining, \"thunder\", \"nosource\")。无牌可弃时直接执行全额无来源伤害。\n4. AI 策略：在 set(\"ai\", card => ...) 中权衡当前体力与剩余伤害值，若承受伤害面临濒死则高优先级弃牌保命，健康状态下若卡牌价值高于伤害价值则选择保留关键牌。",
+      "keywords": [
+        "弃牌与伤害分摊",
+        "共计X-Y",
+        "damageEnd",
+        "chooseToDiscard",
+        "无来源雷电伤害",
+        "导电"
+      ],
+      "refs": [
+        "xy_daodian @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4052-4108"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 4052,
+          "end": 4108,
+          "hash": "55e7af40b45b"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T16:39:47.884Z",
+      "updatedAt": "2026-10-24T16:39:47.884Z"
+    },
+    {
+      "id": "kb-4464ec0a",
+      "kind": "pattern",
+      "title": "雷电伤害转移与防死循环范式（damageBegin4与cancel）",
+      "body": "★做法：实现『受到雷电伤害时转移给另一角色』的标准范式：1.时机选damageBegin4（伤害属性已定，未进入扣血结算）；2.filter拦截必须检查!event.xy_huanlei防止转移后的雷伤再次触发死循环；3.选定目标后调用trigger.cancel()取消原伤害，创建新伤害nextDmg=target.damage({source:trigger.source,nosource:!trigger.source,nature:trigger.nature,num:trigger.num,card:trigger.card,cards:trigger.cards})并标记nextDmg.xy_huanlei=true后await完成传递。",
+      "keywords": [
+        "伤害转移",
+        "damageBegin4",
+        "cancel",
+        "唤雷",
+        "防死循环",
+        "雷电伤害"
+      ],
+      "refs": [
+        "xy_huanlei @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4146-4209"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 4146,
+          "end": 4209,
+          "hash": "27b4c9585d65"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T17:24:40.415Z",
+      "updatedAt": "2026-10-24T17:24:40.415Z"
+    },
+    {
+      "id": "kb-fad3731c",
+      "kind": "pattern",
+      "title": "造成伤害时属性转化范式（damageBegin1与setNature）",
+      "body": "★做法：实现『当你造成伤害时转化伤害属性（如雷电/火焰伤害）』的标准范式：1.时机选source: 'damageBegin1'（伤害属性确立与改写阶段）；2.filter过滤(!event.nature || event.nature !== 'thunder')并检查弃牌成本；3.使用async cost弹出chooseToDiscard进行弃牌询问与AI损益评估（如目标处于铁索连环时高优先级转化）；4.content中调用game.setNature(trigger, 'thunder')规范改写伤害属性，后续铁索传导、唤雷、雷厉等机制均能准确捕获。",
+      "keywords": [
+        "伤害转化",
+        "damageBegin1",
+        "setNature",
+        "雷令",
+        "雷电伤害",
+        "属性伤害"
+      ],
+      "refs": [
+        "xy_leiling @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4308-4332"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 4308,
+          "end": 4332,
+          "hash": "1a7c1f42aacf"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T17:24:46.960Z",
+      "updatedAt": "2026-10-24T17:24:46.960Z"
+    },
+    {
+      "id": "kb-81ea0bdd",
+      "kind": "recipe",
+      "title": "成为锦囊牌目标取消并反噬受到伤害范式",
+      "body": "★做法：实现『当你成为锦囊牌的目标时，你可以取消之，若如此做，你受到使用者造成的1点伤害』的标准范式：1. 触发时机：trigger: { target: 'useCardToTargeted' }，通过 Boolean(event.card && get.type2(event.card) === 'trick') 判定锦囊；2. 目标取消闭环：在 content 中同时执行 trigger.targets.remove(player)、parent.targets.remove(player)、parent.triggeredTargets4.remove(player)、parent.excluded.add(player) 并 trigger.untrigger()，确保底层遍历、后续事件与生效链均彻底剥离该目标；3. 伤害反噬：使用者存在时 player.damage(1, trigger.player)，离场时无来源伤害；4. AI 权衡：通过 get.effect 与 get.damageEffect 比较，当锦囊期望危害劣于承受1点伤害且不致命时果断发动。",
+      "keywords": [
+        "反计",
+        "取消目标",
+        "useCardToTargeted",
+        "excluded",
+        "锦囊",
+        "反噬"
+      ],
+      "refs": [
+        "xy_fanji @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4428-4488"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 4428,
+          "end": 4488,
+          "hash": "1ac7dca76286"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T17:41:33.733Z",
+      "updatedAt": "2026-10-24T17:41:33.733Z"
+    },
+    {
+      "id": "kb-d5d0de0d",
+      "kind": "pattern",
+      "title": "死亡触发永久锁定卡牌使用权限范式",
+      "body": "★做法：实现『锁定技，杀死你的角色不能使用锦囊牌直到游戏结束』的标准范式：1. 死亡时机与防护：死亡触发技必须声明 forced: true 与 forceDie: true，防止在死亡流程中被技能清理机制拦截；通过 event.source && event.source.isIn() 确认凶手存活；2. 永久状态附加：通过 killer.addSkill('xy_gangzhi_lock') 挂载衍生技能，衍生技声明 charlotte: true 确保永久生效且不随回合结束消失，配合 mark: true 与 intro 展示状态；3. 禁用过滤：在衍生技能 mod 中声明 cardEnabled(card) 与 cardUsable(card)，当 get.type(card, 'trick') === 'trick' 时返回 false；4. AI 威慑：在本体技能配置 maixie_defend: true 以及 effect.target 惩罚，让敌方 AI 斩杀时考虑丧失锦囊使用的代价。",
+      "keywords": [
+        "刚直",
+        "死亡技",
+        "forceDie",
+        "锁定技",
+        "不能使用锦囊牌",
+        "cardEnabled",
+        "charlotte"
+      ],
+      "refs": [
+        "xy_gangzhi @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4494-4524"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 4494,
+          "end": 4524,
+          "hash": "06ddd3ccea0e"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T17:41:40.996Z",
+      "updatedAt": "2026-10-24T17:41:40.996Z"
+    },
+    {
+      "id": "kb-edad7478",
+      "kind": "recipe",
+      "title": "受伤害后观看手牌并转移卡牌范式",
+      "body": "★做法：实现『当你受到伤害后，你可以观看伤害来源的手牌，然后将其中的一张牌交给一名角色』的标准范式：1. 触发时机：trigger: { player: 'damageEnd' }，filter 中校验 Boolean(event.source && event.source.isIn() && event.source.countCards('h') > 0)；2. 观看与选牌：调用 player.choosePlayerCard(source, 'h', 'visible', true)，visible: true 保证手牌明置于弹窗供审阅与选牌；3. 目标指定与转移：通过 player.chooseTarget 指定任意角色后调用 source.give(card, target)，平滑衔接获得流程与发牌动画。",
+      "keywords": [
+        "苦衷",
+        "伤害后",
+        "choosePlayerCard",
+        "visible",
+        "give",
+        "观看手牌"
+      ],
+      "refs": [
+        "xy_kuzhong @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4339-4422"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 4339,
+          "end": 4422,
+          "hash": "427a9a89cd0a"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T17:41:47.610Z",
+      "updatedAt": "2026-10-24T17:41:47.610Z"
+    },
+    {
+      "id": "kb-61ee1d8c",
+      "kind": "recipe",
+      "title": "成为通常锦囊目标弃牌转移使用者范式",
+      "body": "★做法：实现『当你成为通常锦囊牌的目标时，你可以弃置一张牌并将目标转移给该牌使用者』的标准范式：1. 触发时机：trigger: { target: 'useCardToTarget' }，过滤通常锦囊 get.type(event.card, 'trick') === 'trick' 且使用者存在存活且非自身；2. 目标重定向：在 content 中执行 parent.triggeredTargets2.remove(player)、parent.targets.remove(player) 并 parent.targets.push(source)；3. 增益双重结算兼容：若需求允许五谷丰登/桃园结义对使用者二次生效，不加 !targets.includes(source) 过滤，底层事件调度器在 redo() 后会安全按序处理多次目标结算。",
+      "keywords": [
+        "无痕",
+        "useCardToTarget",
+        "通常锦囊",
+        "转移目标",
+        "五谷丰登",
+        "桃园结义"
+      ],
+      "refs": [
+        "xy_wuhen @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4552-4622"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 4552,
+          "end": 4622,
+          "hash": "baedddfcf313"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T18:35:43.222Z",
+      "updatedAt": "2026-10-24T18:35:43.222Z"
+    },
+    {
+      "id": "kb-166a9c60",
+      "kind": "pattern",
+      "title": "失去最后手牌全事件拦截与邻近手牌获取范式",
+      "body": "★做法：实现『当你失去最后的手牌后，你可以获得距离为1的其他角色至多一张手牌』的标准范式：1. 完整时机覆写：trigger: { player: 'loseAfter', global: ['equipAfter', 'addJudgeAfter', 'gainAfter', 'loseAsyncAfter', 'addToExpansionAfter'] }，覆盖弃置、使用、打出、被拆顺、装备化、置入判定区与置于武将牌等全部失去手牌途径；2. 状态判定：player.countCards('h') === 0 且 event.getl(player)?.hs?.length > 0；3. 目标筛选与获得：通过 get.distance(player, target) <= 1 筛选并调用 player.gainPlayerCard(target, 'h', true)。",
+      "keywords": [
+        "冷艳",
+        "失去手牌",
+        "连营",
+        "getl",
+        "gainPlayerCard",
+        "距离为1"
+      ],
+      "refs": [
+        "xy_lengyan @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4628-4681"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 4628,
+          "end": 4681,
+          "hash": "08bc53e73799"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T18:35:48.294Z",
+      "updatedAt": "2026-10-24T18:35:48.294Z"
+    },
+    {
+      "id": "kb-54d72866",
+      "kind": "pattern",
+      "title": "出牌阶段递增弃牌成本与技能池多选一获得范式（力驰）",
+      "body": "★做法：实现『出牌阶段可发动多次、消耗递增（弃X张牌，X为此阶段已发动次数）、从技能池选择获得未拥有技能』的标准范式：1.次数与防泄漏：通过event.getParent('phaseUse')._count绑定出牌阶段事件记录已发动次数X，并在phaseUseEnd双重清理storage，杜绝跨回合泄漏；2.消耗递增分支：X=0时免弃牌并提供cancel2允许无损撤回；X>0时调用chooseToDiscard弃置X张牌，取消时不扣牌且不自增X；3.技能池动态互斥：过滤!player.hasSkill(id)，全拥有时filter拦截不可发动；4.富文本技能选择：在chooseControl中传入未拥有的技能名，配合choiceList展示详细描述，选定后调用addSkills赋予技能。",
+      "keywords": [
+        "力驰",
+        "技能池",
+        "递增弃牌",
+        "阶段次数",
+        "chooseControl",
+        "choiceList",
+        "addSkills"
+      ],
+      "refs": [
+        "xy_lichi @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4688-4776"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 4688,
+          "end": 4776,
+          "hash": "ea375579f216"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T18:46:58.007Z",
+      "updatedAt": "2026-10-24T18:46:58.007Z"
+    },
+    {
       "id": "kb-29980916",
       "kind": "pattern",
       "title": "P2 开始页 Spine 动画的单上下文渲染和静态回退",
@@ -4189,6 +4805,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T18:57:24.832Z",
       "updatedAt": "2026-10-24T18:57:24.832Z"
+    },
+    {
+      "id": "kb-b44518dc",
+      "kind": "pattern",
+      "title": "运行时武将性别动态变更与联机广播规范",
+      "body": "★ 核心做法：\\n1. 引擎底层机制：player.sex 为普通属性，未提供封装好的 setSex/changeSex 实例方法。在技能中动态改变武将性别时，若直接执行 player.sex = newSex，仅在主机本地生效，联机模式下各客户端无法同步。\\n2. 规范同步写法：必须使用 game.broadcastAll 广播闭包，在所有客户端同步更新 player.sex 并调用 p.update() 刷新武将头像框及座次界面：\\ngame.broadcastAll((p, s) => {\\n    p.sex = s;\\n    p.update();\\n}, player, newSex);\\ngame.log(player, '将性别变更为', '#g' + get.translation(newSex) + '性');\\n3. 异性/同性比对：判断异性角色时严禁使用 player.sex !== target.sex 硬编码，应调用引擎内置的 player.differentSexFrom(target)；同性使用 player.sameSexAs(target)；特定性别使用 player.hasSex('male'|'female')。底层已针对 double（双性别）与 unknown 做完备适配。",
+      "keywords": [
+        "性别",
+        "修改性别",
+        "broadcastAll",
+        "differentSexFrom",
+        "sameSexAs",
+        "hasSex"
+      ],
+      "refs": [
+        "xy_qiaozhuang @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4906-4963",
+        "yxsre_pushuo @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:40-60"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T18:58:28.876Z",
+      "updatedAt": "2026-10-24T18:58:28.876Z"
     }
   ]
 }

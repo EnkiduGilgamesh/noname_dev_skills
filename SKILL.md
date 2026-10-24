@@ -1,6 +1,6 @@
 ---
 name: noname-general-extension
-description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技、蓄力技、多势力技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、12 类技能模板与蓄力/多势力技开发范式、API 速查与十八大避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
+description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技、蓄力技、多势力技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、12 类技能模板与蓄力/多势力技开发范式、API 速查与十九大避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
 ---
 
 # 开发《无名杀》武将扩展
@@ -1476,7 +1476,7 @@ player.removeSkill(id)
 player.hasSkill(id)
 ```
 
-## 8. 十八大避坑（按危害排序）
+## 8. 十九大避坑（按危害排序）
 
 1. **`cost` 忘记 `event.result = ...`** → 技能永不发动，**且无任何报错**（最难查）
 2. **忘记 `.forResult()`** → 拿到事件对象而非结果，`bool` 判定异常
@@ -1496,6 +1496,7 @@ player.hasSkill(id)
 16. **视为技/转化技维度限制（点数/花色/次数）在 dialog 或 filterCard 中扣减导致状态泄漏** → 使用 `chooseButton + backup` 架构的技能，绝对不能在 dialog 生成或 filter 中记录扣减！若玩家在选牌界面点击取消，出牌并未发生，但点数/次数已被提前扣减。必须在 `chooseButton.backup` 返回对象的 `async precontent(event, trigger, player)` 中记录！此时玩家已确认出牌并指定卡牌，取消时引擎不会进入 precontent，保证消耗精准不泄漏。
 17. **直接给 `player.group` 赋数组（如 `player.group = ['wei', 'shu']`）** → 原生引擎严格依赖 `player.group` 为单值 string（在 `get.groupnature`、DOM `dataset.nature` 处直接按字符串拼接）。若赋为数组，会导致 UI 渲染崩溃、样式属性破损，且所有 `current.group === 'wei'` 的全等判断全部返回 false！想要局内享受多势力特性，务必参考 §6.14 的四大路线（`changeGroup` 动态切换、Trigger 临时借壳或底层 Hook）。
 18. **误将 `get.discardPile(..., "top")` 当作“最新弃牌”** → `ui.discardPile` 底层是 DOM 容器，卡牌弃置时使用 `appendChild` 追加在末尾（`lastChild` 才是物理上的弃牌堆顶/最新弃牌，`firstChild` 是最早弃牌）。而 `get.discardPile` 继承自摸牌堆逻辑，默认 `"top"` 从索引 0 开始向后遍历，拿到的反而是最早弃置的陈旧卡牌！若需严格获取“最近一张弃置的牌”，应使用 `ui.discardPile.lastChild`、`Array.from(ui.discardPile.childNodes).reverse()`，或调用 `get.discardPile(..., "bottom")`。
+19. **`phaseJudge` 里中止延时锦囊判定：`cancelled` + `excluded`，绝对不要用 `direct`** → 要“这张延时锦囊不判定了 / 不结算了”时，在 `phaseJudge` 触发内容里同时置 `trigger.cancelled = true`（跳过判定）与 `trigger.excluded = true`（跳过牌的 cancel/effect）。源码结构是 `if (excluded) {...} else if (cancelled && !direct) { 跑牌的 cancel } else { 跑牌的 effect }` —— **只置 `direct` 会掉进最后的 `else` 照常结算 effect**，而此时 `event.result` 是 `undefined`，`lebu.effect` 里 `result.bool` 直接抛 `TypeError`（1.11.7 实测崩溃）。官方中止判定的同款写法：`tw/skill.js` 的 `evt.excluded = true`、`shiji/skill.js` 的 `sptaoluan`。
 
 ## 9. 过时写法（**新代码不要用**）
 
