@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T02:01:47.628Z",
+  "updatedAt": "2026-10-24T02:13:07.295Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3950,6 +3950,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T02:01:47.628Z",
       "updatedAt": "2026-10-24T02:01:47.628Z"
+    },
+    {
+      "id": "kb-f413dd58",
+      "kind": "pattern",
+      "title": "角色立绘按透明轮廓自然比例实现头部出框",
+      "body": "新宇杀UI参考角色的.jpg文件实际是RGBA PNG，已有透明头部轮廓；不能按后缀假定不透明。立绘从固定卡框底部对齐，height:auto按自然比例显示，卡框与姓名体力龙饰分层并允许向上溢出；专用图片规则须覆盖通用button>img的100%宽高与object-fit:fill。给顶排留头部空间，验证自然宽高比、出框边界和头部点击冒泡到目标按钮。",
+      "keywords": [
+        "立绘",
+        "头部出框",
+        "露头",
+        "透明PNG",
+        "宽高比",
+        "选择器优先级"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-portraits.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T02:13:07.294Z",
+      "updatedAt": "2026-10-24T02:13:07.294Z"
     }
   ]
 }
