@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T14:17:02.280Z",
+  "updatedAt": "2026-10-24T14:30:22.305Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4081,6 +4081,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T14:17:02.279Z",
       "updatedAt": "2026-10-24T14:17:02.279Z"
+    },
+    {
+      "id": "kb-79319387",
+      "kind": "pattern",
+      "title": "局内确认提示取消复用原纹理并覆盖通用背景简写",
+      "body": "手杀操作按钮使用lbtn/images/uibutton/btn.png（含确定字样与角饰）、cbtn.png（提示空白绿金底座）和confirm-bg-c.png叠QX.png（取消）。按可见边界缩放处理透明边距；背景尺寸位置的选择器必须高于通用.design button的background简写，否则会被重置为auto导致大图截断。禁用用灰度和亮度保留纹理；点击流程仍要验证提示选择、取消清空、确定提交与提交后锁定。素材坐标与截图见文档。",
+      "keywords": [
+        "UI",
+        "确定",
+        "取消",
+        "提示",
+        "按钮",
+        "background",
+        "优先级",
+        "纹理"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-controls.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T14:30:22.304Z",
+      "updatedAt": "2026-10-24T14:30:22.304Z"
     }
   ]
 }
