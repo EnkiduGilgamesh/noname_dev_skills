@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T19:11:19.700Z",
+  "updatedAt": "2026-10-24T19:28:24.978Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4848,6 +4848,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T19:11:19.699Z",
       "updatedAt": "2026-10-24T19:11:19.699Z"
+    },
+    {
+      "id": "kb-a8c77eaa",
+      "kind": "pattern",
+      "title": "经典场模式图集与选中按钮外扩布局",
+      "body": "新宇杀-UI 0.2.18 经典场使用如真似幻 images/mode.json 与 mode.png，而非相近的 modese.json；同名 modesecbg 原始画布分别是1400×700和1500×700，混用会造成布局漂移。普通按钮modesecoff为252×71，选中modesecon为288×119，应保持中心并外扩高亮，不能压成相同画布。5pjz/8pjz/guowar文字独立叠放，切换时同步顶部标题与说明。截图插画对应君临天下；经典开战来自spine/kaizhan的jingzhi无手形姿态，和单机带手形APNG不同。本次只离线生成固定帧并用CSS反馈，运行页零Canvas/WebGL；选择与启动仅为P2展示，不移植参考的配置写入与规则启动。",
+      "keywords": [
+        "经典场",
+        "mode.json",
+        "modese.json",
+        "按钮高亮",
+        "君临天下",
+        "开战jingzhi"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-classic.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T19:28:24.977Z",
+      "updatedAt": "2026-10-24T19:28:24.977Z"
     }
   ]
 }
