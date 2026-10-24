@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T14:52:46.108Z",
+  "updatedAt": "2026-10-24T18:50:44.741Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4148,6 +4148,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T14:52:46.107Z",
       "updatedAt": "2026-10-24T14:52:46.107Z"
+    },
+    {
+      "id": "kb-29980916",
+      "kind": "pattern",
+      "title": "P2 开始页 Spine 动画的单上下文渲染和静态回退",
+      "body": "新宇杀-UI 0.2.15 使用参考 PIXI 6.5.9 与 pixi-spine 3.1.2 按需加载背景、戏志才人物与开始按钮三套骨骼，手动更新上限30fps、无DPR放大、画布最大1266×611。PIXI着色器精度探测也会创建WebGL上下文，同步初始化期间临时让ADAPTER.createCanvas的WebGL请求复用当前自有上下文并在finally恢复，可避免额外探测上下文；软件Edge实测反复进入每次仅一个，退出后isContextLost为true。按钮animation2实测0.7秒，结束后进入大厅。隐藏、弹窗、低动态、移出视口暂停；加载中切换或暂停可取消，卸载销毁场景纹理加载器渲染器；运行库/素材失败、无WebGL及上下文丢失回退固定帧且入口可用。此结论不等于历史系统黑屏根因已确认。",
+      "keywords": [
+        "Spine",
+        "PIXI",
+        "开始页骨骼",
+        "WebGL上下文",
+        "动画卸载",
+        "静态回退"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-start-animation.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T18:50:44.741Z",
+      "updatedAt": "2026-10-24T18:50:44.741Z"
     }
   ]
 }
