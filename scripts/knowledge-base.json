@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T18:50:44.741Z",
+  "updatedAt": "2026-10-24T18:57:24.833Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4169,6 +4169,26 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T18:50:44.741Z",
       "updatedAt": "2026-10-24T18:50:44.741Z"
+    },
+    {
+      "id": "kb-056ed85c",
+      "kind": "pattern",
+      "title": "大厅头像按图集内窗分层，太虚海报和外框保持同一缩放比例",
+      "body": "新宇杀-UI大厅ui-avatar原图518×130，头像透明内窗在(9,9)，为88×88；88×88头像不可强制成91×96或偏移23像素，应该放入内窗，并将框图作为前景覆盖，保留边缘。太虚海报124×286、rightacbg完整图集画布127×279，不可分别强制宽高；两层使用相同缩放系数并height:auto，保留图集透明留白，按参考中心定位，可消除纵向拉伸和框饰变形。",
+      "keywords": [
+        "大厅头像",
+        "头像内窗",
+        "太虚幻境",
+        "自然比例",
+        "图集边框"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-p2-reference.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T18:57:24.832Z",
+      "updatedAt": "2026-10-24T18:57:24.832Z"
     }
   ]
 }
