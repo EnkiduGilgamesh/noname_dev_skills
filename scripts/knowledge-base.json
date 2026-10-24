@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-23T17:23:35.308Z",
+  "updatedAt": "2026-10-24T01:19:02.103Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3820,6 +3820,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-23T17:23:35.308Z",
       "updatedAt": "2026-10-23T17:23:35.308Z"
+    },
+    {
+      "id": "kb-ui-preview-stability",
+      "kind": "pattern",
+      "title": "独立 UI 预览稳定性与骨骼离线固定帧",
+      "body": "ResizeObserver 按帧合并整数尺寸，忽略重复与零尺寸，销毁时取消回调；Vite 库模式替换 process.env.NODE_ENV，并用真实浏览器核对独立产物。装饰骨骼可在构建时软件渲染成固定帧，运行页不创建 WebGL。素材名称不是视觉证据：参考开始图匹配戏志才·举棋若定，VIP46 实际帧为 vip_v7 且有负裁切偏移。应覆盖连续切场景、浏览器返回、焦点循环、最后手牌提交锁定；不可据项目隐患推断操作系统黑屏根因。",
+      "keywords": [
+        "联机UI",
+        "预览稳定性",
+        "ResizeObserver",
+        "固定帧",
+        "WebGL",
+        "图集裁切"
+      ],
+      "refs": [
+        "docs/online-ui-p2-reference.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T01:19:02.103Z",
+      "updatedAt": "2026-10-24T01:19:02.103Z"
     }
   ]
 }

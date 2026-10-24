@@ -29,6 +29,8 @@
 
 联机 UI 扩展的可重复装配、异步 reinit 清理和 Vue 宿主定位，见 SKILL.md 的“扩展目录结构”；知识库可检索 `联机UI`、`Vue宿主`、`原生回退`。
 
+独立 UI 预览的尺寸调度、静态装饰与运行时 WebGL 隔离，以及图集帧名／负裁切偏移的实证，检索 `预览稳定性`、`ResizeObserver`、`固定帧`；对应项目记录为 `docs/online-ui-p2-reference.md`。
+
 ---
 
 ## 安装

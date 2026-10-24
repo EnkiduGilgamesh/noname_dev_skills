@@ -296,6 +296,8 @@ pnpm -F @noname/fs dev --debug --dirname=../../apps/core    # 文件服务 8089
 
 **不要给网络按源码传输的函数套闭包包装。** 当前内核用 `Player.send(game.over, ...)` 将结算函数发送到客机；若把 `game.over` 替换成捕获 `original` 的函数，客机重建函数后会报 `original is not defined`。UI 跟踪结算使用 `lib.onover` 与 DOM 观察，保留原函数对象。其他适配点也先检查是否作为函数参数发送。
 
+**独立 UI 预览先控制渲染负载。** `ResizeObserver` 只收集尺寸，按帧去重发布，卸载取消待处理帧；Vite 库模式显式替换 `process.env.NODE_ENV` 并在真实浏览器验证。装饰骨骼可离线生成固定帧，运行页不创建 WebGL；素材必须看纹理核对，图集名不等于显示内容，负裁切偏移应保留全部像素。验证要覆盖无运行时骨骼请求、连续切场景、浏览器返回、弹窗焦点及滚动区最后一张牌。项目实证见 `docs/online-ui-p2-reference.md`；这类项目隐患不能直接等同于操作系统黑屏根因。
+
 ```
 apps/core/extension/我的扩展/
 ├── extension.js          ★ 必需：必须 export type 与 default
