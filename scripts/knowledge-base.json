@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T14:05:03.967Z",
+  "updatedAt": "2026-10-24T14:17:02.280Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4059,6 +4059,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T14:05:03.966Z",
       "updatedAt": "2026-10-24T14:05:03.966Z"
+    },
+    {
+      "id": "kb-66ee457a",
+      "kind": "pattern",
+      "title": "缩放舞台内的悬浮时钟拖动采用局部坐标和指针捕获",
+      "body": "参考黑色悬浮时钟为手杀ui image/menu/start.png表盘加DOM刻度指针，不是time进度条素材。独立预览拖动应通过舞台getBoundingClientRect将client坐标换算为设计坐标，保留抓取偏移，使用setPointerCapture跨出图标继续跟随；松开、取消、丢失捕获和失焦结束拖动，限制图标完整留在舞台内，避免选中下层角色。分钟边界校时并在页面隐藏停止调度、卸载清理。详情和8组实际鼠标验证见文档。",
+      "keywords": [
+        "UI",
+        "时钟",
+        "拖动",
+        "指针捕获",
+        "缩放",
+        "PointerEvents",
+        "边界"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-floating-clock.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T14:17:02.279Z",
+      "updatedAt": "2026-10-24T14:17:02.279Z"
     }
   ]
 }
