@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T02:13:07.295Z",
+  "updatedAt": "2026-10-24T02:28:34.657Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3971,6 +3971,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T02:13:07.294Z",
       "updatedAt": "2026-10-24T02:13:07.294Z"
+    },
+    {
+      "id": "kb-d3880068",
+      "kind": "pattern",
+      "title": "立绘出框采用能力优先的兼容策略与锁链覆盖层",
+      "body": "皮肤显示方式按显式mode、supportsOutcrop能力、扩展来源与后缀规则、已登记素材及明确露头路径依次判断；未知静态图、GIF等动态图片和未声明支持出框的动态渲染器默认圆拱顶框内裁切，object-fit:cover保持像素比例。Vue缺省Boolean prop需显式default undefined才能区分自动识别与false。铁索横置用原版金属锁链覆盖而不旋转卡牌，pointer-events:none并附状态描述，实际GIF像素变化和锁链穿透点击须浏览器验证。",
+      "keywords": [
+        "立绘兼容",
+        "出框",
+        "横置",
+        "铁索连环",
+        "动态图",
+        "扩展来源",
+        "Boolean prop"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-portrait-compatibility.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T02:28:34.656Z",
+      "updatedAt": "2026-10-24T02:28:34.656Z"
     }
   ]
 }
