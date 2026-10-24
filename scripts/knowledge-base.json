@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T14:49:19.165Z",
+  "updatedAt": "2026-10-24T14:52:46.108Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4127,6 +4127,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T14:49:19.165Z",
       "updatedAt": "2026-10-24T14:49:19.165Z"
+    },
+    {
+      "id": "kb-d6f0850f",
+      "kind": "pattern",
+      "title": "整页记录背景先分组再统一半透明合成",
+      "body": "对局记录由底色、阴影、旋转圆纹、原图装饰与前景内容组成。应将全部背景放入单独容器统一按0.72不透明度合成，外层背景清空；标题、正文、弃牌与返回按钮放在容器外保持清晰，避免仅降低底色却被不透明纹理再次盖住。独立背景容器保持pointer-events:none，现有子代动画暂停选择器继续有效；验证除计算样式外还需明暗场景截图的像素变化。实现与截图见文档。",
+      "keywords": [
+        "UI",
+        "记录",
+        "半透明",
+        "背景分层",
+        "opacity",
+        "动画"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-tools.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T14:52:46.107Z",
+      "updatedAt": "2026-10-24T14:52:46.107Z"
     }
   ]
 }
