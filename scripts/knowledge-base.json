@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T13:54:58.284Z",
+  "updatedAt": "2026-10-24T14:05:03.967Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4037,6 +4037,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T13:54:58.283Z",
       "updatedAt": "2026-10-24T13:54:58.283Z"
+    },
+    {
+      "id": "kb-e5478707",
+      "kind": "pattern",
+      "title": "圆框菜单按底图圆心及可见像素中心定位",
+      "body": "复合菜单底图需保留自然比例，不能只按整行高度拉伸；五个图标应逐个使用底图圆心定位，并补偿各PNG透明边距，而非固定步长排布。缩小后检查可见像素矩形四角落在圆内；入场从0.9倍到1倍避免瞬间越框。聊天入口包含图标、边框与文字，定位需以父面板内边框为限，而非DOM外沿；本次整体上移28px。坐标与浏览器验证见扩展文档。",
+      "keywords": [
+        "UI",
+        "菜单",
+        "圆框",
+        "图标",
+        "透明边距",
+        "对齐",
+        "聊天"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-tools.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T14:05:03.966Z",
+      "updatedAt": "2026-10-24T14:05:03.966Z"
     }
   ]
 }
