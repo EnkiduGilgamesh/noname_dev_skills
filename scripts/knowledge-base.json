@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T18:58:28.877Z",
+  "updatedAt": "2026-10-24T19:11:19.700Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4827,6 +4827,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T18:58:28.876Z",
       "updatedAt": "2026-10-24T18:58:28.876Z"
+    },
+    {
+      "id": "kb-aa3646e9",
+      "kind": "pattern",
+      "title": "独立单机模式原型的素材分层与 APNG 暂停",
+      "body": "新宇杀-UI 0.2.17 的单机页参考如真似幻 extension.js 的 splash 与 css/offline.css，由模式背景、image/splash 缩略图、lbtn 前景框、modebtn 普通底牌、modebtn2 选中底牌、标题、返回角饰和开战 APNG 独立组合；34帧 kaizhan.png 使用原生 APNG 时序。CSS animation-play-state 不能暂停 APNG，应在隐藏、低动态或关闭动效时卸下动态图并替换默认帧静态 PNG，整页不创建 Canvas/WebGL。列表使用 radio 语义、方向键/Home/End 与局部滚动，开战延迟须在卸载时清除；独立 P2 原型只进入局内展示，不能照搬参考的 lib.init.onload 替换、Network 或 mode 配置写入。",
+      "keywords": [
+        "单机模式",
+        "offline",
+        "splash",
+        "APNG暂停",
+        "模式列表",
+        "开战延迟"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-offline.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T19:11:19.699Z",
+      "updatedAt": "2026-10-24T19:11:19.699Z"
     }
   ]
 }
