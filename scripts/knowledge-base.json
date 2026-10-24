@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T01:46:00.630Z",
+  "updatedAt": "2026-10-24T01:51:11.392Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3906,6 +3906,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T01:46:00.630Z",
       "updatedAt": "2026-10-24T01:46:00.630Z"
+    },
+    {
+      "id": "kb-97f8a50c",
+      "kind": "pattern",
+      "title": "月卡商城藏珍阁动画使用图集原帧与统一裁切边界",
+      "body": "如真似幻 btn.json 的 yukasaoguang/shop/czg 分别29/51/51帧，czgcreat默认速度0.5，月卡和商城覆盖0.3；PIXI 60fps基准对应18/18/30fps。源帧先还原旋转与spriteSourceSize，再按整段动画的裁切并集统一输出；逐帧独立裁切缩放会引入伪位移，商城187×230源画布尤其明显。记录首帧边界可保持现有按钮位置和比例，CSS steps播放并共用可见性暂停。",
+      "keywords": [
+        "月卡",
+        "商城",
+        "藏珍阁",
+        "动画",
+        "图集",
+        "统一裁切",
+        "首帧锚点"
+      ],
+      "refs": [
+        "docs/online-ui-lobby-effects.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T01:51:11.392Z",
+      "updatedAt": "2026-10-24T01:51:11.392Z"
     }
   ]
 }
