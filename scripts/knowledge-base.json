@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T01:34:19.800Z",
+  "updatedAt": "2026-10-24T01:42:50.330Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3862,6 +3862,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T01:34:19.800Z",
       "updatedAt": "2026-10-24T01:34:19.800Z"
+    },
+    {
+      "id": "kb-83311546",
+      "kind": "pattern",
+      "title": "大厅边框叠放与角饰按钮的可见尺寸对齐",
+      "body": "如真似幻大厅边框对应 rightacbg（太虚）、actak（活动场）、actbk（斗地主），应按源代码图层组合。rightacbg 中心有不透明底色，必须在海报下层；say/menu1 图片同时含按钮和侧边角饰，直接把整图缩到按钮框会缩小主体，应按内部按钮区域定位图片并允许角饰溢出。CSS 局部图片尺寸覆盖通用 button>img 规则时需检查选择器优先级。",
+      "keywords": [
+        "大厅",
+        "边框",
+        "图集",
+        "角饰",
+        "可见高度",
+        "CSS",
+        "层级"
+      ],
+      "refs": [
+        "docs/online-ui-p2-reference.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T01:42:50.329Z",
+      "updatedAt": "2026-10-24T01:42:50.329Z"
     }
   ]
 }
