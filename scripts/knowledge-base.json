@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-25T08:47:27.913569Z",
+  "updatedAt": "2026-10-25T09:03:06.323Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5009,6 +5009,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-25T08:47:03.208Z",
       "updatedAt": "2026-10-25T08:47:03.208Z"
+    },
+    {
+      "id": "kb-983ae50f",
+      "kind": "pattern",
+      "title": "藏珍阁奖励结果需按原图比例与中心向两侧时序复刻",
+      "body": "参考开盒结果使用dialog2原始1369×467宽扁比例，79像素细金边图标六列两排，不是高弹窗五列大图标。超过8项按weight或1000稳定排序，仅排序展示副本。十二项中2/3/8/9立即、1/4/7/10延后350ms、两侧余项700ms，图标150ms缩小，195ms闪现，600ms显示名称数量，2秒出现全局星光。gongxihuode的出现、稀有边框和星光骨骼可软件离线提取36帧，运行结果页用WAAPI，无额外画布；隐藏暂停，空白继续后取消动画。详见文档0.2.25。",
+      "keywords": [
+        "藏珍阁",
+        "奖励结果",
+        "六列两排",
+        "中心分批",
+        "gongxihuode",
+        "金色星光",
+        "空白继续",
+        "奖励排序"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-treasure.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T09:03:06.323Z",
+      "updatedAt": "2026-10-25T09:03:06.323Z"
     }
   ]
 }
