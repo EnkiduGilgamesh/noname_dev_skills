@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-25T02:42:36.515Z",
+  "updatedAt": "2026-10-25T03:03:42.211Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4893,6 +4893,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-25T02:42:36.514Z",
       "updatedAt": "2026-10-25T02:42:36.514Z"
+    },
+    {
+      "id": "kb-943f530a",
+      "kind": "pattern",
+      "title": "平滑选将计时共用浏览器动画时间并保留暂停小数进度",
+      "body": "进度条可用单个线性Web Animations动画绘制，整数秒值读取同一Animation.currentTime，避免每秒跳变或双时钟漂移；暂停与恢复保留小数进度，结束后禁止重新play，卸载取消动画和采样。浏览器验收先等待animation.ready再测暂停稳定性，短间隔采样验证连续变化，finish验证到期。详见选将文档。",
+      "keywords": [
+        "选将",
+        "计时",
+        "进度条",
+        "平滑",
+        "Web Animations",
+        "currentTime",
+        "暂停",
+        "动画"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-selection.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T03:03:42.210Z",
+      "updatedAt": "2026-10-25T03:03:42.210Z"
     }
   ]
 }
