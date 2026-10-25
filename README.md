@@ -31,6 +31,8 @@
 
 真实对局交互需保留原始节点的输入冒泡和窗口点击锁清理；双端测试等待 client.inited 后再开始。当前 1.11.7 客户端配置使用 IndexedDB，不再靠旧 localStorage 配置写入。详见 SKILL.md，知识库可检索 `选择冒泡`、`clicked锁`、`inited握手`。
 
+真实局内布局按包含死亡席的 data-position 映射本地视角，保留两组原生手牌；小屏检查 min-height、双轴定位和计时条固定尺寸。知识库检索 `局内布局`、`本地席位映射`、`原生手牌最小高度`。
+
 独立 UI 预览的尺寸调度、静态装饰与运行时 WebGL 隔离，以及图集帧名／负裁切偏移的实证，检索 `预览稳定性`、`ResizeObserver`、`固定帧`；对应项目记录为 `docs/online-ui-p2-reference.md`。
 
 小型将灯流光的 CSS 阶梯帧动画、透明留白与隐藏暂停，检索 `将灯`、`steps帧动画`，见项目 `docs/online-ui-lamps.md`。

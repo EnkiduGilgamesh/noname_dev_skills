@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-25T11:40:52.979Z",
+  "updatedAt": "2026-10-25T14:22:12.386Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5101,6 +5101,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-25T11:40:52.979Z",
       "updatedAt": "2026-10-25T11:40:52.979Z"
+    },
+    {
+      "id": "kb-f6730b70",
+      "kind": "pattern",
+      "title": "原生局内布局保持 position 视角与双手牌桶并清除最小高度",
+      "body": "按本人 data-position 映射存活和死亡席，不改逻辑座次；用 CSS 像素表达参考坐标，避免整体 arena scale 干扰输入。两组手牌保留父子关系与顺序，最小露边后滚动，小屏需清除原生 min-height120px；体力/身份设 right 要清 left，计时条固定 top 要适配卡框。自有类和 CSS 变量可恢复；复杂选择弹窗保留原生。八席位双端、换座、滚动和重载证据见项目文档。",
+      "keywords": [
+        "局内布局",
+        "本地席位映射",
+        "data-position",
+        "原生手牌最小高度",
+        "双手牌桶",
+        "计时条卡框"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-layout.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T14:22:12.386Z",
+      "updatedAt": "2026-10-25T14:22:12.386Z"
     }
   ]
 }

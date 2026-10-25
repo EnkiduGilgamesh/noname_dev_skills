@@ -302,6 +302,8 @@ pnpm -F @noname/fs dev --debug --dirname=../../apps/core    # 文件服务 8089
 
 **真实选择输入必须保留窗口冒泡清理。** 直接 `ui.click.card/control.call(node)` 会漏掉 `ui.click.window` 对 `_status.clicked` 的清理，下一次输入可能失效。对原始 Card／Player／Control 派发冒泡 click／touchend，保留 native custom、技能备份／取消与联机回传；触屏用原生 TouchEvent。按当前本地事件、候选节点和请求版本拒绝旧操作；隐藏候选不能从 link／textContent 推断身份。真实房间测试还须等待房主端 client.inited，席位出现不等于异步 init 完成，否则 gameStart 广播会跳过该客机。通用原理见项目 `docs/YRD/15-ui-development.md` §12，实现和验证见 `packages/extension/新宇杀-UI/docs/online-ui-battle-interaction.md`。
 
+**真实局内布局用原生 position 与 CSS 像素。** 收集存活和死亡节点，用本人 data-position 作为视角基准，不以 players 数组下标重排逻辑座次；不要给整个 arena 增加额外 scale 干扰原生输入。手牌保留两组父子关系与顺序，小屏还需清除原生 min-height:120px；设置体力／身份 right 时清除旧 left，计时条不能继续沿用固定顶边。用自有类与 CSS 变量装配并恢复，复杂候选弹窗保留原生空间。项目 0.4.0 已验证双端八席位、原生换座、滚动与 reinit，见 `packages/extension/新宇杀-UI/docs/online-ui-battle-layout.md`。
+
 **独立 UI 预览先控制渲染负载。** `ResizeObserver` 只收集尺寸，按帧去重发布，卸载取消待处理帧；Vite 库模式显式替换 `process.env.NODE_ENV` 并在真实浏览器验证。装饰骨骼可离线生成固定帧，运行页不创建 WebGL；素材必须看纹理核对，图集名不等于显示内容，负裁切偏移应保留全部像素。验证要覆盖无运行时骨骼请求、连续切场景、浏览器返回、弹窗焦点及滚动区最后一张牌。项目实证见 `docs/online-ui-p2-reference.md`；这类项目隐患不能直接等同于操作系统黑屏根因。
 
 **小型图集流光可使用 CSS 阶梯帧动画。** 先恢复每帧旋转、裁切及相同透明留白，再横向拼接，以 `steps(帧数)` 播放背景位置；不能按可见像素边界裁紧各帧，否则光圈跳动。页面隐藏、离开视口或展示弹窗时暂停，切场景清理可见性监听；尊重低动态偏好，不用逐帧 JS 定时器。验证实际像素变化与暂停后位置稳定，参考 `docs/online-ui-lamps.md`。
