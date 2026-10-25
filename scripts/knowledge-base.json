@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-25T03:37:18.654Z",
+  "updatedAt": "2026-10-25T03:44:10.778Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4940,6 +4940,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-25T03:37:18.653Z",
       "updatedAt": "2026-10-25T03:37:18.653Z"
+    },
+    {
+      "id": "kb-5e15d936",
+      "kind": "pattern",
+      "title": "横向武将包栏把主轴滚轮增量转换为scrollLeft",
+      "body": "禁将顶部tab栏在有横向溢出时将主要deltaX或deltaY映射到scrollLeft，按deltaMode换算像素、行或页；preventDefault及stopPropagation只消费普通滚动，保留Ctrl缩放。overflow-y隐藏和overscroll-behavior限制滚动链，滚动不更改选中项。真实wheel往返与合成行页增量已在8组视口字号验证。见扩展文档。",
+      "keywords": [
+        "滚轮",
+        "wheel",
+        "横向滚动",
+        "tab",
+        "武将包",
+        "deltaMode",
+        "scrollLeft",
+        "Ctrl"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-characters.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T03:44:10.777Z",
+      "updatedAt": "2026-10-25T03:44:10.777Z"
     }
   ]
 }
