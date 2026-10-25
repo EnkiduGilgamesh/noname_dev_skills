@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T19:28:24.978Z",
+  "updatedAt": "2026-10-25T02:42:36.515Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -4869,6 +4869,30 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T19:28:24.977Z",
       "updatedAt": "2026-10-24T19:28:24.977Z"
+    },
+    {
+      "id": "kb-67446a29",
+      "kind": "pattern",
+      "title": "选将复刻先核对版本立绘与分层素材，再维护独立展示状态",
+      "body": "参考选将由十周年UI的主公、座次、候选面板与手杀UI的兽首卡框、阵营、光框组合；显示名不能直接推导图片ID，JPG也可能实际包含透明PNG。P2用独立候选与次数状态，确认只把展示角色传入战局；Esc须由当前层消费，避免场景同步切换后父级再次返回。素材映射、计时暂停与验证见文档。",
+      "keywords": [
+        "选将",
+        "chooseCharacter",
+        "主公",
+        "座次",
+        "换将",
+        "透明立绘",
+        "Esc",
+        "事件传播",
+        "P2"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-selection.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T02:42:36.514Z",
+      "updatedAt": "2026-10-25T02:42:36.514Z"
     }
   ]
 }
