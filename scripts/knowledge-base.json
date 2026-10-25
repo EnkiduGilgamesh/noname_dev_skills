@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-25T09:15:31.006Z",
+  "updatedAt": "2026-10-25T11:10:42.904Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5055,6 +5055,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-25T09:15:31.006Z",
       "updatedAt": "2026-10-25T09:15:31.006Z"
+    },
+    {
+      "id": "kb-3c1eb0e0",
+      "kind": "pattern",
+      "title": "联机对局选择必须冒泡清理 clicked 锁并等待 inited 握手",
+      "body": "真实选择通过原始 Card/Player/Control 派发冒泡 click 或 touchend，保留窗口点击锁清理、custom 回调和原生网络回传；事件、候选或权限变化撤销旧请求。隐藏候选不读 link 和文字。双端房间测试等 client.inited 才开始，席位出现早于异步 init 完成。当前 1.11.7 配置以 IndexedDB config store 为准。通用原理与 0.3.0 双端杀闪、回退、重载证据见文档。",
+      "keywords": [
+        "选择冒泡",
+        "clicked锁",
+        "联机交互",
+        "inited握手",
+        "IndexedDB配置",
+        "原生Control"
+      ],
+      "refs": [
+        "docs/YRD/15-ui-development.md",
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-interaction.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T11:10:42.904Z",
+      "updatedAt": "2026-10-25T11:10:42.904Z"
     }
   ]
 }

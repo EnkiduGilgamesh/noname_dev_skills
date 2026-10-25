@@ -199,9 +199,9 @@ node skill-search.mjs locate <技能ID或中文名>
 
 **陷阱一：写了扩展目录 ≠ 游戏里能看到**
 
-扩展必须被登记到配置的 `extensions` 数组才显示（`init/index.ts:635-661`）。而玩家配置存于 **浏览器 `localStorage["noname_0.9_config"]`**，服务端改不了。
+扩展必须被登记到配置的 `extensions` 数组才显示（定位 `init/index.ts` 的 `getExtensionList`）。**当前 1.11.7 的 `loadConfig` 强制使用 IndexedDB 的 config store，不能靠写 `localStorage["noname_0.9_config"]` 配置新客户端。** 优先使用内核 `?importExtensionName=<扩展名>` 登记，或在客户端经 `game.promises.saveConfig` 保存；服务端文件修改不能替代客户端配置。
 
-解决办法（`register-extension.mjs guideall`）：
+旧版 localStorage 内核的办法（`register-extension.mjs guideall`；当前 1.11.7 不采用这一写入方式）：
 - 生成一段 Console 脚本，直接写 `localStorage`
 - 脚本**顺带开启「自动导入扩展」**——之后新增扩展会被自动发现，**只需做一次**
 
@@ -299,6 +299,8 @@ pnpm -F @noname/fs dev --debug --dirname=../../apps/core    # 文件服务 8089
 **联机 UI 专用扩展（Vue 源码包）**：使用 `packages/extension/<名称>/` 为源码、`apps/core/extension/<名称>/` 为构建产物；扩展要显式 `connect:true`。`precontent/content/arenaReady` 应共用单例与一次自动初始化，避免用户回退后被后续加载回调重新启用。`message.client.reinit` 返回时异步重建可能尚未完成，结合原生 DOM 变化重新装配。原生 CSS 会将普通 div 绝对定位，Vue 宿主必须显式宽高。已在项目 `docs/online-ui-p1.md` 记录实现与验证；纯 UI 扩展无需添加空武将包，也不适用 `verify-skill --pack` 的武将技能验收。
 
 **不要给网络按源码传输的函数套闭包包装。** 当前内核用 `Player.send(game.over, ...)` 将结算函数发送到客机；若把 `game.over` 替换成捕获 `original` 的函数，客机重建函数后会报 `original is not defined`。UI 跟踪结算使用 `lib.onover` 与 DOM 观察，保留原函数对象。其他适配点也先检查是否作为函数参数发送。
+
+**真实选择输入必须保留窗口冒泡清理。** 直接 `ui.click.card/control.call(node)` 会漏掉 `ui.click.window` 对 `_status.clicked` 的清理，下一次输入可能失效。对原始 Card／Player／Control 派发冒泡 click／touchend，保留 native custom、技能备份／取消与联机回传；触屏用原生 TouchEvent。按当前本地事件、候选节点和请求版本拒绝旧操作；隐藏候选不能从 link／textContent 推断身份。真实房间测试还须等待房主端 client.inited，席位出现不等于异步 init 完成，否则 gameStart 广播会跳过该客机。通用原理见项目 `docs/YRD/15-ui-development.md` §12，实现和验证见 `packages/extension/新宇杀-UI/docs/online-ui-battle-interaction.md`。
 
 **独立 UI 预览先控制渲染负载。** `ResizeObserver` 只收集尺寸，按帧去重发布，卸载取消待处理帧；Vite 库模式显式替换 `process.env.NODE_ENV` 并在真实浏览器验证。装饰骨骼可离线生成固定帧，运行页不创建 WebGL；素材必须看纹理核对，图集名不等于显示内容，负裁切偏移应保留全部像素。验证要覆盖无运行时骨骼请求、连续切场景、浏览器返回、弹窗焦点及滚动区最后一张牌。项目实证见 `docs/online-ui-p2-reference.md`；这类项目隐患不能直接等同于操作系统黑屏根因。
 
