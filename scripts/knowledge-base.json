@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-25T11:10:42.904Z",
+  "updatedAt": "2026-10-25T11:40:52.979Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5077,6 +5077,30 @@
       "confidence": "verified",
       "createdAt": "2026-10-25T11:10:42.904Z",
       "updatedAt": "2026-10-25T11:10:42.904Z"
+    },
+    {
+      "id": "kb-b3c130eb",
+      "kind": "pattern",
+      "title": "Loading可提取原始骨骼分层与透明度位移轨道而不烘焙大帧图",
+      "body": "如真似幻loding.skel的idle为1秒，八层图片中仅两条alpha呼吸和三枚光点位移实际变化。离线逐层以单位alpha绘图，再采样61个原始轨道点，可用小PNG加WAAPI精确重放；三光点依次在1/6、1/2、5/6秒上浮，按截图1.2比例峰值约4.73px，运行无需Canvas或Spine库。大厅加号menu图集含分组底板圆环，按钮107×82原始留白应保留，菜单打开暂停底层并inert，原可用项仅六项。实际预载需要限并发、decode、超时、取消令牌和单次进入，单独Loading预览可保持循环。详见0.3.1文档。",
+      "keywords": [
+        "Loading",
+        "loding",
+        "idle轨道",
+        "三光点",
+        "分层提取",
+        "WAAPI",
+        "大厅加号",
+        "menu图集",
+        "图片预载"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-lobby-menu-loading.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T11:40:52.979Z",
+      "updatedAt": "2026-10-25T11:40:52.979Z"
     }
   ]
 }
