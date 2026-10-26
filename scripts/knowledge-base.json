@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-26T14:31:17.644Z",
+  "updatedAt": "2026-10-26T14:57:58.663Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5265,6 +5265,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-26T14:31:17.643Z",
       "updatedAt": "2026-10-26T14:31:17.643Z"
+    },
+    {
+      "id": "kb-ee87a743",
+      "kind": "pattern",
+      "title": "身份标注只写原生身份节点显示并重验模式候选",
+      "body": "新宇杀-UI 0.4.14 右上角身份菜单读取 game.getIdentityList 的允许选项，getIdentityList2 可选且部分联机端缺失，缺失时仅补全已允许身份的名称。应用只改 node.identity.firstChild 文本和 dataset.color，不能写 Player.identity/AI 或广播。本人、明置、forceShown、录像、拖动和离场须拒绝，菜单打开后也重新检查。捕获身份入口避免透传目标点击，菜单挂body防舞台缩放错位，停用按所有权恢复ARIA且保留原生handler。双人局原生全明置，受控未明置测试必须注明边界。",
+      "keywords": [
+        "UI",
+        "身份标注",
+        "getIdentityList",
+        "本地显示",
+        "联机",
+        "目标选择"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-identity-marks.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-26T14:57:58.663Z",
+      "updatedAt": "2026-10-26T14:57:58.663Z"
     }
   ]
 }
