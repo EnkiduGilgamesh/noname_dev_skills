@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-26T14:00:53.187Z",
+  "updatedAt": "2026-10-26T14:12:37.950Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5223,6 +5223,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-26T14:00:53.186Z",
       "updatedAt": "2026-10-26T14:00:53.186Z"
+    },
+    {
+      "id": "kb-ddf8ff28",
+      "kind": "pattern",
+      "title": "何晏忆梦慕蝶出框皮肤移植的完整资源与验证",
+      "body": "新宇杀-UI 0.4.12 直接移植何晏忆梦慕蝶原始 chuchang、daiji2、beijing 三套 skel/atlas/png，静态图与经典形象配套。原始背景 x=-1.2 需保留，人物镜头按换肤卡列与名片分别适配。hero=heyan 预览验证框上方与静态模式的像素差异、出场后循环待机、应用和重开、恢复经典、横屏与关闭释放。原生目录和保存另用内核接口单元验证，不把预览测试宣称为何晏真实联机验收。",
+      "keywords": [
+        "UI",
+        "皮肤移植",
+        "何晏",
+        "忆梦慕蝶",
+        "Spine",
+        "出框"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-character-details.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-26T14:12:37.949Z",
+      "updatedAt": "2026-10-26T14:12:37.949Z"
     }
   ]
 }
