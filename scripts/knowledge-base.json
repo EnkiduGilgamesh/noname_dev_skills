@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-26T00:33:47.087Z",
+  "updatedAt": "2026-10-26T00:49:14.319Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5162,6 +5162,26 @@
       "confidence": "verified",
       "createdAt": "2026-10-26T00:33:47.087Z",
       "updatedAt": "2026-10-26T00:33:47.087Z"
+    },
+    {
+      "id": "kb-a7ba2b4f",
+      "kind": "pattern",
+      "title": "局内换肤沿用本机原生皮肤配置并拒绝异步旧请求",
+      "body": "新宇杀-UI 0.4.9 用资料插画的点击换肤入口与数量打开独立列表。普通客户端收集 characterSubstitute 图片元数据和 get.skinPath 目录图片，图片解码并重新验证会话、身份、隐匿后写原生 config.skin；同步基将与替换形象 ID 的图片偏好以兼容原生 init，更新对应 avatar/avatar2，不调用带广播的 Player.changeSkin。原生双端验证了配置与本机头像更新、重开和还原，另一端外观与角色规则数据不变。可选千幻聆音由原有 getSkinList/getSkinFile/setCurrentSkin 接口负责刷新。",
+      "keywords": [
+        "局内换肤",
+        "皮肤数量",
+        "config.skin",
+        "characterSubstitute",
+        "异步旧请求"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-character-details.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-26T00:49:14.319Z",
+      "updatedAt": "2026-10-26T00:49:14.319Z"
     }
   ]
 }
