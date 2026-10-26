@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-26T00:21:23.662Z",
+  "updatedAt": "2026-10-26T00:33:47.087Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5142,6 +5142,26 @@
       "confidence": "verified",
       "createdAt": "2026-10-26T00:21:23.662Z",
       "updatedAt": "2026-10-26T00:21:23.662Z"
+    },
+    {
+      "id": "kb-87119b69",
+      "kind": "pattern",
+      "title": "手杀名片技能页使用单选技能纹理与独立说明",
+      "body": "参考 newui_ss.css 的 qh-page-skill、qh-skillinfohead、qh-skillinfobody 及 shousha.js skill.init：顶部技能按钮使用普通和选中纹理，只显示当前技能说明，默认第一项；主被动标识与名称底纹独立。台词弹窗按层级处理 Esc、inert 与焦点恢复，读取原生 get.Audio.skill 的 audioList 文本；没有资料时明确回退。截图验收应等待新显示的 CSS 背景图片 decode，不能只等待 document.images。",
+      "keywords": [
+        "名片技能页",
+        "技能按钮",
+        "单项说明",
+        "台词弹窗",
+        "CSS背景截图"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-character-details.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-26T00:33:47.087Z",
+      "updatedAt": "2026-10-26T00:33:47.087Z"
     }
   ]
 }
