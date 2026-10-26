@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-26T13:35:36.677Z",
+  "updatedAt": "2026-10-26T14:00:53.187Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5202,6 +5202,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-26T13:35:36.677Z",
       "updatedAt": "2026-10-26T13:35:36.677Z"
+    },
+    {
+      "id": "kb-390ac956",
+      "kind": "pattern",
+      "title": "0.4.11 局内皮肤燃烧与真实骨骼出框的资源所有权",
+      "body": "新宇杀-UI 0.4.11 接入原始 huanfu play 转场（约1.9秒）和孙鲁育娇巧伶俐的 chuchang→daiji2、beijing 骨骼。背景裁在卡内，人物独立遮罩向上扩展；当前预览一个限30fps上下文，成功应用时实际主副将头像最多另增一个短暂燃烧上下文。只从成功应用事件触发转场；静动切换、隐藏、低动态、取消、卸载和上下文丢失均释放资源并恢复静态图。可读取已加载的十周年声明式动态配置，保留别的扩展的 PIXI。Vue 可选 Boolean enabled 需显式默认 true，否则头像燃烧组件会被自动转为 false。验收边界与原始资源、双端证据见文档。",
+      "keywords": [
+        "UI",
+        "Spine",
+        "燃烧",
+        "动态出框",
+        "WebGL",
+        "资源清理"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-character-details.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-26T14:00:53.186Z",
+      "updatedAt": "2026-10-26T14:00:53.186Z"
     }
   ]
 }
