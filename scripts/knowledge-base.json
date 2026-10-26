@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-26T00:49:14.319Z",
+  "updatedAt": "2026-10-26T13:35:36.677Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5182,6 +5182,26 @@
       "confidence": "verified",
       "createdAt": "2026-10-26T00:49:14.319Z",
       "updatedAt": "2026-10-26T00:49:14.319Z"
+    },
+    {
+      "id": "kb-36066566",
+      "kind": "pattern",
+      "title": "局内换肤横向卡列的实际选择与特效边界",
+      "body": "按 skin_change 参考图的手杀横向卡列复用银框、阵营和绿色勾选；预览选择与实际应用状态分开，进入大页面保留预览，重开定位实际使用项。横向浏览需验证滚动、键盘末项及缩放命中。静态图片和卡片增高不能当作动态皮肤出框；燃烧转场、动态播放器尚未接入时必须明确记录验收边界。实现与附件见扩展文档。",
+      "keywords": [
+        "UI",
+        "换肤",
+        "横向卡列",
+        "动态皮肤",
+        "验收边界"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-character-details.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-26T13:35:36.677Z",
+      "updatedAt": "2026-10-26T13:35:36.677Z"
     }
   ]
 }
