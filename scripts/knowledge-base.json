@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-26T14:57:58.663Z",
+  "updatedAt": "2026-10-26T15:13:01.476Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5286,6 +5286,26 @@
       "confidence": "verified",
       "createdAt": "2026-10-26T14:57:58.663Z",
       "updatedAt": "2026-10-26T14:57:58.663Z"
+    },
+    {
+      "id": "kb-7c6db4e5",
+      "kind": "pattern",
+      "title": "参考身份标注采用原始圆牌覆盖目标角色四角",
+      "body": "新宇杀-UI 0.4.15 身份标注样式对应十周年UI extension.js 的 identityMarkBox 和 player_new.css：identity_new_fan/zhong/nei/cai 原图加 game_figure_mark_bg 底图，覆盖目标牌104%视口矩形，反忠内未知按四角排布。菜单挂body，用角色getBoundingClientRect定位以避免舞台重复缩放；原图提供图形，aria-label保留完整名称。16项原始素材包含特殊身份映射，不改变原生候选权限或本地标注字段。",
+      "keywords": [
+        "UI",
+        "身份标注",
+        "四角圆牌",
+        "原始素材",
+        "舞台缩放"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-identity-marks.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-26T15:13:01.476Z",
+      "updatedAt": "2026-10-26T15:13:01.476Z"
     }
   ]
 }
