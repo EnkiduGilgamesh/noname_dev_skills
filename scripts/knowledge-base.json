@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-25T14:22:12.386Z",
+  "updatedAt": "2026-10-26T00:21:23.662Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5122,6 +5122,26 @@
       "confidence": "verified",
       "createdAt": "2026-10-25T14:22:12.386Z",
       "updatedAt": "2026-10-25T14:22:12.386Z"
+    },
+    {
+      "id": "kb-bc0a4dcf",
+      "kind": "pattern",
+      "title": "对局武将名片：原生长按回调与固定浮层",
+      "body": "lib.setLongPress 将函数保存在 Player._longpresscallback；仅替换 ui.click.intro 无法接管已创建角色。计时回调交付时临时路由，随后恢复节点回调，保留内核长按 bookkeeping；卸载后的旧包装必须退回原函数。原生窗口缩小时可能保留 scrollLeft，资料浮层用 fixed 宿主及逻辑像素缩放，焦点用 preventScroll；避免随窗口内容偏移。新宇杀-UI 0.4.7 已实测双端右键、500ms 原生长按、收藏与停用恢复。",
+      "keywords": [
+        "武将名片",
+        "右键资料",
+        "_longpresscallback",
+        "长按回调",
+        "固定浮层"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-character-details.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-26T00:21:23.662Z",
+      "updatedAt": "2026-10-26T00:21:23.662Z"
     }
   ]
 }
