@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T06:47:14.495Z",
+  "updatedAt": "2026-10-27T07:43:50.658Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5437,6 +5437,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T06:47:14.495Z",
       "updatedAt": "2026-10-27T06:47:14.495Z"
+    },
+    {
+      "id": "kb-3fde7b0a",
+      "kind": "pattern",
+      "title": "0.5.0 局内界面实接保留原生聊天记录与输入契约",
+      "body": "首批局内界面应从公开 Player 外观、轮数和公开牌堆计数装配；客机仅读 status.cardPileNum。真实聊天房主调用 me.chat，客机走 game.send(chat,onlineID,text)，历史读 lib.chatHistory；观战录像断线禁发。记录沿 ui.click.pause 创建的 pausedbg 装饰并保留原 sidebar/sidebar3，关闭走原 resume，不复制日志或制造暂停状态。菜单操作派发原节点输入并冒泡到原窗口清理 clicked；投降退出按当前原生入口授权。小屏确认按钮按宿主缩放换算最小物理高度；视口验收等待原生窗口缩放完成。详见扩展文档与双端、八席位验收。",
+      "keywords": [
+        "新宇杀UI局内实接",
+        "chatHistory",
+        "cardPileNum",
+        "pausedbg",
+        "sidebar",
+        "原生输入锁"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-shell.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T07:43:50.658Z",
+      "updatedAt": "2026-10-27T07:43:50.658Z"
     }
   ]
 }
