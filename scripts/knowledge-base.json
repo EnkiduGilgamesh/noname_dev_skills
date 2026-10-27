@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T12:44:44.705Z",
+  "updatedAt": "2026-10-27T13:08:49.779Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5544,6 +5544,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T12:44:44.704Z",
       "updatedAt": "2026-10-27T12:44:44.704Z"
+    },
+    {
+      "id": "kb-be7df1ea",
+      "kind": "pattern",
+      "title": "两人身份房不能代替真正single或versus单挑的UI验收",
+      "body": "局内UI装配若只允许snapshot.mode为identity，两人身份房虽通过也不代表single单挑或versus/1v1已接入。模式白名单、实际人数与子模式需分别校验，非身份局不读取身份配额。共用视觉之外还应共用按钮槽位，原生Control按ok/cancel定位且保留父级与监听，复杂多项选择回退原布局。没有原生取消时可将既有本地重选放在取消槽；测试应实际启动single并通过原生选将和出牌验证。",
+      "keywords": [
+        "UI",
+        "单挑",
+        "single",
+        "versus",
+        "1v1",
+        "按钮布局",
+        "验收",
+        "Control"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-duel.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T13:08:49.778Z",
+      "updatedAt": "2026-10-27T13:08:49.778Z"
     }
   ]
 }
