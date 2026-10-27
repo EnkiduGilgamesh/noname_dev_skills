@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T12:10:58.498Z",
+  "updatedAt": "2026-10-27T12:44:44.705Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5521,6 +5521,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T12:10:58.498Z",
       "updatedAt": "2026-10-27T12:10:58.498Z"
+    },
+    {
+      "id": "kb-b9ab179f",
+      "kind": "pattern",
+      "title": "局内原型与真实UI共用视觉，原生对象仅做状态及输入适配",
+      "body": "原型和真实对局不能各自复制人物装饰及按钮裁切样式，应抽出同一份视觉CSS、组件和设计坐标。原生Player/Card/Control保留身份、父节点与事件，卡面可共用纯展示DOM工厂；公开姓名/HP保持原生节点，用类名桥接共享样式。浏览器计算样式归一化对比能发现通用图片规则覆盖精灵尺寸，真实横排Control需避免共享grid规则变成纵排。范围和实测见链接。",
+      "keywords": [
+        "UI",
+        "原型",
+        "共享组件",
+        "真实对局",
+        "Card",
+        "Control",
+        "样式",
+        "联机"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-shared.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T12:44:44.704Z",
+      "updatedAt": "2026-10-27T12:44:44.704Z"
     }
   ]
 }
