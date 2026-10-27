@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T07:43:50.658Z",
+  "updatedAt": "2026-10-27T10:40:59.509Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5458,6 +5458,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T07:43:50.658Z",
       "updatedAt": "2026-10-27T07:43:50.658Z"
+    },
+    {
+      "id": "kb-00c04dee",
+      "kind": "pattern",
+      "title": "0.5.1 真实手牌卡面只装饰已验证本方节点",
+      "body": "先验证本方玩家和两个手牌桶与 me.node.handcards1/2 对应、可见且非 oljuhun 扑克牌，再读取 card 字段；图片加载后及原牌重设时重新核对归属与签名。保留原 Card、原生节点、监听、技能 tempname、gaintag 和附加范围。参考 png 风格文件实际混有 PNG、WebP、JPEG，需按头识别并原字节复制。Card.copy 深拷贝装饰，新增层默认内联隐藏且仅本方手牌作用域显示，卸载清理复制层；重复牌名即时 display 隐藏避免 visibility 过渡。详见扩展文档、723 图解码和 21 项真实双端验收。",
+      "keywords": [
+        "新宇杀UI手牌卡面",
+        "handcards",
+        "Card.copy",
+        "modinfo",
+        "oljuhun",
+        "加载竞态"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-hand-cards.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T10:40:59.509Z",
+      "updatedAt": "2026-10-27T10:40:59.509Z"
     }
   ]
 }
