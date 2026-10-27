@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-26T15:13:01.476Z",
+  "updatedAt": "2026-10-27T00:21:20.253Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5306,6 +5306,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-26T15:13:01.476Z",
       "updatedAt": "2026-10-26T15:13:01.476Z"
+    },
+    {
+      "id": "kb-317cbffa",
+      "kind": "pattern",
+      "title": "头像身份图片根据公开显示文字选取并在停用时恢复",
+      "body": "新宇杀-UI 0.4.16 将右上角身份入口复用已导入的 identity_new 原图，与菜单共用映射；只根据原生身份节点现有文字选择图片，未知文字即使 data-color 含真实角色也保持问号，空标签与自定义文字保留原生显示。保留 firstChild 与 data-color 供原生标记契约使用，通过自有 CSS 类与变量覆盖视觉；观察文字及 data-color 更新，停用、切场、离场按所有权清除装饰。实现和验证边界见扩展文档。",
+      "keywords": [
+        "UI",
+        "身份图标",
+        "问号",
+        "原始圆牌",
+        "公开显示",
+        "停用恢复"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-identity-marks.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T00:21:20.252Z",
+      "updatedAt": "2026-10-27T00:21:20.252Z"
     }
   ]
 }
