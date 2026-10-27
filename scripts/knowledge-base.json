@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T00:36:27.117Z",
+  "updatedAt": "2026-10-27T01:12:52.713Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5349,6 +5349,30 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T00:36:27.117Z",
       "updatedAt": "2026-10-27T00:36:27.117Z"
+    },
+    {
+      "id": "kb-2452b529",
+      "kind": "pattern",
+      "title": "结束结算读取服务器原生统计表并保留可序列化 game.over",
+      "body": "新宇杀-UI 0.4.18 结束 UI 不包装 game.over：该函数经 Player.send 传给客户端，且 online 分支早于 lib.onover 返回。结合结束状态与原生 DOM 观察读取服务器五项统计表，匹配活人、死者、额外死者顺序；错配保留原生页面。联机双方统一按公开统计计算战绩分，未提供的评分不填零；离线仅在所有角色均有完整扩展评分时采用技术分。保留原始胜负与序列化函数，手牌委托原生 noname-poptip，再战/退出只调用当前能力。播报遵循静音/音量、原对话框 WeakSet 去重及卸载停止。",
+      "keywords": [
+        "UI",
+        "结算",
+        "统计",
+        "MVP",
+        "game.over",
+        "onover",
+        "联机",
+        "服务器统计",
+        "音频清理"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-results.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T01:12:52.712Z",
+      "updatedAt": "2026-10-27T01:12:52.712Z"
     }
   ]
 }
