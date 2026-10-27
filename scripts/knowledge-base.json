@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T13:08:49.779Z",
+  "updatedAt": "2026-10-27T16:28:56.534Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5567,6 +5567,31 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T13:08:49.778Z",
       "updatedAt": "2026-10-27T13:08:49.778Z"
+    },
+    {
+      "id": "kb-7a1dba20",
+      "kind": "pattern",
+      "title": "原生UI主题过渡、滚动和弹窗删除会破坏共享战场布局",
+      "body": "真实UI接入需检查原生鼠标与主题样式：windowmousemove删除dialog.popped:not(.static)，驻留牌堆须static并提供自身关闭；HP主题额外scale1.4/1.6会造成勾玉重叠；精灵背景位置被div全属性transition插值会使胜负图集乱飞；原生焦点会滚动overflow:hidden的window，让CSS坐标正确的四角仍整体偏移，主战场可用overflow:clip而手牌保留独立滚动。设置图鉴应按公开角色元数据构建现有详情，勿伪造Player调用依赖私有状态的动态描述；自建势力不能被六势力白名单过滤或冒充群/晋徽章。完整16项修正与真实回归见文档。",
+      "keywords": [
+        "UI",
+        "勾玉",
+        "HP",
+        "牌堆",
+        "静态弹窗",
+        "焦点",
+        "overflow",
+        "失败动画",
+        "自建势力",
+        "图鉴"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-bugfixes.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T16:28:56.533Z",
+      "updatedAt": "2026-10-27T16:28:56.533Z"
     }
   ]
 }
