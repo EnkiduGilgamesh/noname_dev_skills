@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T10:40:59.509Z",
+  "updatedAt": "2026-10-27T11:31:42.313Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5479,6 +5479,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T10:40:59.509Z",
       "updatedAt": "2026-10-27T10:40:59.509Z"
+    },
+    {
+      "id": "kb-4ad976bc",
+      "kind": "pattern",
+      "title": "0.5.2 真实局内HUD与原生技能列对齐预览",
+      "body": "本方HUD用countCards(h)和getHandcardLimit，显示可见非装备技能用getSkills(null,false)；getSkills(false)会包含invisibleSkills，隐匿武将必须先排除。身份配额只读公开配置，不统计隐藏阵营。技能列保留ui.skills/skills2/skills3原父子与输入，按原生缩放保留点击高度，空间不足或复杂候选恢复原操作行。纯文字dialog须复位caption间距及content的零字号，保留复杂窗口。长布局会隐藏mebg，恢复连续底图时按参考舞台留白定位并在arena裁切；新增节点排除位置过渡，避免缩屏越界。详见本轮文档、17项双端和13项八席位验收。",
+      "keywords": [
+        "新宇杀UI右下HUD",
+        "getSkills",
+        "技能列",
+        "mebg",
+        "caption",
+        "身份配额"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-refinement.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T11:31:42.313Z",
+      "updatedAt": "2026-10-27T11:31:42.313Z"
     }
   ]
 }
