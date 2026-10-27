@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T05:47:36.088Z",
+  "updatedAt": "2026-10-27T06:21:04.431Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5395,6 +5395,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T05:47:36.087Z",
       "updatedAt": "2026-10-27T05:47:36.087Z"
+    },
+    {
+      "id": "kb-77c448df",
+      "kind": "pattern",
+      "title": "0.4.20 战斗动效复用原生表现广播与动皮攻击",
+      "body": "战斗动效包装 Player.prototype.tryCardAnimate、trySkillAnimate、$fullscreenpop，保留原方法返回与广播，接收端不重复广播。特殊技按实际技能分类，使命 success/achieve/fail 回溯 sourceSkill，隐匿姓名不读取。gongji 可与 chuchang 共用骨骼，复用同一画布和纹理，攻击后恢复待机。原始特效附件别名、网格和旋转裁切图集会使手算头像轨道错位；离线从实际渲染的封闭透明开口提取四角轨道可兼容这些差异。逐帧阶跃 easing 应放在各 keyframe 上。详见扩展文档及 19 项预览、11 项真实双端验收。",
+      "keywords": [
+        "新宇杀UI战斗动效",
+        "tryCardAnimate",
+        "fullscreenpop",
+        "gongji",
+        "网格附件",
+        "使命动效"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-effects.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T06:21:04.430Z",
+      "updatedAt": "2026-10-27T06:21:04.430Z"
     }
   ]
 }
