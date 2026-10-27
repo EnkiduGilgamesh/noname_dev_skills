@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T11:31:42.313Z",
+  "updatedAt": "2026-10-27T12:10:58.498Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5500,6 +5500,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T11:31:42.313Z",
       "updatedAt": "2026-10-27T11:31:42.313Z"
+    },
+    {
+      "id": "kb-d84ea23b",
+      "kind": "pattern",
+      "title": "0.5.3 真实武将竖条与透明出框采用独立表现层",
+      "body": "标准包参考jpg实际为RGBA PNG，按角色ID与原生当前经典Avatar URL精确匹配透明资源，保留自然比例从底部向上出框，头部像素点击仍冒泡原Player。隐匿与双将先排除，用户换肤和动态渲染所有权保留；原Avatar inline图不改写，遮罩只在实际已装配Player内生效，卸载须清理复制层。龙首尾按参考锚点contain，bronze按原生约定用玉龙资源。全屏布局去掉arena46px顶部空带，背景只画在window，原生背景与时间栏按自有类临时隐藏；本方与底部区域按实际窗口边缘锚定。详见115项测试、25项双端和19项八席位记录。",
+      "keywords": [
+        "新宇杀UI出框",
+        "竖条",
+        "龙饰",
+        "Avatar",
+        "背景审计",
+        "全屏贴边"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-framing.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T12:10:58.498Z",
+      "updatedAt": "2026-10-27T12:10:58.498Z"
     }
   ]
 }
