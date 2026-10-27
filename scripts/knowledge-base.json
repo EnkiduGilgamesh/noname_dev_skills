@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T01:12:52.713Z",
+  "updatedAt": "2026-10-27T05:47:36.088Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5373,6 +5373,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T01:12:52.712Z",
       "updatedAt": "2026-10-27T01:12:52.712Z"
+    },
+    {
+      "id": "kb-1fcaf666",
+      "kind": "pattern",
+      "title": "结束胜负骨骼离线提帧与原生流程衔接",
+      "body": "胜利、失败、平局使用十周年UI jiesuan 原动作，保持原速率；离线提帧须排除粒子的透明巨型边界，并共用相机缩放。运行时按原生结果加载单张图集，素材地址须兼容相对路径；可见性暂停、低动态和加载失败静态回退、跳过与卸载清理统一管理，再衔接全场最佳。详细证据及验收见文档。",
+      "keywords": [
+        "UI",
+        "胜利",
+        "失败",
+        "平局",
+        "骨骼",
+        "序列帧",
+        "可见性"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-results.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T05:47:36.087Z",
+      "updatedAt": "2026-10-27T05:47:36.087Z"
     }
   ]
 }
