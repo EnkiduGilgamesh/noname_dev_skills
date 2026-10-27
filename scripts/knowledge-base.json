@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T06:21:04.431Z",
+  "updatedAt": "2026-10-27T06:47:14.495Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5416,6 +5416,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T06:21:04.430Z",
       "updatedAt": "2026-10-27T06:21:04.430Z"
+    },
+    {
+      "id": "kb-19df39a0",
+      "kind": "pattern",
+      "title": "全场最佳插画与动静光框共用坐标系",
+      "body": "全场最佳动画纹理内已含倾斜的卡牌开口，插画和势力框应依据开口使用同一父坐标与倾角；插画独立裁切到边框内沿。静态光框开口未旋转，不能直接替换动态纹理后沿用整图定位，应单独校准并随卡牌旋转。详细定位与桌面、触控、原生截图见文档。",
+      "keywords": [
+        "UI",
+        "全场最佳",
+        "插画",
+        "光框",
+        "对齐",
+        "低动态"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-results.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T06:47:14.495Z",
+      "updatedAt": "2026-10-27T06:47:14.495Z"
     }
   ]
 }
