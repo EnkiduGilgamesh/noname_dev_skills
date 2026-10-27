@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T00:21:20.253Z",
+  "updatedAt": "2026-10-27T00:36:27.117Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5327,6 +5327,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T00:21:20.252Z",
       "updatedAt": "2026-10-27T00:21:20.252Z"
+    },
+    {
+      "id": "kb-0ee14aef",
+      "kind": "pattern",
+      "title": "设置页外观直接装饰原生菜单并保留暂停与配置契约",
+      "body": "新宇杀-UI 0.4.17 设置首版复用手杀UI菜单原始素材，独立预览与真实游戏样式分别限定在原型根及自有类。真实入口调用 ui.click.config，装饰 ui.menuContainer/connectMenuContainer，不替换六栏节点或配置回调；返回派发原容器事件保留 resume2 和房间状态清理，Esc 先关闭下拉再关闭设置。启动图案只用于原生“启”，“设”等房间动作保留原文。停用按所有权移除装饰与监听，原函数引用保持。预览参数仅本次会话，真实设置交由内核保存。",
+      "keywords": [
+        "UI",
+        "设置",
+        "菜单",
+        "配置",
+        "暂停",
+        "原生回调",
+        "手杀UI"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-settings.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T00:36:27.117Z",
+      "updatedAt": "2026-10-27T00:36:27.117Z"
     }
   ]
 }
