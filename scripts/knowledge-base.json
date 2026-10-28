@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-28T10:50:45.353Z",
+  "updatedAt": "2026-10-28T14:32:37.174Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5795,6 +5795,26 @@
       "confidence": "verified",
       "createdAt": "2026-10-28T10:50:45.352Z",
       "updatedAt": "2026-10-28T10:50:45.352Z"
+    },
+    {
+      "id": "ui-card-motion-native-gain-equip-20261028",
+      "kind": "pattern",
+      "title": "局内牌动画应使用显示副本并保留原生入手与虚拟装备契约",
+      "body": "原生 gain 在等待动画后才插入真实手牌；自己的正面飞入可在本地可见手牌入手后展示。现内核 addVirtualEquip 的广播回调直接插入装备 DOM，不能只包装旧 $equip。使用 cloneNode 创建独立动画层，避免 Card.copy 改写 clone；隐藏类必须先判定，临时透明类还需清理继承副本。双端与原生事件证据见文档。",
+      "keywords": [
+        "Card.copy",
+        "addVirtualEquip",
+        "摸牌动画",
+        "装备动画",
+        "卡牌尺寸"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-card-motion.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T14:32:37.173Z",
+      "updatedAt": "2026-10-28T14:32:37.173Z"
     }
   ]
 }
