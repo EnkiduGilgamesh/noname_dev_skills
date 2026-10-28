@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-27T16:28:56.534Z",
+  "updatedAt": "2026-10-28T00:22:43.680Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5592,6 +5592,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T16:28:56.533Z",
       "updatedAt": "2026-10-27T16:28:56.533Z"
+    },
+    {
+      "id": "kb-2af646d5",
+      "kind": "pattern",
+      "title": "公开处理牌复用卡面须固定槽位并保留淡出缓存",
+      "body": "原生ui.thrown持续写入translate或scale，接管布局时须覆盖已装配处理牌的transform，固定同一视口的尺寸与间距；.removing期间保留公开卡面缓存和槽位直到detach，不能提前释放尺寸或让相邻牌收拢。卡面可复用已验证本机手牌与可见公开显示，但infohidden及infoflip必须在读取身份前拦截并立即遮蔽。原生多技能组保持父节点，用独立绝对定位列排布，不参与操作行；复杂控制按区域换行。style被MutationObserver观察时应只发布最终变量，避免先满宽再缩窄形成微任务循环。",
+      "keywords": [
+        "处理牌",
+        "ui.thrown",
+        "淡出",
+        "固定间距",
+        "infoflip",
+        "技能列",
+        "微任务循环"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-stability.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T00:22:43.680Z",
+      "updatedAt": "2026-10-28T00:22:43.680Z"
     }
   ]
 }
