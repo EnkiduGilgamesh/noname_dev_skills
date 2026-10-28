@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-28T06:06:10.157Z",
+  "updatedAt": "2026-10-28T06:42:15.878Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5707,6 +5707,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-28T06:06:10.156Z",
       "updatedAt": "2026-10-28T06:06:10.156Z"
+    },
+    {
+      "id": "kb-bbaaa5d7",
+      "kind": "pattern",
+      "title": "龙饰按原图曲线和穿框地标对齐身份与卡框",
+      "body": "金玉龙首97x191、银龙首97x166不能只共用透明外框偏移。用原图透明弯曲中心对齐同一身份槽位，龙尾的实像素穿框点对齐卡框右下边；原始宽高等比显示，停止使用图片右边或底边作为龙身位置。贴屏幕边缘时给整个装饰的外伸范围留空间，移动整个Player使姓名装备头像保持同步。实际PNG解码验证透明中心、不透明穿框点和完整素材边界；真实双端核对中心、穿框和身份命中。",
+      "keywords": [
+        "龙饰",
+        "龙首",
+        "身份",
+        "边框",
+        "地标",
+        "透明",
+        "UI",
+        "布局"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-dragon-frame.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T06:42:15.878Z",
+      "updatedAt": "2026-10-28T06:42:15.878Z"
     }
   ]
 }
