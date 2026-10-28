@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-28T07:32:50.662Z",
+  "updatedAt": "2026-10-28T08:42:41.931Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5752,6 +5752,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-28T07:32:50.661Z",
       "updatedAt": "2026-10-28T07:32:50.661Z"
+    },
+    {
+      "id": "kb-59005a94",
+      "kind": "pattern",
+      "title": "原型选将接入原生 chooseButton 与单机自由入口",
+      "body": "真实选将只消费本机可见角色候选，输入前复核当前事件、对话框与节点，并向原节点冒泡派发输入。单机自由选将优先调用模式自带 cheat2，保留原生防连点、过滤和回传；大候选池分页保持原型卡片尺寸。固定舞台必须关闭内核全局 div transition，防止缩放裁切；停用恢复原节点显示。",
+      "keywords": [
+        "选将UI",
+        "自由选将",
+        "chooseButton",
+        "cheat2",
+        "原型复用",
+        "选将分页"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-selection-native.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T08:42:41.931Z",
+      "updatedAt": "2026-10-28T08:42:41.931Z"
     }
   ]
 }
