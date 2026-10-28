@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-28T06:42:15.878Z",
+  "updatedAt": "2026-10-28T07:32:50.662Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5730,6 +5730,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-28T06:42:15.878Z",
       "updatedAt": "2026-10-28T06:42:15.878Z"
+    },
+    {
+      "id": "kb-0fc1e689",
+      "kind": "pattern",
+      "title": "装备上移后为原生昵称保留固定底行",
+      "body": "当昵称需要显示在武将卡框最底部时，用同一昵称行高变量将 equips.bottom 上移并固定 nameol.bottom=0，不再按装备高度移动昵称；保留原节点和坐骑两半栏。标记底距需要包含装备实际高度以及预留行高，昵称为空或隐藏也保留行高。浏览器验收要用 window boundingWidth/clientWidth 换算 CSS 最小行高，不能把16CSS像素直接当成缩放后16物理像素。",
+      "keywords": [
+        "昵称",
+        "nameol",
+        "装备",
+        "equips",
+        "底行",
+        "UI",
+        "zoom"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-nickname-row.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T07:32:50.661Z",
+      "updatedAt": "2026-10-28T07:32:50.661Z"
     }
   ]
 }
