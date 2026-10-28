@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-28T00:49:41.877Z",
+  "updatedAt": "2026-10-28T05:04:59.919Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5637,6 +5637,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-28T00:49:41.876Z",
       "updatedAt": "2026-10-28T00:49:41.876Z"
+    },
+    {
+      "id": "kb-b3c8a82d",
+      "kind": "pattern",
+      "title": "原生卡牌弹窗复刻保留按钮行、私有可见性与拖动契约",
+      "body": "chooseButton、showCards和五谷的Card按钮可装配统一参考面板；复用手牌卡面后必须覆盖弹窗卡牌绝对定位，普通卡列流式换行，chooseToMove保持原生行与Button父子关系以保留点击交换、拖动和顺序回包。不能照搬旧参考工程的全局content重写；只装饰当前可见原生DOM，人物/混合组件面板不泛化。暗牌blank/infohidden以及展示回调清空原生name/info节点时须在读身份前拒绝。拖动克隆继承已知卡面和缩放，位置仍由原生处理；真实选择倒计时放面板标题区以免遮牌。真实双端测试须等实体牌同步、原生请求切换与防双击锁释放，不能把迟到的按钮当当前操作。",
+      "keywords": [
+        "卡牌弹窗",
+        "五谷丰登",
+        "观看牌",
+        "chooseToMove",
+        "Button父节点",
+        "blank",
+        "拖动",
+        "dialog_new.css"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-card-dialogs.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T05:04:59.918Z",
+      "updatedAt": "2026-10-28T05:04:59.918Z"
     }
   ]
 }
