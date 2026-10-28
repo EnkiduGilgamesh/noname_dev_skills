@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-28T05:24:11.099Z",
+  "updatedAt": "2026-10-28T06:06:10.157Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5683,6 +5683,30 @@
       "confidence": "verified",
       "createdAt": "2026-10-28T05:24:11.099Z",
       "updatedAt": "2026-10-28T05:24:11.099Z"
+    },
+    {
+      "id": "kb-7e2454ef",
+      "kind": "pattern",
+      "title": "原生目标指示线与双方时间条的展示适配",
+      "body": "指示线保留 Player.line 的广播录像与 game.linexy 返回节点、原生伸出淡出和移除；只在调用域用公开DOM坐标对齐本地手牌上沿和远端立绘，drag保留原节点。自己计时来自 ui.timer.set，由原生剩余秒数和比例插值下一秒，不另开超时和托管；远端 timerbar 则保留 showTimer/hideTimer 的广播、填充transform及transitionDuration，容器禁止尺寸过渡以避免瞬间变粗。装饰适配必须以安装代次失效旧闭包，防止后装扩展保留旧wrapper后重启时重复运行。浏览器等待双端操作者的未完成轮询在重连时需要空对象保护。",
+      "keywords": [
+        "指示线",
+        "line",
+        "linexy",
+        "时间条",
+        "进度条",
+        "timer",
+        "联机",
+        "wrapper",
+        "UI"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-indicators.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T06:06:10.156Z",
+      "updatedAt": "2026-10-28T06:06:10.156Z"
     }
   ]
 }
