@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-28T05:04:59.919Z",
+  "updatedAt": "2026-10-28T05:24:11.099Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5660,6 +5660,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-28T05:04:59.918Z",
       "updatedAt": "2026-10-28T05:04:59.918Z"
+    },
+    {
+      "id": "kb-a96e2c23",
+      "kind": "pattern",
+      "title": "原生标记与木牛存牌详情的展示契约",
+      "body": "UI复刻只装饰原生 player.node.marks、mark 与 markcount，不枚举 storage、expansion、muniu.storages 或 link 重建卡牌详情。手杀分支 Chrome122+ 实际加载 player_mark_fix.css，使用白字标记名与数量换行；标记容器必须显式解除原生宽度和变换，并避开装备及昵称。木牛标记可展示木马，但原生 intro.mark 决定持有者见牌、对手只见数量；详情卡面只能渲染原生弹窗已经生成的可见DOM。原生蒙层关闭函数依赖 this，自动化应通过真实鼠标关闭，并等待真实当前操作者事件。",
+      "keywords": [
+        "标记",
+        "木牛流马",
+        "muniu",
+        "移出游戏",
+        "expansion",
+        "UI",
+        "可见性",
+        "nodeintro"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-marks.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T05:24:11.099Z",
+      "updatedAt": "2026-10-28T05:24:11.099Z"
     }
   ]
 }
