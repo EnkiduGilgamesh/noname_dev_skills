@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-28T00:22:43.680Z",
+  "updatedAt": "2026-10-28T00:49:41.877Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5614,6 +5614,29 @@
       "confidence": "verified",
       "createdAt": "2026-10-28T00:22:43.680Z",
       "updatedAt": "2026-10-28T00:22:43.680Z"
+    },
+    {
+      "id": "kb-46438641",
+      "kind": "pattern",
+      "title": "原生数字提示需按内容留白且竖排名行高控制横向居中",
+      "body": "chooseToDiscard等事件在同一dialog.content追加promptbar caption；只按一行固定高度定位会把数字压到手牌。按内容纵向流、行数及实际高度留白，必要时同步上移操作区。竖排writing-mode的line-height是横向列宽，姓名要与势力条等宽并清除原生偏移；缩放时竖条、装备、体力不可保留几何插值，否则边缘会短暂错位。装备贴底时昵称须避让，坐骑半栏总宽应以立绘区校验。勾玉按原生high/mid/low保留绿黄红，lost独立深色，不能统一绿色。",
+      "keywords": [
+        "promptbar",
+        "数字提示",
+        "caption",
+        "竖排名",
+        "行高",
+        "装备贴底",
+        "坐骑宽度",
+        "勾玉三色"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-battle-alignment.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T00:49:41.876Z",
+      "updatedAt": "2026-10-28T00:49:41.876Z"
     }
   ]
 }
