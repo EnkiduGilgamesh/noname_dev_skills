@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-28T08:42:41.931Z",
+  "updatedAt": "2026-10-28T10:50:45.353Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5773,6 +5773,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-28T08:42:41.931Z",
       "updatedAt": "2026-10-28T08:42:41.931Z"
+    },
+    {
+      "id": "kb-ec2f2919",
+      "kind": "pattern",
+      "title": "选将后准备战场与客机提前 gameStarted 边界",
+      "body": "本机提交武将后仍可能等待其他人或进行势力选择，必须独立提供 preparing 场景，提前共用战场视觉但不开放对局输入。客机 message.gameStart 在选将期间即设置 gameStarted，仍须优先识别真实角色候选和 choose-character；客机不运行房主 gameDrawEnd，不能靠 gameDrawed 结束准备。单机手气卡保留 gameDraw 原生确认，淡出旧武将库须关闭 transition 并隐藏，避免叠层。",
+      "keywords": [
+        "preparing",
+        "选将衔接",
+        "等待选将",
+        "客机gameStarted",
+        "gameDrawed",
+        "势力选择",
+        "手气卡"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-preparation.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T10:50:45.352Z",
+      "updatedAt": "2026-10-28T10:50:45.352Z"
     }
   ]
 }
