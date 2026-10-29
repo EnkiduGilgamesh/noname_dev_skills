@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-29T14:02:32.425Z",
+  "updatedAt": "2026-10-29T14:36:12.337Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5857,6 +5857,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-29T14:02:32.424Z",
       "updatedAt": "2026-10-29T14:02:32.424Z"
+    },
+    {
+      "id": "kb-ui-card-back-equip-handoff",
+      "kind": "pitfall",
+      "title": "统一牌背应覆盖空牌及继承卡面，装备显示副本交接要保持原生副本隐藏到删除",
+      "body": "空 Card、blank、infohidden、infoflip 和 drawinghidden 必须共用牌背，正面背景声明须排除隐藏态。装备入栏时须接管尚未结束或已注销处理区副本的显示动画，并即时隐藏原生副本直到删除，避免 opacity 过渡重影；不改 Card.clone 或原生事件。复现和双端逐帧证据见文档。",
+      "keywords": [
+        "UI",
+        "牌背",
+        "装备",
+        "动画",
+        "moveDelete",
+        "clone",
+        "opacity"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-card-back-equipment.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-29T14:36:12.337Z",
+      "updatedAt": "2026-10-29T14:36:12.337Z"
     }
   ]
 }
