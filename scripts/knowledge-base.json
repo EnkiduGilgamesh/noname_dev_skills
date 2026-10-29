@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-29T00:57:35.258Z",
+  "updatedAt": "2026-10-29T14:02:32.425Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5836,6 +5836,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-29T00:57:35.258Z",
       "updatedAt": "2026-10-29T00:57:35.258Z"
+    },
+    {
+      "id": "ui-draw-batch-right-order-20261029",
+      "kind": "pattern",
+      "title": "摸牌批次与视觉右端排列应独立于原生递归和节点顺序",
+      "body": "原生 $draw 每50毫秒用同一个config递归单张；显示层应在批次起点按公开数量同时建牌背，递归继续跑原生视频/广播流程但不重复新批次。gain/directgain在真实手牌头部插牌，可用受控CSS order将新可见牌显示到分组右端，修正第一张间距并保留原生DOM顺序、Card.clone与主动排序。原生slim-player计数z-index:3 !important会盖过普通层级声明，需要检查最终计算层级。实现与双端证据见文档。",
+      "keywords": [
+        "整批摸牌",
+        "$draw递归",
+        "手牌右端",
+        "CSSorder",
+        "计数层级",
+        "slim-player"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-refinement-v084.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-29T14:02:32.424Z",
+      "updatedAt": "2026-10-29T14:02:32.424Z"
     }
   ]
 }
