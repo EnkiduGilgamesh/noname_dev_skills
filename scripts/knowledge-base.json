@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-28T14:32:37.174Z",
+  "updatedAt": "2026-10-29T00:57:35.258Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5815,6 +5815,27 @@
       "confidence": "verified",
       "createdAt": "2026-10-28T14:32:37.173Z",
       "updatedAt": "2026-10-28T14:32:37.173Z"
+    },
+    {
+      "id": "ui-public-selection-badge-hover-20261029",
+      "kind": "pattern",
+      "title": "联机选将使用本人牌签与公开主公标记，悬停应处理节点回调",
+      "body": "identity.chooseCharacterOL 在客机先设置可见身份牌和公开主公的身份标记/立绘，不保证同期写入 game.me.identity 或 game.zhu；展示层应只消费自己的可见牌签、已公开主公标记，隐藏武将仍先拒绝读取。原生悬停定时器调用节点保存的 _hoverfunc，关闭武将悬停应在生命周期保存/清空/恢复各 Player 的回调，保留卡牌、标记与右键。联机 pause2 不设置 paused2，详情弹层存在时选将快捷键应让出 Escape。详情和实机证据见文档。",
+      "keywords": [
+        "选将身份牌",
+        "公开主公",
+        "chooseCharacterOL",
+        "_hoverfunc",
+        "Escape",
+        "联机pause2"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-bug-list-20261029.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-29T00:57:35.258Z",
+      "updatedAt": "2026-10-29T00:57:35.258Z"
     }
   ]
 }
