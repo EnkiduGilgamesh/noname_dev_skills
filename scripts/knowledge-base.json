@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-30T00:39:03.767Z",
+  "updatedAt": "2026-10-30T14:44:34.039Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -3200,34 +3200,6 @@
       "updatedAt": "2026-10-21T14:36:39.860Z"
     },
     {
-      "id": "kb-32ec9439",
-      "kind": "pattern",
-      "title": "武将牌扩展区卡牌当桃使用的chooseButton范式",
-      "body": "将武将牌上的扩展牌（getExpansions）作为【桃】使用的标准范式是：主/子技能配置 enable: 'chooseToUse'，filter 判断 player.getExpansions(skill).length > 0 && event.filterCard(get.autoViewAs({ name: 'tao' }, 'unsure'), player, event)；通过 chooseButton.dialog 弹出扩展牌，在 backup(links) 中返回 { selectCard: -1, position: 'x', filterCard: () => false, viewAs: { name: 'tao' }, card: links[0] }。该写法无缝适配出牌阶段主动吃桃与濒死响应（save / respondTao: true），且无需手动处理卡牌移动，引擎会自动从武将牌扩展区扣除该牌并进入弃牌堆。",
-      "keywords": [
-        "扩展牌",
-        "桃",
-        "chooseToUse",
-        "chooseButton",
-        "position:x",
-        "viewAs"
-      ],
-      "refs": [
-        "xy_fanbu @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:1741-1844"
-      ],
-      "fingerprints": [
-        {
-          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
-          "start": 1741,
-          "end": 1844,
-          "hash": "4c3ff6beddf1"
-        }
-      ],
-      "confidence": "verified",
-      "createdAt": "2026-10-21T14:47:22.261Z",
-      "updatedAt": "2026-10-21T14:47:22.261Z"
-    },
-    {
       "id": "kb-a20346f3",
       "kind": "pattern",
       "title": "统计同势力已阵亡角色数与摸牌阶段增量范式",
@@ -3833,31 +3805,33 @@
     {
       "id": "kb-964bad67",
       "kind": "pattern",
-      "title": "中止延时锦囊判定并搬走：cancelled+excluded，勿用 direct",
-      "body": "把一张正在判定的延时锦囊搬去另一名角色判定区，或『中止此判定』，必须用 phaseJudge（逐张判定的触发点）：引擎第2步已先 player.lose(card, ui.ordering) 把牌移出判定区，之后才 event.trigger('phaseJudge')，trigger.card 仍可用但 player.getCards('j') 已看不到它。★正确写法是 content 里同时置 trigger.cancelled = true（跳过判定）与 trigger.excluded = true（第4步最先判 excluded，跳过 cancel 内容与 effect 结算）。★绝不能只置 trigger.direct：引擎结构是 if(excluded){...} else if(cancelled && !direct){跑牌的cancel} else {跑牌的effect}，direct 为真会掉进 else 去结算 effect，而事件结果是 undefined，lebu.effect 里 result.bool 直接抛 TypeError（1.11.7 实测崩溃）。官方中止判定的同款用法见 tw/skill.js 2177、shiji/skill.js 3622（只 evt.excluded = true）。搬运本身用 target.addJudge(trigger.card)：处理区('o')的牌允许入判定区，判定阶段收尾的 orderingDiscard 只弃仍在处理区的牌；addJudge 触发 addJudgeBefore，定汉类可正常拦截。_wuxie priority=5 先结算且 filter 在 arrangeTrigger 先于 content 求值，cost 里要再查 trigger.cancelled。",
+      "title": "中止延时锦囊判定并搬走：cancelled+excluded，勿用 direct 与不存在的 removeJudge",
+      "body": "★做法：把一张正在判定的延时锦囊搬去另一名角色判定区，或『中止此判定』的标准范式：\n1. 触发时机：trigger: { global: \"judgeBegin\" } 或 phaseJudge。\n2. 判定牌转移与 API 避坑：无名杀 Player 原型上根本没有 removeJudge() 方法，严禁调用 trigger.player.removeJudge()！延时锦囊在判定开始前，引擎第 2 步已先通过 player.lose(card, \"visible\", ui.ordering) 将牌移出原判定区进入处理区（\"o\"）。将牌置入新目标判定区只需直接调用 await target.addJudge(trigger.card)（底层会自动处理卡牌归属与新判定区置入）。\n3. 目标合法性过滤：filterTarget 与 filter 必须使用 target.canAddJudge(trigger.card)（底层会自动检查判定区废除、已有同名锦囊及技能免疫等），切勿仅简单比对牌名。\n4. 中止当前判定流程：content 里通过 trigger.cancel() 取消本次 judge 事件，同时必须通知父事件 phaseJudge：trigger.getParent(\"phaseJudge\").excluded = true！引擎底层第 4 步最先检查 excluded，置为 true 会彻底跳过牌的 cancel 与 effect 结算；绝不能只置 direct，否则会掉进 else 导致 lebu 等锦囊因 result 为 undefined 抛 TypeError 崩溃。\n5. AI 决策：仅对保护友方（原判定者）并将祸害转移给敌方（get.attitude < 0）时发动，给牌优先选 7 - get.value(card) 的废牌。",
       "keywords": [
         "phaseJudge",
+        "judgeBegin",
         "延时锦囊",
         "中止判定",
         "excluded",
         "迁祸",
-        "trigger.cancelled",
-        "trigger.direct"
+        "removeJudge",
+        "addJudge",
+        "canAddJudge"
       ],
       "refs": [
-        "xy_qianhuo @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:2522-2608"
+        "xy_qianhuo @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:5692-5735"
       ],
       "fingerprints": [
         {
           "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
-          "start": 2522,
-          "end": 2608,
-          "hash": "fdace661c17d"
+          "start": 5692,
+          "end": 5735,
+          "hash": "4e625eceeaeb"
         }
       ],
       "confidence": "verified",
       "createdAt": "2026-10-23T16:47:41.957Z",
-      "updatedAt": "2026-10-23T16:47:41.957Z"
+      "updatedAt": "2026-10-28T00:21:10.205Z"
     },
     {
       "id": "kb-ui-p2-regions",
@@ -4571,29 +4545,33 @@
       "id": "kb-fad3731c",
       "kind": "pattern",
       "title": "造成伤害时属性转化范式（damageBegin1与setNature）",
-      "body": "★做法：实现『当你造成伤害时转化伤害属性（如雷电/火焰伤害）』的标准范式：1.时机选source: 'damageBegin1'（伤害属性确立与改写阶段）；2.filter过滤(!event.nature || event.nature !== 'thunder')并检查弃牌成本；3.使用async cost弹出chooseToDiscard进行弃牌询问与AI损益评估（如目标处于铁索连环时高优先级转化）；4.content中调用game.setNature(trigger, 'thunder')规范改写伤害属性，后续铁索传导、唤雷、雷厉等机制均能准确捕获。",
+      "body": "★做法：实现『当你造成伤害时转化伤害属性（如雷电/火焰伤害）』的标准范式：\n1. 时机选 source: \"damageBegin1\"（伤害属性确立与改写阶段）；\n2. filter 过滤 (!event.nature || event.nature !== \"thunder\") 并检查弃牌成本；\n3. 使用 async cost 弹出 chooseToDiscard 进行弃牌询问与 AI 损益评估。\n⚠ 避坑红线：无名杀中检测角色是否处于横置/铁锁连环状态的标准 API 是 player.isLinked()，引擎根本不存在 isChained()（若误写为 target.isChained() 会在 AI 选牌或结算时直接抛出 TypeError: isChained is not a function 导致崩溃！）；同时连环判定必须配合敌对立场检查 get.attitude(player, target) < 0，仅对连环敌人优先转化雷电伤害，防止连环传导误伤队友。\n4. content 中调用 game.setNature(trigger, \"thunder\") 规范改写伤害属性，后续铁索传导、唤雷、雷厉等机制均能准确捕获。",
       "keywords": [
         "伤害转化",
         "damageBegin1",
         "setNature",
         "雷令",
         "雷电伤害",
-        "属性伤害"
+        "属性伤害",
+        "isLinked",
+        "isChained",
+        "横置",
+        "铁锁连环"
       ],
       "refs": [
-        "xy_leiling @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4308-4332"
+        "xy_leiling @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:4444-4468"
       ],
       "fingerprints": [
         {
           "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
-          "start": 4308,
-          "end": 4332,
-          "hash": "1a7c1f42aacf"
+          "start": 4444,
+          "end": 4468,
+          "hash": "aa64792a1733"
         }
       ],
       "confidence": "verified",
       "createdAt": "2026-10-24T17:24:46.960Z",
-      "updatedAt": "2026-10-24T17:24:46.960Z"
+      "updatedAt": "2026-10-28T00:21:10.203Z"
     },
     {
       "id": "kb-81ea0bdd",
@@ -4850,6 +4828,26 @@
       "updatedAt": "2026-10-24T19:11:19.699Z"
     },
     {
+      "id": "kb-5041baa1",
+      "kind": "pattern",
+      "title": "武将牌有序扩展区与相同时闭合区间收牌（钓红点/拉火车范式）",
+      "body": "当武将牌上的牌要求是有序的（索引有序），且每次追加新牌时比对最大索引牌与更小索引牌点数/花色并收走闭合区间时：1. 不应单纯依赖 DOM 结构的 player.getExpansions，因为 DOM 插入顺序可能被 insertBefore 逆转；2. 应在 player.storage 维护一个数组保持时间顺序，每次置牌前用 getExpansions 过滤有效牌，新牌 push 到数组末尾；3. 最大索引为 length-1，遍历所有更小索引找到点数相等的索引，若有多张则通过 chooseButton 让玩家选择闭合起点；4. 通过 player.storage[skill].splice(startIdx, count) 截取卡牌并 await player.gain(gainCards, 'gain2') 获得牌，并自动触发 markAuto/markSkill 保持 UI 显示最新状态。",
+      "keywords": [
+        "武将牌",
+        "扩展区",
+        "有序",
+        "拉火车",
+        "钓红点",
+        "勉延",
+        "点数相同"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T19:24:04.675Z",
+      "updatedAt": "2026-10-24T19:24:04.675Z"
+    },
+    {
       "id": "kb-a8c77eaa",
       "kind": "pattern",
       "title": "经典场模式图集与选中按钮外扩布局",
@@ -4869,6 +4867,87 @@
       "confidence": "verified",
       "createdAt": "2026-10-24T19:28:24.977Z",
       "updatedAt": "2026-10-24T19:28:24.977Z"
+    },
+    {
+      "id": "kb-d11b9ac7",
+      "kind": "pattern",
+      "title": "声明颜色判定与连击收牌循环范式（卜卦）",
+      "body": "★做法：实现『准备阶段声明颜色并判定，猜中得牌并可重复』的标准范式：\n1. 循环与退出：在 phaseZhunbeiBegin 使用 while(true) 循环，每次通过 chooseControl(['red', 'black', 'cancel2']) 询问，选 cancel2 随时无损终止退出；\n2. 判定与即时截留：在 judgeEvent 中配置 callback，比对 evt.judgeResult.color === control 后，将处于 ordering('o') 区域且非毒的牌提前 gain 到手牌，防止被弃牌堆监听技截走；\n3. 状态兜底与循环驱动：若判定牌已入弃牌堆('d')则兜底 gain，若 result.color === control 则自增成功计数并继续下一轮判定，若不符则 break 终结。",
+      "keywords": [
+        "卜卦",
+        "声明颜色",
+        "判定循环",
+        "洛神",
+        "phaseZhunbeiBegin",
+        "judge",
+        "callback"
+      ],
+      "refs": [
+        "xy_bugua @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:5268-5326"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 5268,
+          "end": 5326,
+          "hash": "4cbc3f9dbdca"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T19:33:49.771Z",
+      "updatedAt": "2026-10-24T19:33:49.771Z"
+    },
+    {
+      "id": "kb-16d70a27",
+      "kind": "pattern",
+      "title": "其他角色使用牌后交换牌与弃牌堆回收范式（保福）",
+      "body": "★做法：实现『其他角色使用某牌（如桃）后交牌并从弃牌堆回收该牌』的标准范式：\n1. 时机选择：使用 global: 'useCardAfter'，确保目标牌已完整结算并置入弃牌堆('d')；\n2. 触发过滤：过滤 event.player !== player 且在场、event.card.name === 'tao'、自身拥有红桃牌（get.suit(card, player) === 'heart' 兼容花色改写技能），且 trigger.cards 在弃牌堆真实存在；\n3. 给牌与回收：在 cost 中选红桃牌，content 中调用 await player.give(event.cards, trigger.player) 把牌交给使用者，再通过 trigger.cards.filter(c => get.position(c, true) === 'd') 获得桃。",
+      "keywords": [
+        "保福",
+        "useCardAfter",
+        "弃牌堆回收",
+        "player.give",
+        "桃",
+        "红桃"
+      ],
+      "refs": [
+        "xy_baofu @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:5332-5377"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 5332,
+          "end": 5377,
+          "hash": "6d582e164668"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-24T19:33:55.125Z",
+      "updatedAt": "2026-10-24T19:33:55.125Z"
+    },
+    {
+      "id": "kb-55a44c80",
+      "kind": "pattern",
+      "title": "失去装备触发决斗与失去最后手牌移动替换装备的自闭环联动范式",
+      "body": "1. 好斗（失去装备视为决斗且免伤）：通过 loseAfter + getIndex（evt.es.length）监听失去装备区牌，视为使用决斗并在事件/卡牌打上专属标记；挂载 damageBefore 子技能，通过 event.getParent('useCard') 或 event.getParent('juedou') 识别该决斗，若受伤害者为自身且自身手牌数小于决斗目标则 trigger.cancel() 防止伤害；2. 死缠（失去最后手牌移动装备）：loseAfter 监听自身失去最后手牌（countCards('h')==0 且 evt.hs.length>0），选择其他角色装备区一张牌后执行 target.(card, player) 与 player.equip(card)；player.equip 内部会自动卸下对应栏位原装备并置入弃牌堆，从而连环触发好斗；3. 恣睢（限定技依次二选一）：出牌阶段通过 targets.sortBySeat() 遍历其他角色，若无非基本牌则直接伤害，若有非基本牌则通过 target.chooseToGive 让其选择交牌或受到1点伤害。",
+      "keywords": [
+        "失去装备",
+        "决斗",
+        "防止伤害",
+        "失去最后手牌",
+        "移动装备",
+        "替换装备",
+        "限定技",
+        "依次二选一",
+        "好斗",
+        "死缠",
+        "恣睢"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T02:40:04.477Z",
+      "updatedAt": "2026-10-25T02:40:04.477Z"
     },
     {
       "id": "kb-67446a29",
@@ -4895,6 +4974,27 @@
       "updatedAt": "2026-10-25T02:42:36.514Z"
     },
     {
+      "id": "kb-91eb467a",
+      "kind": "pattern",
+      "title": "受伤害后双向弃牌与封印全技能（白板）的结算范式",
+      "body": "1. 受伤害触发：damageEnd 时机检测 player.countCards('he') > 0 以及 event.source && event.source.isIn()；2. 代价与全弃牌：先通过 await player.discard(player.getCards('he')) 弃置自身全部牌，再通过 await source.discard(source.getCards('he')) 弃置伤害来源全部牌；3. 封印所有技能直到回合结束：调用原生 source.addTempSkill('baiban')，底层通过 skillBlocker 屏蔽其全部非持久/非临时技能直到当前回合结束，无需自建清理钩子。",
+      "keywords": [
+        "受伤害",
+        "全弃牌",
+        "伤害来源",
+        "失去所有技能",
+        "白板",
+        "baiban",
+        "直到回合结束",
+        "桀傲"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T02:43:39.036Z",
+      "updatedAt": "2026-10-25T02:43:39.036Z"
+    },
+    {
       "id": "kb-943f530a",
       "kind": "pattern",
       "title": "平滑选将计时共用浏览器动画时间并保留暂停小数进度",
@@ -4916,6 +5016,110 @@
       "confidence": "verified",
       "createdAt": "2026-10-25T03:03:42.210Z",
       "updatedAt": "2026-10-25T03:03:42.210Z"
+    },
+    {
+      "id": "kb-13f7d2af",
+      "kind": "pattern",
+      "title": "受伤害转体力流失、回合末招杀与体力减少取消目标联动范式",
+      "body": "1. 伤害转流失（自受）：damageBefore 时机通过 trigger.cancel() 拦截，并 await player.loseHp(trigger.num) 转化为体力流失；2. 回合末招惹（沾惹）：global: phaseJieshuBegin 时机检查 target.hasHistory('sourceDamage') 判定本回合未造成过伤害，player.gainPlayerCard 拿牌后调用 target.useCard({ name: 'sha', isCard: true }, player, false) 强制视为对自身出杀；3. 体力减少取消目标（弥失）：通过子技能监听 changeHpAfter（event.num < 0）向自身赋予 addTempSkill('xy_mishi_reduced', { global: 'phaseAfter' }) 记录本回合曾减少体力；成为杀或通常锦囊目标时，弃牌后从 trigger.getParent().targets 中移除自身并 cancel，实现目标免疫。",
+      "keywords": [
+        "伤害转体力流失",
+        "结束阶段",
+        "未造成伤害",
+        "视为使用杀",
+        "体力值减少",
+        "取消目标",
+        "自受",
+        "沾惹",
+        "弥失"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T03:16:54.936Z",
+      "updatedAt": "2026-10-25T03:16:54.936Z"
+    },
+    {
+      "id": "kb-428592f3",
+      "kind": "pattern",
+      "title": "牌堆顶检索与亮出给牌模式（荐言类技能）",
+      "body": "从牌堆顶检索指定条件的牌时，标准写法为：get.cardPile(filter, 'cardPile', 'top')。若牌堆无符合条件的牌，可检查弃牌堆并洗牌：if (get.cardPile(filter, 'discardPile', 'top')) { await game.washCard(); card = get.cardPile(filter, 'cardPile', 'top'); }。亮出牌使用 \u0007wait player.showCards([card])，若交给目标则调用 \u0007wait target.gain(card, 'gain2')（或自己获得使用 player.gain(card, 'gain2')）。",
+      "keywords": [
+        "荐言",
+        "牌堆检索",
+        "亮出",
+        "cardPile",
+        "washCard",
+        "showCards",
+        "获得牌"
+      ],
+      "refs": [
+        "jianyan @ apps/core/character/refresh/skill.js:17102-17190"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/refresh/skill.js",
+          "start": 17102,
+          "end": 17190,
+          "hash": "ebab120548e8"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T03:21:47.469Z",
+      "updatedAt": "2026-10-25T03:21:47.469Z"
+    },
+    {
+      "id": "kb-f6604f5a",
+      "kind": "pattern",
+      "title": "装备牌指定其他角色为目标的mod改写范式",
+      "body": "普通装备牌在引擎默认规则中 selectTarget 为 -1（不需要手动选目标）且 filterTarget 限制为自身。若要让角色使用的装备牌可以指定其他角色为目标，需在技能的 mod 中同时覆写两处：1. selectTarget(card, player, range)：当 get.type(card) === 'equip' 时设置 range[0] = 1; range[1] = 1，将自动锁定自身转为手动选择目标；2. playerEnabled(card, player, target)：当 get.type(card) === 'equip' 时判断 target.canEquip(card, true)，允许目标角色高亮。卡牌使用结算时引擎内置的 equipCard 会自动执行 target.equip(card)，无需额外实现穿戴逻辑。",
+      "keywords": [
+        "装备牌",
+        "指定目标",
+        "mod",
+        "selectTarget",
+        "playerEnabled",
+        "canEquip",
+        "equipCard"
+      ],
+      "refs": [
+        "xy_heming @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:373-391"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 373,
+          "end": 391,
+          "hash": "0ff7b12f6e48"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T03:27:44.405Z",
+      "updatedAt": "2026-10-25T03:27:44.405Z"
+    },
+    {
+      "id": "kb-64a5d8f0",
+      "kind": "pattern",
+      "title": "无名杀座次与换座机制深度解析",
+      "body": "无名杀座次由双向循环链表（存活next/previous与全员nextSeat/previousSeat）、布局坐标（dataset.position）与绝对座位号（seatNum）共同管理。换座须使用game.swapSeat(p1, p2, prompt, behind, noanimate)；behind为true时自动循环相邻对调实现推移移动；若手动修改position必须调用game.arrangePlayers()重建链表以防死锁；行动顺次排序依托sortBySeat与get.distance(p, target, 'absolute')。",
+      "keywords": [
+        "座次",
+        "换座",
+        "swapSeat",
+        "arrangePlayers",
+        "nextSeat",
+        "previousSeat",
+        "seatNum",
+        "sortBySeat",
+        "座次调整"
+      ],
+      "refs": [
+        "docs/seat-mechanism.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T03:35:45.461Z",
+      "updatedAt": "2026-10-25T03:35:45.461Z"
     },
     {
       "id": "kb-d92754f0",
@@ -4965,6 +5169,31 @@
       "updatedAt": "2026-10-25T03:44:10.777Z"
     },
     {
+      "id": "kb-cc98b0e2",
+      "kind": "pattern",
+      "title": "无名杀游戏顺序顺时针逆转与结算流转机制",
+      "body": "无名杀默认行动顺序依托0->1->2按右侧下家推进，属于二维平面逆时针。转换为顺时针有三种模式：1. 技能与卡牌多目标结算：对sortBySeat(from)执行.reverse()即可实现顺时针（由左侧上家起）轮转结算；2. 全局/技能回合顺时针流转：监听phaseAfter并通过player.previous.insertPhase('clockwise_phase')逆向调度上家行动；3. 拓扑与视图级：互换存活玩家p.next与p.previous指针，或通过CSS镜像让1号位靠左。",
+      "keywords": [
+        "顺时针",
+        "逆时针",
+        "游戏顺序",
+        "回合流转",
+        "sortBySeat",
+        "reverse",
+        "phaseLoop",
+        "insertPhase",
+        "previous",
+        "座次方向"
+      ],
+      "refs": [
+        "docs/seat-mechanism.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T04:04:35.830Z",
+      "updatedAt": "2026-10-25T04:04:35.830Z"
+    },
+    {
       "id": "kb-dca4d33d",
       "kind": "pattern",
       "title": "0.2.23珍宝阁离线开盒帧回退须固定书册相机并隔离状态",
@@ -4986,6 +5215,149 @@
       "confidence": "verified",
       "createdAt": "2026-10-25T04:09:44.006Z",
       "updatedAt": "2026-10-25T08:47:27.913569Z"
+    },
+    {
+      "id": "kb-58fe2f0f",
+      "kind": "recipe",
+      "title": "全场依次展示手牌与花色匹配定向全体牌范式",
+      "body": "★做法：实现『出牌阶段限一次，你可以依次展示其他角色一张手牌，然后你可以将一张手牌当作【万箭齐发】使用，且仅指定被展示牌花色与此手牌相同的角色为目标』的标准范式：1. 按座次遍历其他有手牌角色：通过 game.filterPlayer().sortBySeat() 排序，利用 choosePlayerCard 盲选展示并调用 target.showCards 播放明置动画；2. 花色记录与手牌转化：用 Map 记录各目标被展示牌的花色，询问玩家选一张手牌；3. 全体牌目标裁剪：通过 targets.filter 筛选同花色目标，调用 player.useCard(vcard, [usedCard], finalTargets) 显式传入目标列表，精准重定义全体锦囊的实际打击对象。",
+      "keywords": [
+        "出岫",
+        "展示手牌",
+        "万箭齐发",
+        "目标裁剪",
+        "花色匹配"
+      ],
+      "refs": [
+        "xy_chuxiu @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:5986-6044"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 5986,
+          "end": 6044,
+          "hash": "1c0d9bf9ae10"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T04:40:39.767Z",
+      "updatedAt": "2026-10-25T04:40:39.767Z"
+    },
+    {
+      "id": "kb-71719e90",
+      "kind": "pattern",
+      "title": "多目标卡牌被响应检测范式",
+      "body": "★做法：实现『当一张指定两名及以上角色为目标的牌被响应时，你可以摸一张牌』的标准范式：1. 触发时机：trigger: { global: 'respond' }，仅监听狭义打出响应动作（南蛮出杀、万箭出闪、多目标杀出闪等）；2. 父事件目标数判定：通过 event.getParent('useCard') 获取原始卡牌使用事件，校验 useCard.targets.length >= 2；3. 响应从属校验：检查 event.respondTo[1] === useCard.card 或 event.getParent(2).card === useCard.card 确认此打出确实隶属于该牌的响应流；4. 收益结算：通过 player.chooseBool 询问后调用 player.draw()。",
+      "keywords": [
+        "隙风",
+        "多目标",
+        "被响应",
+        "respond",
+        "useCard",
+        "targets"
+      ],
+      "refs": [
+        "xy_xifeng @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:6050-6077"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 6050,
+          "end": 6077,
+          "hash": "8d34f8199b64"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T04:40:44.804Z",
+      "updatedAt": "2026-10-25T04:40:44.804Z"
+    },
+    {
+      "id": "kb-69856baa",
+      "kind": "pitfall",
+      "title": "武将牌扩展区牌（expansion）当牌使用未消耗",
+      "body": "⚠ 坑点：当技能通过 chooseButton 选取武将牌上的牌（如“伪”）作为某牌使用（backup 机制）时，若 backup 声明 selectCard: -1 且 filterCard: () => false，ui.selected.cards 保持为空，导致出牌事件中的 event.result.cards 为空。引擎 useCard 依赖 event.cards（来自 result.cards）执行 owner.lose() 扣除实体牌，cards 为空时会将其作为无实体消耗的纯虚拟牌结算，卡牌永远留在武将牌上。\n\n★ 正确做法：必须在 backup 技能的 precontent 或 onuse 中，显式将选中的实体牌写入：\n1. onuse(result, player) { result.cards = [card]; if (result.card) result.card.cards = [card]; }\n2. precontent(event, trigger, player) { event.result.cards = [card]; if (event.result.card) event.result.card.cards = [card]; }\n3. viewAs: { name: \"tao\", cards: [card] }。\nuseCard 结算时会自动识别 card.parentNode 位于 expansions 区，调用 player.lose 将其移入弃牌堆、清除 gaintag 标记并更新标记计数。",
+      "keywords": [
+        "expansion",
+        "武将牌",
+        "扩展区",
+        "伪",
+        "backup",
+        "chooseButton",
+        "转化牌",
+        "不消耗",
+        "移去",
+        "precontent",
+        "onuse"
+      ],
+      "refs": [
+        "potnizun @ apps/core/character/bingshi/skill.js:2148-2285",
+        "docs/YRD/appendix-c-pitfalls.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/bingshi/skill.js",
+          "start": 2148,
+          "end": 2285,
+          "hash": "833fcc2e594b"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T06:09:54.800Z",
+      "updatedAt": "2026-10-25T06:09:54.800Z"
+    },
+    {
+      "id": "kb-1b0a7234",
+      "kind": "pitfall",
+      "title": "转化【桃】救人时 AI 绕过态度判定误救敌人",
+      "body": "⚠ 坑点：濒死求桃（_save）事件中：1. 引擎首先调用 player.canSave(dying) -> hasSkillTag(\"save\", true, dying, true)。若技能的 skillTagFilter(player, tag, target) 未校验 target 态度（get.attitude(player, target) > 0），AI 会误判自身有救人能力而发起 chooseToUse；2. 桃自身定义带有 selectTarget: -1，在 AI chooseTarget 时，遇到 selectTarget <= -1 会直接返回 true，完全跳过 event.ai2 的态度效果检查；3. 若 ai.order > 0 且 ai.result.player 返回 1，AI 会在 chooseCard 阶段判定有利并直接出桃救活敌人。\n\n★ 正确做法（三层防线）：\n1. skillTagFilter(player, tag, target) 检查 target 与 _status.event.dying 态度 > 0；\n2. filter(event, player) 中当 event.dying && !player.isUnderControl() 时若态度 <= 0 返回 false；\n3. ai.order 与 ai.result.player 在 dying 态度 <= 0 时返回 0。",
+      "keywords": [
+        "桃",
+        "救人",
+        "濒死",
+        "dying",
+        "save",
+        "respondTao",
+        "skillTagFilter",
+        "救敌人",
+        "selectTarget",
+        "canSave",
+        "attitude"
+      ],
+      "refs": [
+        "potnizun @ apps/core/character/bingshi/skill.js:2148-2285",
+        "docs/YRD/appendix-c-pitfalls.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/bingshi/skill.js",
+          "start": 2148,
+          "end": 2285,
+          "hash": "833fcc2e594b"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T06:10:00.997Z",
+      "updatedAt": "2026-10-25T06:10:00.997Z"
+    },
+    {
+      "id": "kb-a6d4f210",
+      "kind": "pitfall",
+      "title": "判断武将是否觉醒误用 canAwakenSkill 导致报错",
+      "body": "⚠ 坑点：无名杀 Player 原型只有 player.awakenSkill(skill) 方法，不存在 player.canAwakenSkill。调用 player.canAwakenSkill 会抛出 TypeError: player.canAwakenSkill is not a function 导致技能结算中断。\n\n★ 正确做法：检查武将是否已经觉醒应检查数组 player.awakenedSkills.includes(skill)，判断未觉醒则使用 !player.awakenedSkills.includes(skill)。",
+      "keywords": [
+        "awakenSkill",
+        "canAwakenSkill",
+        "觉醒",
+        "觉醒技",
+        "awakenedSkills"
+      ],
+      "refs": [
+        "docs/YRD/appendix-c-pitfalls.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T06:10:06.079Z",
+      "updatedAt": "2026-10-25T06:10:06.079Z"
     },
     {
       "id": "kb-9f98c908",
@@ -5103,6 +5475,44 @@
       "updatedAt": "2026-10-25T11:40:52.979Z"
     },
     {
+      "id": "kb-6114d912",
+      "kind": "pattern",
+      "title": "使用无伤害标签锦囊指定目标后判定转决斗与全牌无效范式",
+      "body": "1. 锦囊无伤害标签判定：在 useCardToPlayered 时机，通过 get.type2(event.card) === 'trick' && !get.tag(event.card, 'damage') 判断；2. 牌无效处理：当判定结果符合条件时，获取 trigger.getParent()（即使用牌的事件），置 all_excluded = true 且 targets.length = 0，从而中断此牌所有后续目标的结算；3. 视为使用决斗：使用 await player.useCard({ name: 'juedou', isCard: true }, trigger.target, false) 对当前指定的目标发起决斗。",
+      "keywords": [
+        "斗魂",
+        "锦囊",
+        "无伤害标签",
+        "useCardToPlayered",
+        "all_excluded",
+        "决斗"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T13:18:46.914Z",
+      "updatedAt": "2026-10-25T13:18:46.914Z"
+    },
+    {
+      "id": "kb-42754ac6",
+      "kind": "pattern",
+      "title": "使用锦囊牌在useCard2判定转全目标决斗与全牌无效范式",
+      "body": "1. 锦囊牌全目标统一触发：在 useCard2 时机触发，此时卡牌的所有目标均已在 trigger.targets 中确定；2. 过滤防递归：排除 event.card.name === 'juedou' 及派生决斗 _xy_douhun_derived；3. 牌整体无效：置 trigger.all_excluded = true 且清空 trigger.targets，阻断后续所有目标的卡牌效果；4. 批量决斗：在清空前拷贝目标列表，判红后按顺序通过 player.useCard({ name: 'juedou', isCard: true }, target, false) 依次对每个目标发起决斗（若原锦囊目标为自身如无中生有，则直接对自身决斗）。",
+      "keywords": [
+        "斗魂",
+        "锦囊",
+        "useCard2",
+        "all_excluded",
+        "决斗",
+        "多目标"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T13:43:10.271Z",
+      "updatedAt": "2026-10-25T13:43:10.271Z"
+    },
+    {
       "id": "kb-f6730b70",
       "kind": "pattern",
       "title": "原生局内布局保持 position 视角与双手牌桶并清除最小高度",
@@ -5122,6 +5532,64 @@
       "confidence": "verified",
       "createdAt": "2026-10-25T14:22:12.386Z",
       "updatedAt": "2026-10-25T14:22:12.386Z"
+    },
+    {
+      "id": "kb-d03af39f",
+      "kind": "pattern",
+      "title": "双时机保底补牌与出牌阶段弃牌封印所有技能（白板）开发范式",
+      "body": "1. 双阶段补牌（承安）：trigger 声明 player: ['phaseZhunbeiBegin', 'phaseJieshuBegin']，filter 中判断 countCards('h') < X，调用 await player.drawTo(X) 优雅实现将手牌摸至指定张数；2. 出牌阶段弃牌封印（化虚）：enable: 'phaseUse', usable: 1，filterCard: true, position: 'he'，filterTarget: lib.filter.notMe，在 content 中调用 target.addTempSkill('baiban')，底层通过 skillBlocker 屏蔽其全部非持久技能直到当前回合结束。",
+      "keywords": [
+        "承安",
+        "化虚",
+        "drawTo",
+        "baiban",
+        "失去所有技能",
+        "双时机"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T15:37:01.576Z",
+      "updatedAt": "2026-10-25T15:37:01.576Z"
+    },
+    {
+      "id": "kb-4decf71b",
+      "kind": "pattern",
+      "title": "结束阶段结束后纯闪桃手牌检测与递归额外回合范式（绝搏）",
+      "body": "1. 触发时机：trigger: { player: 'phaseJieshuAfter' }，过滤手牌数大于0；2. 手牌成分检测：在弃牌前提取 player.getCards('h')，判断 cards.every(c => ['shan', 'tao'].includes(get.name(c)))；3. 弃牌摸牌：先 await player.discard(cards)，再 await player.draw(1)；4. 递归额外回合：若满足纯闪桃条件调用 player.insertPhase()。不设置 usable: 1 限制，使得在额外回合结束时满足条件仍可再次获得新的额外回合。",
+      "keywords": [
+        "绝搏",
+        "phaseJieshuAfter",
+        "insertPhase",
+        "额外回合",
+        "递归回合",
+        "手牌过滤"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T16:14:34.194Z",
+      "updatedAt": "2026-10-25T16:14:34.194Z"
+    },
+    {
+      "id": "kb-8269897d",
+      "kind": "pattern",
+      "title": "杀的目标与使用者双向转换技反击决斗范式（据还）",
+      "body": "1. 双时机监听与转换状态互锁：trigger 声明 target: 'useCardToTarget' 与 player: 'useCardToPlayer'，通过 player.storage[skill]（默认 false 为阴，true 为阳）严格分流；2. 阴状态反击：当成为杀的目标且处于阴状态，视为先对出杀者使用决斗（player.useCard(..., trigger.player)），并在 content 中调用 player.changeZhuanhuanji()；3. 阳状态反击：当使用杀且处于阳状态，视为被杀目标先对自身使用决斗（trigger.target.useCard(..., player)），并在 content 中切换状态；4. 单次互锁：单次卡牌流程中触发即翻转状态，避免多目标杀重复触发同一状态。",
+      "keywords": [
+        "据还",
+        "zhuanhuanji",
+        "useCardToTarget",
+        "useCardToPlayer",
+        "决斗",
+        "反击",
+        "转换技"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-25T16:21:31.067Z",
+      "updatedAt": "2026-10-25T16:21:31.067Z"
     },
     {
       "id": "kb-bc0a4dcf",
@@ -5223,6 +5691,25 @@
       "confidence": "verified",
       "createdAt": "2026-10-26T14:00:53.186Z",
       "updatedAt": "2026-10-26T14:00:53.186Z"
+    },
+    {
+      "id": "kb-c6d23ee6",
+      "kind": "pattern",
+      "title": "无限装备槽位机制方案A：重写countEnabledSlot实现任意数量装备",
+      "body": "1. 机制痛点：若只监听 equipBefore 动态扩充槽位，其他角色通过技能移动装备（如张郃巧变、canMoveCard）或赠予装备时，因目标前置 canEquip(card, false) 校验空槽位失败，会导致无法选中该角色为目标；若直接调用 equip(card) 也可能因 canEquip 失败被强制送入弃牌堆。2. 方案A实现范式：在技能 init(player) 钩子中重写 player.countEnabledSlot = function(type) { if (!type) { let num=0; for(let i=1;i<=5;i++) num+=this.countEnabledSlot(i); return num; } if (this.hasDisabledSlot(type)) return 0; return Infinity; }。3. 内部连锁反应：使得 countEmptySlot、hasEmptySlot、countEquipableSlot 均返回 Infinity；canEquip 永远通过；replaceEquip 中判断 cards.length > left - lose 永远为 false 从而杜绝顶装备，实现同类型装备牌直接追加且完美兼容所有他人主动移动/置入装备的技能。",
+      "keywords": [
+        "无限装备",
+        "countEnabledSlot",
+        "canEquip",
+        "replaceEquip",
+        "装备区",
+        "槽位"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-26T14:09:11.347Z",
+      "updatedAt": "2026-10-26T14:09:11.347Z"
     },
     {
       "id": "kb-ddf8ff28",
@@ -5349,6 +5836,26 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T00:36:27.117Z",
       "updatedAt": "2026-10-27T00:36:27.117Z"
+    },
+    {
+      "id": "kb-089cadae",
+      "kind": "pattern",
+      "title": "多阶段自选摸牌与阶段对应牌类型禁用惩罚范式（慎思）",
+      "body": "1. 多阶段触发：trigger 监听 phaseJudgeBegin, phaseDrawBegin, phaseUseBegin, phaseDiscardBegin 四个阶段开始，声明 usable: 1 限制每回合只能选一个阶段发动；2. 阶段感知与惩罚赋予：通过 trigger.name 区分当前所处阶段，先 await player.draw(1)，再通过 player.addTempSkill 赋予对应子技能（期限默认为当前回合结束 phaseAfter）；3. 卡牌禁用实现：在子技能 mod 中声明 cardEnabled(card) 与 cardSavable(card)，当 get.type2(card) 等于被禁类型（trick / equip / basic）时返回 false；4. 手牌上限扣减：弃牌阶段开始时摸牌，子技能 mod.maxHandcard 返回 num - 1。",
+      "keywords": [
+        "慎思",
+        "多阶段触发",
+        "cardEnabled",
+        "cardSavable",
+        "maxHandcard",
+        "禁用类型",
+        "addTempSkill"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T00:54:24.109Z",
+      "updatedAt": "2026-10-27T00:54:24.109Z"
     },
     {
       "id": "kb-2452b529",
@@ -5523,6 +6030,18 @@
       "updatedAt": "2026-10-27T12:10:58.498Z"
     },
     {
+      "id": "kb-346f5ff2",
+      "kind": "fact",
+      "title": "回合外响应基本牌展示他人手牌并使用打出范式（傲稚/诸葛恪傲才类）",
+      "body": "1. 机制核心：声明 enable: ['chooseToUse', 'chooseToRespond']，并在 hiddenCard(player, name) 中判断回合外（player != _status.currentPhase）且为基本牌（get.type(name) == 'basic' && lib.inpile.includes(name)）返回 true，确保引擎在玩家无手牌时仍会弹出响应提示；2. 触发与防重入过滤：filter 中排除 event.responded、回合内以及防递归标记 event[skillName]，并检查场上有持有手牌的其他角色；3. 卡牌展示与使用适配：展示选中的目标手牌后，若为基本牌且满足 evt.filterCard，对于 chooseToUse 通过 lib.skill[skillName_backup].viewAs 并 evt.backup(skillName_backup) 调起目标选择；对于 chooseToRespond 则直接将 evt.result.card 与 evt.result.cards 设为该牌并 evt.redo() 完成响应。",
+      "keywords": [],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-27T12:32:33.391Z",
+      "updatedAt": "2026-10-27T12:32:33.391Z"
+    },
+    {
       "id": "kb-b9ab179f",
       "kind": "pattern",
       "title": "局内原型与真实UI共用视觉，原生对象仅做状态及输入适配",
@@ -5592,6 +6111,59 @@
       "confidence": "verified",
       "createdAt": "2026-10-27T16:28:56.533Z",
       "updatedAt": "2026-10-27T16:28:56.533Z"
+    },
+    {
+      "id": "kb-9b9fde6f",
+      "kind": "pattern",
+      "title": "任意装备载物扣牌与动态角标绑定范式（通用木牛流马机制）",
+      "body": "1. 机制目的：实现让任意装备牌作为载体扣置手牌，扣置牌在手牌区可直接使用打出且不占手牌上限，支持随装备移动过户给其他角色且角标动态标注载体装备名称，装备离场自动掉落弃牌堆。2. 动态角标与特殊手牌区：通过 player.loseToSpecial(cards, tag) 将手牌转入特殊区（'s'区，带.glows发光类名）。利用 equipId (card.cardid || card.vcardID) 生成专属 tag，并通过 game.broadcastAll 动态写入 lib.translate[tag] = ${skillName}·，使手牌区卡牌角标直观显示宿主装备名。3. 装备移动与卡牌过户：装备移动给其他角色时，原持有者先执行 player.lose(attachedCards, ui.special) 剥离扣置牌；装备在目标身上结算 equip 后，调用 target.directgains(attachedCards, null, tag) 注入新目标特殊区，受赠者无需武将技能即可直接如同手牌般点选打出。4. 全局生命周期闭环：必须使用全局触发器（global: 'loseAfter' 与 global: 'loseEnd'）接管生命周期。当任何角色失去载体装备时，检测并将关联扣置牌丢入弃牌堆（player.lose(cards, ui.discardPile) + ）；当任何角色消耗扣置牌时，自动解绑并更新载体装备的存储数组，彻底消除卡牌永久滞留游戏外的漏洞。",
+      "keywords": [
+        "木牛流马",
+        "特殊手牌区",
+        "loseToSpecial",
+        "directgains",
+        "gaintag",
+        "动态角标",
+        "装备载物",
+        "装备移动"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T00:16:19.727Z",
+      "updatedAt": "2026-10-28T00:16:19.727Z"
+    },
+    {
+      "id": "kb-c7e19d3f",
+      "kind": "pitfall",
+      "title": "濒死回复脱离导致父级事件提前 finish 与伤害来源缺失（鸩杀类技能范式）",
+      "body": "⚠ 坑点：实现『角色濒死时令其体力回复至1，然后受到X点伤害』类斩杀/换血技能（如吕雉【鸩杀】）时极易踩的 4 个致命陷阱：\n1. 父级濒死中断截断伤害（致命）：在 global: \"dying\" 触发时，若在旧式 step 模式内未用 await 连续调用 trigger.player.recover 与 trigger.player.damage，当目标体力恢复到 >0 脱离濒死时，引擎 changeHp 会检测 _status.dying 包含该角色并立即调用 event.getParent(\"dying\").finish()！父级 dying 事件结束会导致挂在其下的子事件被截断/跳过，表现为『似乎只能回复体力，无法造成伤害』。正确写法必须使用现代 async/await 规范严格顺序调度：\n   await trigger.player.recover({ num: numx, source: player });\n   await trigger.player.damage(numx + 1, player);\n   if (!trigger.player.isAlive()) { trigger.cancel(true); }\n2. 伤害来源缺失：trigger.player.damage(num, player) 必须显式传入伤害来源 player（吕雉），若漏传 source 会变为无来源伤害，导致击杀敌人无法获得摸牌奖惩，且卖血技能结算来源错乱。\n3. selectCard 牌数区间漏洞：当技能要求『弃置 1 张酒或 2 张黑牌』时，若 selectCard 误写为 if (get.color(...) != \"black\") return [1,1]; return [1,2];，当玩家选中 1 张黑色非酒牌时 min 为 1，确定键直接亮起，导致玩家可违规只弃 1 张黑牌发动！正确写法：未选或已选首张为非酒时返回 [2, 2]，已选首张为酒时返回 [1, 1]。\n4. AI 敌友立场判定缺失：此类技能本质是补刀敌人的斩杀技，check 与 AI 必须加入 get.attitude(player, target) < 0，绝对禁止对队友发动；弃牌应通过 Math.max(1, 8 - get.value(card)) 优先弃无用牌并保护神装与核心牌。",
+      "keywords": [
+        "濒死",
+        "dying",
+        "recover",
+        "damage",
+        "鸩杀",
+        "changeHp",
+        "selectCard",
+        "伤害来源",
+        "source",
+        "斩杀"
+      ],
+      "refs": [
+        "yxsre_zhensha @ apps/core/extension/英雄杀RE/character/skills/dahan.js:189-236"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/dahan.js",
+          "start": 189,
+          "end": 236,
+          "hash": "6d40ec93668b"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T00:21:10.205Z",
+      "updatedAt": "2026-10-28T00:21:10.205Z"
     },
     {
       "id": "kb-2af646d5",
@@ -5817,6 +6389,25 @@
       "updatedAt": "2026-10-28T14:32:37.173Z"
     },
     {
+      "id": "kb-78edb550",
+      "kind": "pitfall",
+      "title": "chooseToUse异步时序陷阱与完整结算范式",
+      "body": "若要在技能中让角色出牌并等待其实际结算完成（如判断是否造成伤害、是否被闪抵消），不能直接 await player.chooseToUse().forResult() 后立即检查 hasHistory('sourceDamage')，因为 chooseToUse 结束后内部派生的 useCard 才刚入队，伤害事件尚未发生。正确写法：在 chooseToUse 中传入 chooseonly: true，取到玩家选出的 card 与 cards，再手动调用 const next = player.useCard({ card, cards, targets: [target], addCount: false }); await next; 之后再通过 evt.getParent('useCard') === next 准确判定伤害。",
+      "keywords": [
+        "chooseToUse",
+        "时序",
+        "useCard",
+        "chooseonly",
+        "sourceDamage",
+        "伤害判定"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-28T15:22:00.071Z",
+      "updatedAt": "2026-10-28T15:22:00.071Z"
+    },
+    {
       "id": "ui-public-selection-badge-hover-20261029",
       "kind": "pattern",
       "title": "联机选将使用本人牌签与公开主公标记，悬停应处理节点回调",
@@ -5859,6 +6450,36 @@
       "updatedAt": "2026-10-29T14:02:32.424Z"
     },
     {
+      "id": "kb-shuxiu-vcard-links",
+      "kind": "pitfall",
+      "title": "chooseButton 配合 vcard 弹窗选牌名：卡牌名称须取 links[0][2]，勿直接传 links[0]",
+      "body": "⚠ 坑点：在出牌阶段通过 chooseButton + backup 架构提供卡牌类型选择（如『视为使用南蛮入侵或万箭齐发』）时：\n1. 弹窗 dialog 创建：传入 ui.create.dialog(\"标题\", [[\"nanman\", \"wanjian\"], \"vcard\"]) 时，无名杀底层 buttonPresets.vcard 会将字符串 item 包装为三元数组 [get.type(item), \"\", item]（即 [\"trick\", \"\", \"nanman\"]），并将其挂载在 button.link 上。\n2. backup 与 prompt 陷阱：当玩家选中按钮后，回调参数 links[0] 是 button.link 数组自身（[\"trick\", \"\", \"nanman\"]），而非纯卡牌名字符串！\n3. 致命后果：若写成 viewAs: { name: links[0] }，card.name 会变成 Array，底层 get.info(card) 会因找不到 lib.card[card.name] 而返回 undefined；紧接着在 chooseToUse step 1 执行 const select = get.copy(info.selectTarget) 时，直接抛出 TypeError: Cannot read properties of undefined (reading \"selectTarget\") 崩溃断流！\n★ 正确写法：\nconst name = links[0][2] || links[0];\nreturn {\n    filterCard: ...,\n    selectCard: ...,\n    viewAs: { name: name },\n    prompt: \"将一张牌当作【\" + get.translation(name) + \"】使用\",\n};",
+      "keywords": [
+        "chooseButton",
+        "vcard",
+        "backup",
+        "selectTarget",
+        "links[0][2]",
+        "viewAs",
+        "书秀",
+        "get.info"
+      ],
+      "refs": [
+        "xy_shuxiu @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:6019-6056"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 6019,
+          "end": 6056,
+          "hash": "9b6b9c8b12d2"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-29T14:20:10.066Z",
+      "updatedAt": "2026-10-29T14:20:10.066Z"
+    },
+    {
       "id": "kb-ui-card-back-equip-handoff",
       "kind": "pitfall",
       "title": "统一牌背应覆盖空牌及继承卡面，装备显示副本交接要保持原生副本隐藏到删除",
@@ -5881,6 +6502,37 @@
       "updatedAt": "2026-10-29T14:36:12.337Z"
     },
     {
+      "id": "kb-jiedao-multi-weapon-selection",
+      "kind": "pitfall",
+      "title": "突破装备栏限制（多武器技能如张二郎【囤积】）遇到【借刀杀人】被全额掠夺武器牌漏洞",
+      "body": "★做法：当角色突破装备栏限制装备了多张武器牌时，被【借刀杀人】且未出【杀】时，原生卡牌逻辑会直接将所有匹配到 equip1 的牌全额交付借刀者。应在 cards.length > 1 时使用 target.chooseCardButton({ cards, forced: true, prompt, ai }) 弹出选择框，令被借刀者选择交出其中一张武器牌，避免全额缴械。",
+      "keywords": [
+        "借刀杀人",
+        "张二郎",
+        "囤积",
+        "xy_tunji",
+        "多武器",
+        "equip1",
+        "countEnabledSlot",
+        "chooseCardButton"
+      ],
+      "refs": [
+        "apps/core/card/standard.js",
+        "docs/YRD/appendix-c-pitfalls.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/card/standard.js",
+          "start": 3023,
+          "end": 3040,
+          "hash": "d3d4d7ee4310"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-29T15:15:26.936Z",
+      "updatedAt": "2026-10-29T15:15:26.936Z"
+    },
+    {
       "id": "kb-ui-backup-dialog-string-and-receipt-routing",
       "kind": "pitfall",
       "title": "UI 需兼容转化技字符串提示并过滤空槽，获得牌按原生显示入口接续",
@@ -5901,6 +6553,212 @@
       "confidence": "verified",
       "createdAt": "2026-10-30T00:39:03.767Z",
       "updatedAt": "2026-10-30T00:39:03.767Z"
+    },
+    {
+      "id": "kb-18f9f55a",
+      "kind": "pattern",
+      "title": "正面朝上交牌与跨时段卡牌类型响应结算范式（导诫类技能）",
+      "body": "实现『将一张牌正面朝上交给角色，本回合当其使用或打出牌时按牌类型进行奖惩』技能的开发范式：1.【正面朝上交牌】：使用 player.give(cards, target, true)，第3个参数 visible 传 true 保证卡牌正面朝上动画与展示；2.【持续期绑定】：使用 target.addTempSkill('xxx_target', { global: 'phaseAfter' }) 与 player.addTempSkill('xxx_watch', { global: 'phaseAfter' })，使用 { global: 'phaseAfter' } 确保无论是自身出牌阶段还是回合外受伤害触发，均在当前回合结束时准时销毁；3.【卡牌大类判断】：使用 get.type2(card) 统一获取 'basic' / 'trick' / 'equip'，可避免延时锦囊在 get.type 下返回 'delay' 导致的锦囊类型不匹配问题；4.【时机监听】：子技能监听 global: ['useCard', 'respond']，结合 filter 校验 event.player === storage.target；5.【UI提示与标记】：在目标上通过 subSkill.target 挂载 marktext 与 intro，展示交付牌类型与奖惩规则，给双方玩家提供清晰的战场信息。",
+      "keywords": [
+        "正面朝上",
+        "交牌",
+        "导诫",
+        "type2",
+        "phaseAfter",
+        "使用或打出",
+        "奖惩"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-30T13:34:52.160Z",
+      "updatedAt": "2026-10-30T13:34:52.160Z"
+    },
+    {
+      "id": "kb-ad3c8fd7",
+      "kind": "recipe",
+      "title": "调整阶段顺序与卡牌形状排列UI",
+      "body": "在回合开始前（如 phaseBeforeStart 时机）通过修改 trigger.phaseList 数组元素顺序可调整该回合阶段执行顺序。配合使用 player.chooseToMove 与卡牌预设 ui.create.buttonPresets.vcard(showCard, type, position, noclick)，可将待排序的额定阶段渲染为卡牌形状（支持序号和阶段名称），支持拖拽与点击互换位置排序。",
+      "keywords": [
+        "phaseList",
+        "阶段顺序",
+        "阶段重排",
+        "chooseToMove",
+        "vcard",
+        "卡牌UI"
+      ],
+      "refs": [
+        "old_starjixian @ apps/core/character/sp2/skill.js:824-921"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/sp2/skill.js",
+          "start": 824,
+          "end": 921,
+          "hash": "535d2639f976"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-30T14:06:37.735Z",
+      "updatedAt": "2026-10-30T14:06:37.735Z"
+    },
+    {
+      "id": "kb-4f38081c",
+      "kind": "pitfall",
+      "title": "回合开始前时机与每轮限次的时序陷阱（phaseBefore与roundStart）",
+      "body": "无名杀内核中 phaseBefore（Step 0）在每轮开始检测 roundStart（Step 1）之前触发。如果在 phaseBefore 发动技能，且每轮清空计数的监听在 roundStart，会导致每轮首个角色回合发动的计数被紧随其后的 roundStart 冲刷清零，造成一轮内多发动一次。解法：1) 时机使用 phaseBeforeStart（在 roundStart 之后、翻面检测之前，且 phaseList 已就绪）；2) 限次计数以 player.storage.xxx_round === game.roundNumber 动态校验，确保不受事件调度时序影响。",
+      "keywords": [
+        "phaseBefore",
+        "phaseBeforeStart",
+        "roundStart",
+        "每轮限次",
+        "轮数重置",
+        "避坑"
+      ],
+      "refs": [
+        "dcwumei @ apps/core/character/xianding/skill.js:36817-36989"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/character/xianding/skill.js",
+          "start": 36817,
+          "end": 36989,
+          "hash": "23e673bb65f8"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-30T14:06:42.129Z",
+      "updatedAt": "2026-10-30T14:06:42.129Z"
+    },
+    {
+      "id": "kb-0380394e",
+      "kind": "pitfall",
+      "title": "触发技在content内自定义询问需声明direct: true",
+      "body": "非锁定触发技在进入 content 执行前，无名杀底层默认会自动弹窗询问一次是否发动。若在 content 内部自行调用 player.chooseBool 或 player.chooseTarget 进行交互，会导致系统与技能连续询问两次。此时必须在技能顶层声明 direct: true，屏蔽底层默认询问窗口。",
+      "keywords": [
+        "触发技",
+        "询问两次",
+        "重复询问",
+        "direct",
+        "chooseBool"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-30T14:06:50.122Z",
+      "updatedAt": "2026-10-30T14:06:50.122Z"
+    },
+    {
+      "id": "kb-dbfbfa9a",
+      "kind": "pitfall",
+      "title": "roundStart 触发时父事件 name 为 phase，必须用 event.triggername 判定",
+      "body": "当技能监听 trigger: { global: 'roundStart' } 时，无名杀底层是由回合事件 phase 调用 await event.trigger('roundStart')。因此传入 filter(event, player) 的父事件 event.name 为 'phase' 而非 'roundStart'。在多时机技能中，若误写 if(event.name == 'roundStart') 会永远判定为 false，导致每轮开始都错误放行。正确做法是使用 if(event.triggername == 'roundStart') 判定，或检查 event.name == 'phase'。",
+      "keywords": [
+        "roundStart",
+        "triggername",
+        "每轮开始",
+        "首轮",
+        "时机",
+        "filter",
+        "phase",
+        "轮次"
+      ],
+      "refs": [
+        "yxsre_mili @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:141-358"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/nanbei.js",
+          "start": 141,
+          "end": 358,
+          "hash": "4ded036bcd9a"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-30T14:30:25.794Z",
+      "updatedAt": "2026-10-30T14:30:25.794Z"
+    },
+    {
+      "id": "kb-4ac15f79",
+      "kind": "pattern",
+      "title": "chooseButton展示武将与选择技能：下方以tdnodes紧凑按钮平铺，勿用button.type=='skill'",
+      "body": "若要在弹窗上方展示武将立绘（右键可查看武将全技能详情）、下方以按钮罗列技能供玩家点击选择，dialog 应传入 [list, 'character'] 与 [skills.map(sk => [sk, get.translation(sk)]), 'tdnodes']。注意：无名杀底层技能卡片基于 vcard 构建，不存在 button.type == 'skill'；若误在 filterButton 中写 button.type == 'skill' 会导致所有技能按钮变暗无法单击选择。正确过滤方法为 filterButton: button => skills.includes(button.link)。",
+      "keywords": [
+        "chooseButton",
+        "dialog",
+        "tdnodes",
+        "filterButton",
+        "skill",
+        "vcard",
+        "武将立绘",
+        "选择技能",
+        "按钮"
+      ],
+      "refs": [
+        "yxsre_mili @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:141-358"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/nanbei.js",
+          "start": 141,
+          "end": 358,
+          "hash": "4ded036bcd9a"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-30T14:30:30.555Z",
+      "updatedAt": "2026-10-30T14:30:30.555Z"
+    },
+    {
+      "id": "kb-1edcbf09",
+      "kind": "pitfall",
+      "title": "局内复杂交互弹窗勿在 gameStart 时机触发，应顺延至 roundStart 首轮避免开战准备遮罩卡死",
+      "body": "gameStart 时机处于初始发牌前（status.gameDrawed !== true）。现代 UI 扩展（如新宇杀-UI 的 readPreparation）此时处于 preparing（开战准备）生命周期监听，若技能在此时弹出异步选择弹窗（如 chooseButton）导致 status.imchoosing 为 true，UI 会判定为开战准备中并强行悬挂遮罩，且右键预览技能弹出的浮窗可能导致层级错乱卡死。对于局内选技能、换技能等交互，时机应顺延至 global: 'roundStart'（首轮开始时），此时发牌已完毕，UI 平稳切入 battle 对局场景。",
+      "keywords": [
+        "gameStart",
+        "roundStart",
+        "开战准备",
+        "preparing",
+        "gameDrawed",
+        "imchoosing",
+        "chooseButton",
+        "时机",
+        "卡死"
+      ],
+      "refs": [
+        "yxsre_mili @ apps/core/extension/英雄杀RE/character/skills/nanbei.js:141-358"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/nanbei.js",
+          "start": 141,
+          "end": 358,
+          "hash": "4ded036bcd9a"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-10-30T14:30:36.888Z",
+      "updatedAt": "2026-10-30T14:30:36.888Z"
+    },
+    {
+      "id": "kb-8905aac7",
+      "kind": "pattern",
+      "title": "火攻结算重构与根据手牌梯级调整锦囊特性范式（嗜火类技能）",
+      "body": "开发『使用火攻时根据手牌数多目标/花色改颜色/手牌耗尽补牌并禁用转换』的规范范式：1.【火攻描述花色改颜色】：在 useCard 阶段判断手牌数并打标记 trigger.card.storage.xxx = true，在 huogongBegin 触发时通过 trigger.set('filterDiscard', card => { const { cards2 } = get.event().getParent('huogong', true); return get.color(card) === get.color(cards2[0]); }) 动态改写弃牌判定为颜色一致；2.【多选目标双轨支持】：在 mod.selectTarget(card, player, range) 中通过 player.countCards('h') - (ui.selected.cards 包含手牌 ? 1 : 0) > player.maxHp 动态自增 range[1] 实现拖选多目标，同时在 useCard2 中对只选1目标的场景弹窗二次询问多选目标；3.【技能暂时失效机制】：使用 player.tempBanSkill(skill, { global: 'phaseAfter' })，引擎内置 temp_ban_ 前缀并在回合结束时自动清理，并在 viewAsFilter 中检测 player.storage['temp_ban_' + skill] 彻底拦截转化按钮。",
+      "keywords": [
+        "火攻",
+        "huogongBegin",
+        "filterDiscard",
+        "花色改颜色",
+        "tempBanSkill",
+        "selectTarget",
+        "嗜火"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-30T14:44:34.038Z",
+      "updatedAt": "2026-10-30T14:44:34.038Z"
     }
   ]
 }

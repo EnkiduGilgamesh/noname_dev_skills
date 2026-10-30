@@ -1,6 +1,6 @@
 ---
 name: noname-general-extension
-description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技、蓄力技、多势力技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、12 类技能模板与蓄力/多势力技开发范式、API 速查与十九大避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
+description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技、蓄力技、多势力技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、12 类技能模板与蓄力/多势力技开发范式、API 速查与二十八大避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
 ---
 
 # 开发《无名杀》武将扩展
@@ -1445,6 +1445,14 @@ await player.gain({ cards, animate })         // 获得牌
 await player.gainPlayerCard(target, pos, bool)
 await player.discardPlayerCard(target, pos, bool)
 await player.gainMaxHp() / loseMaxHp()
+await player.addToExpansion(cards, animate)   // 将牌置入武将牌上（扩展区 "x"）
+player.getExpansions(tag)                     // 获取武将牌上特定标签的牌
+player.countExpansions(tag)                   // 统计武将牌上特定标签的牌数
+player.hasExpansions(tag)                     // 判定武将牌上是否有特定标签的牌
+player.getCards("x")                          // 获取武将牌上的所有牌（全扩展区）
+player.out(skillOrCount)                      // 角色离开游戏（按轮数递减或技能锁）
+player.in(skillOrTrue)                        // 角色移回游戏（释放技能锁或强制移回）
+player.isOut()                                // 返回角色是否处于离开游戏状态
 player.awakenSkill(skillId)                   // 标记限定技已用
 ```
 
@@ -1478,9 +1486,12 @@ player.addTempSkill(id, expireTiming) // 临时技能
 player.addSkills([...])               // 永久获得
 player.removeSkill(id)
 player.hasSkill(id)
+player.isLinked()                     // 判定角色是否处于横置/铁锁连环状态（严禁写 isChained）
+target.canAddJudge(card)              // 判定角色是否可置入该延时锦囊（检查废除/同名/免疫）
+await target.addJudge(card)           // 将卡牌置入判定区（底层自动处理原位置 lose 与新判定区添加，严禁写 removeJudge）
 ```
 
-## 8. 十九大避坑（按危害排序）
+## 8. 二十八大避坑（按危害排序）
 
 1. **`cost` 忘记 `event.result = ...`** → 技能永不发动，**且无任何报错**（最难查）
 2. **忘记 `.forResult()`** → 拿到事件对象而非结果，`bool` 判定异常
@@ -1500,7 +1511,21 @@ player.hasSkill(id)
 16. **视为技/转化技维度限制（点数/花色/次数）在 dialog 或 filterCard 中扣减导致状态泄漏** → 使用 `chooseButton + backup` 架构的技能，绝对不能在 dialog 生成或 filter 中记录扣减！若玩家在选牌界面点击取消，出牌并未发生，但点数/次数已被提前扣减。必须在 `chooseButton.backup` 返回对象的 `async precontent(event, trigger, player)` 中记录！此时玩家已确认出牌并指定卡牌，取消时引擎不会进入 precontent，保证消耗精准不泄漏。
 17. **直接给 `player.group` 赋数组（如 `player.group = ['wei', 'shu']`）** → 原生引擎严格依赖 `player.group` 为单值 string（在 `get.groupnature`、DOM `dataset.nature` 处直接按字符串拼接）。若赋为数组，会导致 UI 渲染崩溃、样式属性破损，且所有 `current.group === 'wei'` 的全等判断全部返回 false！想要局内享受多势力特性，务必参考 §6.14 的四大路线（`changeGroup` 动态切换、Trigger 临时借壳或底层 Hook）。
 18. **误将 `get.discardPile(..., "top")` 当作“最新弃牌”** → `ui.discardPile` 底层是 DOM 容器，卡牌弃置时使用 `appendChild` 追加在末尾（`lastChild` 才是物理上的弃牌堆顶/最新弃牌，`firstChild` 是最早弃牌）。而 `get.discardPile` 继承自摸牌堆逻辑，默认 `"top"` 从索引 0 开始向后遍历，拿到的反而是最早弃置的陈旧卡牌！若需严格获取“最近一张弃置的牌”，应使用 `ui.discardPile.lastChild`、`Array.from(ui.discardPile.childNodes).reverse()`，或调用 `get.discardPile(..., "bottom")`。
-19. **`phaseJudge` 里中止延时锦囊判定：`cancelled` + `excluded`，绝对不要用 `direct`** → 要“这张延时锦囊不判定了 / 不结算了”时，在 `phaseJudge` 触发内容里同时置 `trigger.cancelled = true`（跳过判定）与 `trigger.excluded = true`（跳过牌的 cancel/effect）。源码结构是 `if (excluded) {...} else if (cancelled && !direct) { 跑牌的 cancel } else { 跑牌的 effect }` —— **只置 `direct` 会掉进最后的 `else` 照常结算 effect**，而此时 `event.result` 是 `undefined`，`lebu.effect` 里 `result.bool` 直接抛 `TypeError`（1.11.7 实测崩溃）。官方中止判定的同款写法：`tw/skill.js` 的 `evt.excluded = true`、`shiji/skill.js` 的 `sptaoluan`。
+19. **`phaseJudge` 里中止延时锦囊判定：`cancelled` + `excluded`，绝对不要用 `direct`，且严禁调用不存在的 `removeJudge()`** → 
+    - **判定中止与防崩溃**：要“这张延时锦囊不判定了 / 不结算了”时，在 `phaseJudge`/`judgeBegin` 触发内容里同时置 `trigger.cancel()`（跳过判定）与父事件 `trigger.getParent("phaseJudge").excluded = true`（跳过牌的 cancel/effect）。源码结构是 `if (excluded) {...} else if (cancelled && !direct) { 跑牌的 cancel } else { 跑牌的 effect }` —— **只置 `direct` 会掉进最后的 `else` 照常结算 effect**，而此时 `event.result` 是 `undefined`，`lebu.effect` 里 `result.bool` 直接抛 `TypeError`（1.11.7 实测崩溃）。
+    - **移动延时锦囊严禁臆造 `removeJudge()`**：无名杀 `Player` 原型没有 `removeJudge()` 方法！判定开始时牌早已由引擎移出原判定区进入处理区（`ui.ordering`），将其置入另一角色判定区仅需直接调用 `await target.addJudge(trigger.card)`（底层会自动处理归属转移）；目标合法性过滤必须使用 `target.canAddJudge(trigger.card)`。
+20. **`addToExpansion` 漏传 `gaintag`、死后未清理扩展牌，或 `isOut()` 状态下选目标/触发熔断** →
+    - **漏打标签**：调用 `player.addToExpansion(cards)` 时若未追加 `next.gaintag.add(skill)`，卡牌虽物理进入 `node.expansions`（"x" 区），但所有按 tag 检索的 `player.getExpansions(tag)` 均查不到，角标也无法自动计数！
+    - **失去与回收**：扩展牌挂载在玩家节点上，失去技能或角色死亡时若未主动处理，卡牌会常驻内存。应在 `onremove(player, skill)` 钩子中执行 `player.loseToDiscardpile(player.getExpansions(skill))`。
+    - **离开游戏（`isOut`）熔断**：角色处于 `player.out()` 状态时，`game.filterPlayer` 与 `check.js` 默认禁止将其选为目标；若技能允许选离开游戏的角色，必须显式声明 `includeOut: true`；若技能在角色离开游戏期间仍需触发，技能定义中必须声明 `forceOut: true`。（详见 [docs/expansion-and-out-mechanism.md](../../../docs/expansion-and-out-mechanism.md)）
+21. **判定连环横置状态误用 `isChained()` 导致崩溃** → 必须使用标准 API `player.isLinked()`。无名杀中不存在 `isChained`，臆造该方法会在 AI 估值或逻辑判断时抛出 `TypeError: ... isChained is not a function` 导致流程彻底崩溃。伤害转化为雷电属性时，AI 必须配合 `get.attitude(player, target) < 0` 敌对检查，防止连环传导误伤队友。
+22. **濒死回复脱离导致父级事件提前 finish 与伤害来源缺失（鸩杀类技能）** → 在 `global: 'dying'` 触发时，若在旧式 step 模式内未用 `await` 连续调用 `trigger.player.recover` 与 `trigger.player.damage`，当目标体力恢复到 >0 脱离濒死时，底层 `changeHp` 会检测 `_status.dying` 包含该角色并立即调用 `event.getParent('dying').finish()`！父级 dying 事件结束会导致挂在其下的未 await 子事件被截断跳过，表现为“只能回复体力，无法造成伤害”。必须使用现代 `async content` 并严格 `await` 顺序调度；且 `trigger.player.damage(num, player)` 必须显式传入伤害来源 `player`，否则击杀无奖惩、卖血结算错乱。
+23. **`selectCard` 牌数区间漏洞导致单牌违规发动** → 当技能要求“弃置 1 张酒或 2 张黑牌”等分支数量时，若 `selectCard` 误写为 `if (get.color(...) != 'black') return [1,1]; return [1,2];`，当玩家选中 1 张黑色非酒牌时 min 为 1，确定键直接亮起，导致玩家可违规只弃 1 张黑牌发动！正确写法：未选或已选首张为非酒时返回 `[2, 2]`，已选首张为酒时返回 `[1, 1]`。
+24. **`chooseButton` 配合 `vcard` 弹窗选牌名误将 `links[0]` 直接赋给 `viewAs.name` 导致崩溃** → 传入 `ui.create.dialog("...", [["nanman", "wanjian"], "vcard"])` 时，底层 `buttonPresets.vcard` 会将字符串卡牌名包装为 `["trick", "", "nanman"]` 数组存入 `button.link`。因此选牌回调中 `links[0]` 是该数组，卡牌名必须取 `links[0][2]`！若写成 `viewAs: { name: links[0] }`，`card.name` 为数组导致 `get.info(card)` 查不到对应卡牌信息返回 `undefined`，紧接着在 `chooseToUse` 复制 `info.selectTarget` 时直接抛出 `TypeError: Cannot read properties of undefined (reading 'selectTarget')` 导致游戏中断。正确写法：`const name = links[0][2] || links[0]; return { viewAs: { name: name } };`。
+25. **突破装备栏限制（多装备技能如张二郎【囤积】）未考虑原生卡牌单装备假设导致全额掠夺** → 原生很多卡牌/技能（如【借刀杀人】）在编写时默认“每种装备栏至多 1 张牌”，直接用 `target.getGainableCards(player, "e", card => ...)` 拿到的整个数组全额交出。一旦遇到装备栏突破技能（如 `countEnabledSlot = () => Infinity`），`gain(cards)` 会把所有同类装备一次性洗劫一空！在处理此类卡牌/技能结算时，若涉及装备移交，必须判定 `cards.length > 1` 并弹窗让目标（或使用者）选择其中 1 张交出（`target.chooseCardButton({ cards, forced: true, prompt, ai })`），避免超限全额剥夺。
+26. **`roundStart` 触发时父事件 `event.name` 为 `"phase"`，判定触发点必须用 `event.triggername`** → 监听 `trigger: { global: "roundStart" }` 时，无名杀内核是在每轮第一名角色的回合阶段中调用 `await phaseEvent.trigger("roundStart")`。因此传入 `filter(event, player)` 的父事件 `event.name` 实际上是 `"phase"` 而非 `"roundStart"`。若误写 `if (event.name === 'roundStart')` 将永远为 `false`，导致轮次过滤失效、每轮错误放行。判定必须使用 `if (event.triggername === 'roundStart' || event.name === 'phase')`。
+27. **`chooseButton` 混合展示武将立绘与技能选择时勿用 `button.type == 'skill'`** → 在弹窗中上方展示武将立绘（供右键查看技能详情）、下方罗列技能按钮供点选时，无名杀内核不存在 `button.type == 'skill'` 类型（技能卡片底层基于 `buttonPresets.vcard` 构建，类型为 `"vcard"`）。若在 `chooseButton` 中使用 `set('filterButton', b => b.type == 'skill')`，会导致所有技能按钮直接变暗无法单击选择。正确过滤方法为 `filterButton: button => skills.includes(button.link)`，下方平铺推荐采用标准控件 `tdnodes`。
+28. **局内复杂技能交互勿在 `gameStart` 时机弹窗，应顺延至 `roundStart` 首轮规避开战准备生命周期锁死** → `gameStart` 时机发生于初始手牌发放前（`status.gameDrawed !== true`）。现代 UI（如新宇杀-UI 的 `readPreparation`）在此阶段处于 `preparing`（开战准备）生命周期监听。若技能在此时弹出异步选择弹窗导致 `status.imchoosing == true`，UI 会持续悬挂“请完成开战准备”遮罩，且右键预览技能弹出的浮窗关闭后极易导致场景层级与生命周期死锁。局内选技能、换技能等交互，时机应顺延至 `global: "roundStart"`（首轮开始时）。
 
 ## 9. 过时写法（**新代码不要用**）
 
