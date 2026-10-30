@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-29T14:36:12.337Z",
+  "updatedAt": "2026-10-30T00:39:03.767Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -5879,6 +5879,28 @@
       "confidence": "verified",
       "createdAt": "2026-10-29T14:36:12.337Z",
       "updatedAt": "2026-10-29T14:36:12.337Z"
+    },
+    {
+      "id": "kb-ui-backup-dialog-string-and-receipt-routing",
+      "kind": "pitfall",
+      "title": "UI 需兼容转化技字符串提示并过滤空槽，获得牌按原生显示入口接续",
+      "body": "chooseButton backup 可把 event.dialog 暂设为字符串；UI 只排版已连接元素并使用真实 skillDialog。装备 DOM 观察须排除隐藏空槽和死亡节点；获得牌按 $give/$gain/$gain2 的原生入口接续，弹框来源只缓存可见实牌按钮。完整复现、来源及验收边界见文档。",
+      "keywords": [
+        "UI",
+        "书秀",
+        "backup",
+        "dialog",
+        "获得牌",
+        "空槽",
+        "判定区"
+      ],
+      "refs": [
+        "packages/extension/新宇杀-UI/docs/online-ui-bug-list-20261030.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-10-30T00:39:03.767Z",
+      "updatedAt": "2026-10-30T00:39:03.767Z"
     }
   ]
 }
