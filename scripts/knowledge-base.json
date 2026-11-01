@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-30T14:44:34.039Z",
+  "updatedAt": "2026-11-01T12:40:55.642Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -6759,6 +6759,343 @@
       "confidence": "verified",
       "createdAt": "2026-10-30T14:44:34.038Z",
       "updatedAt": "2026-10-30T14:44:34.038Z"
+    },
+    {
+      "id": "kb-3b753860",
+      "kind": "pitfall",
+      "title": "触发技每回合限一次勿在content中addTempSkill防重入",
+      "body": "很多开发者习惯在content首行通过player.addTempSkill('xxx_used', 'phaseAfter')记录每回合限一次。但无名杀中技能确认发动后会先派发logSkillBegin，content排在队列后方等待。若有角色响应logSkillBegin插队摸牌（如循灵），引发新一轮触发时content尚未执行，标记未加上，从而导致filter通过造成死循环。正确解法：使用引擎原生usable: 1（发动瞬间同步自增，filterTrigger直接拦截），并在filter中加if (event.getParent('skill_name', true)) return false;防事件链嵌套重入。",
+      "keywords": [
+        "usable",
+        "每回合限一次",
+        "addTempSkill",
+        "死循环",
+        "重入",
+        "logSkillBegin",
+        "drawBegin",
+        "敦弛",
+        "filterTrigger"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T03:37:40.845Z",
+      "updatedAt": "2026-11-01T03:37:40.845Z"
+    },
+    {
+      "id": "kb-743ab98b",
+      "kind": "pitfall",
+      "title": "猜牌与判定类技能AI严禁读取ui.cardPile.firstChild透视牌堆顶",
+      "body": "在编写声明/猜测卡牌颜色、花色、类型（如卜卦、涉猎、猜花色）等技能的AI决策时，严禁使用ui.cardPile.firstChild获取牌堆顶牌。这是物理牌堆顶的卡牌DOM，AI读取它等于100%预判判定或展示结果，会导致若猜中则继续类技能无限连抽掏空牌堆。正确解法：1. 基础盲猜使用Math.random() < 0.5；2. 进阶拟真记牌：遍历公开区域ui.discardPile.childNodes统计已出现的颜色/花色比例推算剩余牌堆概率倾向；3. 面对改判武将或手牌充裕时增加AI见好就收退出逻辑（返回cancel）。",
+      "keywords": [
+        "AI",
+        "透视",
+        "牌堆顶",
+        "cardPile",
+        "firstChild",
+        "卜卦",
+        "猜牌",
+        "判定",
+        "无限摸牌",
+        "记牌"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T03:37:47.316Z",
+      "updatedAt": "2026-11-01T03:37:47.316Z"
+    },
+    {
+      "id": "kb-92080ebf",
+      "kind": "recipe",
+      "title": "限定条件给牌须showCards全场展示且give传visible:true",
+      "body": "若技能要求交给指定花色/类型的牌（如交给其一张红桃牌）：1. 在给牌前必须调用await player.showCards(cards, ...)在全场公屏弹窗展示卡牌，证明符合规则；2. 调用player.give(cards, target, true)时必须传入第3个参数true（visible）。若省略该参数，底层默认走giveAuto，在联机模式（_status.connectMode）下会自动降级为扣置给牌（card = card.length），且不会调用card.addKnower('everyone')，其他联机玩家只能看到暗扣失去牌动画（视觉上像弃牌），完全看不到牌面花色。",
+      "keywords": [
+        "give",
+        "visible",
+        "showCards",
+        "联机模式",
+        "connectMode",
+        "保福",
+        "明置给牌",
+        "展示手牌",
+        "弃牌动作"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T03:37:52.776Z",
+      "updatedAt": "2026-11-01T03:37:52.776Z"
+    },
+    {
+      "id": "kb-7b4a7505",
+      "kind": "pitfall",
+      "title": "临时标记技到期不会自动删除storage导致回合计数跨回合累加",
+      "body": "使用addTempSkill绑定phaseAfter来记录回合内发动次数时，若配合addMark记录数字，无名杀的removeSkill到期只会移除技能和DOM角标，默认不会清空player.storage！若标记技没有配置onremove，player.storage永久残留，下回合addMark依然会在上回合数字上累加。更严重的是联机模式下移除临时技能的广播不处理客户端storage。正确解法：1. 标记技能必须配置onremove(player, skill)，并在其中通过game.broadcastAll删除所有端player.storage[skill]；2. 主技能可监听global: ['phaseAfter', 'phaseBeginStart']作重置兜底。",
+      "keywords": [
+        "tempSkill",
+        "addMark",
+        "storage",
+        "onremove",
+        "phaseAfter",
+        "每回合刷新",
+        "联机同步",
+        "修己",
+        "计数累加"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T03:37:58.573Z",
+      "updatedAt": "2026-11-01T03:37:58.573Z"
+    },
+    {
+      "id": "kb-51e7a1f7",
+      "kind": "pitfall",
+      "title": "联机展示他人手牌必须先addCardKnower",
+      "body": "⚠ 陷阱：展示他人手牌（如傲稚）时，无名杀底层在 showCards 广播弹窗时尚未将客机加入知情者列表，导致客机卡牌脱敏后显示空白或未知。★ 做法：在触发 showCards 之前显式调用 game.addCardKnower(card, 'everyone') 预先向全网赋予知情权，并由牌主 await target.showCards(card, ...) 执行广播，配合 game.log 战报同步公证。",
+      "keywords": [
+        "联机",
+        "展示手牌",
+        "showCards",
+        "addCardKnower",
+        "知情者",
+        "脱敏",
+        "傲稚"
+      ],
+      "refs": [
+        "docs/YRD/appendix-c-pitfalls.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T03:55:28.455Z",
+      "updatedAt": "2026-11-01T03:55:28.455Z"
+    },
+    {
+      "id": "kb-a8a883b8",
+      "kind": "pitfall",
+      "title": "出牌阶段使用或打出严禁凭空respond",
+      "body": "⚠ 陷阱：技能表述为“你可以使用或打出之”时，出牌阶段空闲点不存在无响应上下文打出基本牌（如闪）的时机。严禁无条件提供打出选项并执行 player.respond(card)（会导致白嫖拆掉对手的闪）。★ 做法：仅在 player.hasUseTarget(card) 成立时提供“使用”选项；无法使用的基本牌保留在原主手中，⚠ 不要无上下文凭空调用 player.respond 强行丢弃对手手牌。",
+      "keywords": [
+        "出牌阶段",
+        "打出",
+        "使用",
+        "respond",
+        "hasUseTarget",
+        "闪",
+        "傲稚"
+      ],
+      "refs": [
+        "docs/YRD/appendix-c-pitfalls.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T03:55:32.809Z",
+      "updatedAt": "2026-11-01T03:55:32.809Z"
+    },
+    {
+      "id": "kb-3fc19d06",
+      "kind": "pitfall",
+      "title": "严禁全盘递归读取文件避免磁盘IO卡死崩溃",
+      "body": "⚠ 陷阱：排查底层机制或全局搜索时，编写递归遍历全盘读取 .js 文件的脚本会导致磁盘 I/O 瞬间拉满、系统无响应并引发环境崩溃。★ 做法：查技能与机制必须使用预建离线索引工具 node skill-search.mjs search（零全盘 I/O 消耗），或直接查阅 docs/YRD/ 文档体系；所有文件操作必须精准指向任务目标文件，⚠ 不要执行任何无边界的深层全仓库文件遍历。",
+      "keywords": [
+        "IO崩溃",
+        "磁盘IO",
+        "全盘扫描",
+        "递归读文件",
+        "精准操作",
+        "skill-search",
+        "性能安全"
+      ],
+      "refs": [
+        "docs/YRD/appendix-c-pitfalls.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T04:00:26.391Z",
+      "updatedAt": "2026-11-01T04:00:26.391Z"
+    },
+    {
+      "id": "kb-8c821dd5",
+      "kind": "pattern",
+      "title": "事件树叶子节点复制与跨时机隔离执行范式（解构类技能）",
+      "body": "复制/重放历史事件时，必须通过 getParent('arrangeTrigger', false, true) 锁定微观时机调度器，杜绝宏观宿主（如 phaseUse, damage）跨时机滚雪球累积；且若目标技能含 cost 阶段，必须先运行 cost 激活分支抉择，再运行 content；同时装配 safeTrigger 动态代理防 undefined 崩溃，遍历事件树时必须用 Set 破环防死循环与 TDR 崩溃。",
+      "keywords": [
+        "事件树",
+        "叶子节点",
+        "arrangeTrigger",
+        "时机隔离",
+        "技能复制",
+        "cost",
+        "解构",
+        "xy_jiegou",
+        "重放",
+        "safeTrigger",
+        "TDR"
+      ],
+      "refs": [
+        "docs/YRD/20-event-tree-replay-and-lifecycle-deconstruction.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T06:43:57.351Z",
+      "updatedAt": "2026-11-01T06:43:57.351Z"
+    },
+    {
+      "id": "kb-0d8d51b1",
+      "kind": "pitfall",
+      "title": "触发技交互决策必须在 cost 中完成以防 usable 虚耗假死",
+      "body": "无名杀 createTrigger 在未定义 cost 时会默认弹 chooseBool，玩家点击确定后引擎立即递增 usable 次数（getStat('triggerSkill')[skill]++）。若把选单或取消交互写在 content 中，玩家取消时 usable 已被扣减导致本回合无法再次发动。必须将交互完整置于 async cost(event, trigger, player) 中，取消时返回 { bool: false } 实现零代价安全取消。",
+      "keywords": [
+        "触发技",
+        "cost",
+        "usable",
+        "次数限制",
+        "假死",
+        "交互",
+        "chooseBool",
+        "createTrigger"
+      ],
+      "refs": [
+        "docs/YRD/20-event-tree-replay-and-lifecycle-deconstruction.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T06:44:04.126Z",
+      "updatedAt": "2026-11-01T06:44:04.126Z"
+    },
+    {
+      "id": "kb-70e019d9",
+      "kind": "pattern",
+      "title": "场外触发技能随机选择器与高频时机问询开关三级防护范式",
+      "body": "面对覆盖全生命周期的超高频触发技（一轮/回合/阶段/伤害/体力变动），必须在 init 中设 player.storage.xxx_query = false（默认不发动），并在 intro.content 中嵌入带 onclick 的 HTML 按钮与独立开关技能让玩家随时自由切换，并在 cost 弹窗提供一键关闭问询；抽取场外同触发时机技能时，通过从 lib.skill 随机偏移扫描、过滤在场技能与装备技能、严格校验 info.trigger 角色链与 info.filter，实现毫秒级精准抽取。",
+      "keywords": [
+        "随机技能选择器",
+        "问询开关",
+        "默认不发动",
+        "时机匹配",
+        "溯理",
+        "xy_suli",
+        "高频触发技",
+        "防扰"
+      ],
+      "refs": [
+        "docs/YRD/20-event-tree-replay-and-lifecycle-deconstruction.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T08:04:12.186Z",
+      "updatedAt": "2026-11-01T08:04:12.186Z"
+    },
+    {
+      "id": "kb-round-timings",
+      "kind": "pitfall",
+      "title": "轮次触发时机仅有 roundStart 与 roundEnd，无标准Before/After",
+      "body": "⚠ 避坑：无名杀轮次并非标准的带Step的GameEvent，而是在首个角色的phase回合内判定的。底层仅派发 roundStart（一轮开始时）和 roundEnd（一轮结束时），绝不要注册 roundStartBefore、roundStartBegin、roundStartEnd、roundStartAfter 等虚空节点。★ 做法：若技能需要在「每轮开始前」介入，应监听 global: ['phaseBefore', 'roundStart'] 并在首个角色回合前判断。",
+      "keywords": [
+        "轮次",
+        "roundStart",
+        "roundEnd",
+        "一轮开始前",
+        "每轮开始时",
+        "虚空时机"
+      ],
+      "refs": [
+        "content.js:4145 @ apps/core/dist/noname/library/element/content.js:4140-4146"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/dist/noname/library/element/content.js",
+          "start": 4140,
+          "end": 4146,
+          "hash": "7dad2641632d"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T10:00:51.540Z",
+      "updatedAt": "2026-11-01T10:01:34.372Z"
+    },
+    {
+      "id": "kb-filter-trigger-name",
+      "kind": "pitfall",
+      "title": "技能 filter 校验当前触发时机必须读取第 3 个参数 triggerName",
+      "body": "⚠ 避坑：lib.filter.filterTrigger 校验技能可用性的签名为 filter(event, player, triggerName, indexedData)。当触发 roundStart 或某些非事件同名时机时，event 对象是承载该时机的容器（例如 phase 事件，event.name === 'phase' 且 event.triggername 为空）。★ 做法：在 filter 内部判定当前时机时，必须读第 3 个参数 triggerName，不要误用 event.name 或 event.triggername，否则会被误杀拦截。",
+      "keywords": [
+        "filter",
+        "triggerName",
+        "时机比对",
+        "第三参数",
+        "roundStart",
+        "phase"
+      ],
+      "refs": [
+        "lib.filter.filterTrigger @ apps/core/dist/noname/library/index.js:10860-10866"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/dist/noname/library/index.js",
+          "start": 10860,
+          "end": 10866,
+          "hash": "b739d9c4f739"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T10:00:51.542Z",
+      "updatedAt": "2026-11-01T10:01:34.374Z"
+    },
+    {
+      "id": "kb-maxhp-and-damagesource",
+      "kind": "pattern",
+      "title": "体力上限变化须用 gainMaxHp/loseMaxHp，造成伤害核心时机为 damageSource",
+      "body": "★ 做法：无名杀底层不存在 changeMaxHp 事件，增减体力上限严格拆分为独立的 gainMaxHp 和 loseMaxHp 事件，监听时机须用 gainMaxHpEnd/After 或 loseMaxHpEnd/After，不要使用 changeMaxHp。造成伤害与受到伤害共用 damage 事件，伤害来源的核心命中时机为 damageSource，前后生命周期需通过 damageBefore/damageEnd 配合 event.source 校验。",
+      "keywords": [
+        "体力上限",
+        "changeMaxHp",
+        "gainMaxHp",
+        "loseMaxHp",
+        "造成伤害",
+        "damageSource"
+      ],
+      "refs": [
+        "loseMaxHp & gainMaxHp @ apps/core/dist/noname/library/element/content.js:11416-11444"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/dist/noname/library/element/content.js",
+          "start": 11416,
+          "end": 11444,
+          "hash": "3a14310df562"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T10:00:51.544Z",
+      "updatedAt": "2026-11-01T10:01:34.376Z"
+    },
+    {
+      "id": "kb-electron-sandbox-low-integrity-gpu-crash",
+      "kind": "pitfall",
+      "title": "Electron 双击秒退 0x80000003：沙箱 Low 完整性标签与 DACL 污染导致 GPU 进程自杀",
+      "body": "⚠ 症状：打包后的 noname.exe（win-unpacked）双击毫无反应，命令行启动秒退，退出码为 -2147483645（0x80000003 BREAKPOINT）。崩溃转储报 ERROR ...gpu_process_host ... code=18 → FATAL: GPU process isn't usable. Goodbye.。命令行开关 --disable-gpu 等均无法恢复。★ 根因：产物是在低完整性沙箱环境（如 DSH/Codex 沙箱）中打包生成的，所有文件被打上了 Mandatory Label\\Low Mandatory Level 强制标签，以及 Everyone Deny、CodexSandboxUsers、未识别隔离 SID（S-1-4-...）等异常 DACL。Electron 39.5.2 的 GPU 沙箱子进程在此类受污染的映像上无法初始化，触发 Chromium 主进程主动断言自杀。★ 判据与验证：复制到 %TEMP% 恢复正常；将 exe 设为 Low 完整性立刻复现，设回 Medium 恢复正常（同类问题参考 electron/electron#51761）。★ 修复做法：对解包目录执行 icacls 目录 /grant *S-1-15-2-2:(OI)(CI)(RX) /T /C /Q 以及 icacls 目录 /setintegritylevel (OI)(CI)M /T /C /Q，恢复所有应用包权限与 Medium 完整性级别。★ 预防措施：尽量在非沙箱终端打包；或在自动化打包脚本末尾追加 icacls 完整性重置步骤。通过 zip/NSIS 分发给外部最终用户时不会携带这些本地沙箱标签。",
+      "keywords": [
+        "Electron",
+        "GPU",
+        "0x80000003",
+        "code=18",
+        "双击无反应",
+        "Low完整性",
+        "icacls",
+        "setintegritylevel",
+        "DACL",
+        "沙箱污染",
+        "打包"
+      ],
+      "refs": [
+        "docs/YRD/17-build-and-packaging.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T12:40:55.642Z",
+      "updatedAt": "2026-11-01T12:40:55.642Z"
     }
   ]
 }

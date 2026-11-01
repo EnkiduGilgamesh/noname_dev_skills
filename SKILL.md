@@ -1,11 +1,21 @@
 ---
 name: noname-general-extension
-description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技、蓄力技、多势力技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、12 类技能模板与蓄力/多势力技开发范式、API 速查与二十八大避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
+description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技、蓄力技、多势力技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、12 类技能模板与蓄力/多势力技开发范式、API 速查与三十大避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
 ---
 
 # 开发《无名杀》武将扩展
 
 ⚠️ **动手前必读**：本 skill 中的每条约定都来自源码实证。**不要凭三国杀桌游常识或旧版无名杀经验编写**——新版引擎已废弃多个旧写法（见"过时写法"）。
+
+### 🛑 环境安全与 I/O 防崩溃铁律（严禁全盘深度文件扫描）
+
+- **禁止行为**：**严禁编写脚本或执行命令递归全盘遍历读取项目中的 `.js` 文件做内容搜索！** 无名杀项目体积庞大，包含海量武将包、扩展源码、编译输出 `dist/`、打包镜像及深层目录，大范围并发读取成千上万个文件会瞬间耗尽磁盘 I/O，引发宿主系统卡死与环境崩溃。
+- **正规排查与开发范式**：
+  1. **首选内置检索工具**：查机制与类似技能必须使用技能包内置的离线检索引擎：
+     `cd .agents/skills/noname-general-extension/scripts && node skill-search.mjs search "关键词"`
+     （该引擎基于预先建好的单文件索引与知识库，内存级极速命中，**零全盘 I/O 消耗**）；
+  2. **查阅系统文档**：底层机制（联机广播、知情权、事件流、生命周期等）直接阅读 `docs/YRD/` 中已成篇的 23 篇文档与附录（均带精准源码行号引用）；
+  3. **精准单文件操作**：所有阅读、修改与语法检测仅针对与当前任务直接相关的具体目标文件（如特定的 `apps/core/extension/<名>/...`），杜绝全盘野蛮扫描。
 
 ## 0. 项目定位
 
@@ -1491,7 +1501,7 @@ target.canAddJudge(card)              // 判定角色是否可置入该延时锦
 await target.addJudge(card)           // 将卡牌置入判定区（底层自动处理原位置 lose 与新判定区添加，严禁写 removeJudge）
 ```
 
-## 8. 二十八大避坑（按危害排序）
+## 8. 三十大避坑（按危害排序）
 
 1. **`cost` 忘记 `event.result = ...`** → 技能永不发动，**且无任何报错**（最难查）
 2. **忘记 `.forResult()`** → 拿到事件对象而非结果，`bool` 判定异常
@@ -1526,6 +1536,8 @@ await target.addJudge(card)           // 将卡牌置入判定区（底层自动
 26. **`roundStart` 触发时父事件 `event.name` 为 `"phase"`，判定触发点必须用 `event.triggername`** → 监听 `trigger: { global: "roundStart" }` 时，无名杀内核是在每轮第一名角色的回合阶段中调用 `await phaseEvent.trigger("roundStart")`。因此传入 `filter(event, player)` 的父事件 `event.name` 实际上是 `"phase"` 而非 `"roundStart"`。若误写 `if (event.name === 'roundStart')` 将永远为 `false`，导致轮次过滤失效、每轮错误放行。判定必须使用 `if (event.triggername === 'roundStart' || event.name === 'phase')`。
 27. **`chooseButton` 混合展示武将立绘与技能选择时勿用 `button.type == 'skill'`** → 在弹窗中上方展示武将立绘（供右键查看技能详情）、下方罗列技能按钮供点选时，无名杀内核不存在 `button.type == 'skill'` 类型（技能卡片底层基于 `buttonPresets.vcard` 构建，类型为 `"vcard"`）。若在 `chooseButton` 中使用 `set('filterButton', b => b.type == 'skill')`，会导致所有技能按钮直接变暗无法单击选择。正确过滤方法为 `filterButton: button => skills.includes(button.link)`，下方平铺推荐采用标准控件 `tdnodes`。
 28. **局内复杂技能交互勿在 `gameStart` 时机弹窗，应顺延至 `roundStart` 首轮规避开战准备生命周期锁死** → `gameStart` 时机发生于初始手牌发放前（`status.gameDrawed !== true`）。现代 UI（如新宇杀-UI 的 `readPreparation`）在此阶段处于 `preparing`（开战准备）生命周期监听。若技能在此时弹出异步选择弹窗导致 `status.imchoosing == true`，UI 会持续悬挂“请完成开战准备”遮罩，且右键预览技能弹出的浮窗关闭后极易导致场景层级与生命周期死锁。局内选技能、换技能等交互，时机应顺延至 `global: "roundStart"`（首轮开始时）。
+29. **联机展示他人手牌漏调 `game.addCardKnower` 导致客机牌面脱敏未知** → 技能展示其他角色的手牌（如【傲稚】）时，若直接调用 `player.showCards(card)`，无名杀底层向各端广播 `showCards` 弹窗时，底层知情者添加 `addCardKnower` 在广播弹窗之后执行。联机网络序列化时，其他未获知情权的客户端会将卡牌数据脱敏屏蔽，导致客机看到空白牌面或未知卡牌。解法：在展示前显式调用 `game.addCardKnower(card, "everyone")` 提前向全网广播知情权，并由牌主 `await target.showCards(card, ...)` 触发展示，同时配合 `game.log` 战报公证。
+30. **出牌阶段主动技“使用或打出”未校验 `hasUseTarget` 导致凭空打出【闪】** → 技能表述为“你可以使用或打出之”（如【傲稚】），在出牌阶段空闲点不存在无响应上下文打出基本牌的时机。若代码无条件塞入“打出”选项并调用 `await player.respond(card)`，玩家/AI抽到【闪】或无合法目标的【杀】时会强行将其丢弃进弃牌堆，导致“展示基本牌”被恶意利用为无代价拆除对方核心防御手牌的严重违规 bug。解法：出牌阶段仅在 `player.hasUseTarget(card)` 成立时提供“使用”选项；无法使用的基本牌保留在原主手中，严禁无上下文凭空调用 `player.respond`。
 
 ## 9. 过时写法（**新代码不要用**）
 
@@ -1690,6 +1702,27 @@ $env:ELECTRON_BUILDER_BINARIES_DOWNLOAD_OVERRIDE_URL = "http://127.0.0.1:8799"  
 
 2. **改打包配置用「等价配置文件」，别堆命令行参数。**
    命令行传参会**整体替换**而非合并默认配置，极易漏掉 `files` 这类关键项。
+
+### ⚠️ 沙箱标签污染导致 Electron 启动秒退（0x80000003 / GPU error 18）★
+
+打包出的 `win-unpacked/noname.exe` 运行时若**毫无反应、秒退**，命令行退出码为 `-2147483645`（`0x80000003`），不是 exe 文件损坏或缺少依赖：
+
+1. **根因**：产物在低完整性沙箱环境（如 DSH/Codex 沙箱）中打包时，被强制打上了 **`Low Mandatory Level`（低完整性标签）** 以及异常 DACL（如 `Everyone Deny`、`CodexSandboxUsers`、未识别隔离 SID `S-1-4-...`）。Electron 39.5.2 的 GPU 沙箱子进程在 Low 完整性映像或异常 DACL 下无法初始化（报错 `ERROR ...gpu_process_host ... code=18`），触发主进程 `FATAL: ... GPU process isn't usable. Goodbye.` 主动断言自杀。
+2. **定位证据**：
+   - 崩溃转储：位于 `resources/app/Home/crashDumps/reports/`，主线程 `CrBrowserMain` 报 `0x80000003`。
+   - 各种 GPU 启动开关（`--disable-gpu`、`--disable-gpu-sandbox`、`--in-process-gpu`、`--use-angle=swiftshader`）均无法恢复。
+   - **决定性实验**：整目录复制到 `%TEMP%` 或非沙箱目录后立即正常启动；单独将副本的 `noname.exe` 设为 Low 完整性立刻复现崩溃，设回 Medium 恢复正常（同类参考 [electron/electron#51761](https://github.com/electron/electron/issues/51761)）。
+3. **修复命令（Windows 终端实测生效）**：
+   ```powershell
+   icacls "<解包目录>" /grant "*S-1-15-2-2:(OI)(CI)(RX)" /T /C /Q
+   icacls "<解包目录>" /setintegritylevel "(OI)(CI)M" /T /C /Q
+   ```
+   注：`*S-1-15-2-2` 赋予所有应用包读取执行权限，`(OI)(CI)M` 恢复 Medium 完整性级别。
+4. **预防与分发注意事项**：
+   - 在低完整性沙箱 shell 打包时，打包脚本末尾需追加 `icacls ... /setintegritylevel (OI)(CI)M /T`，或在非沙箱正常终端下打包。
+   - 通过 zip / NSIS 安装包分发给最终用户时，本地沙箱标签不会被携带，**外部用户一般不受影响**。
+   - 分发后若双击无反应，先排查 SmartScreen 拦截（未签名 exe 点击“更多信息 → 仍要运行”）与 8089 端口占用。
+   - `resources/app/Home/crashDumps` 中的历史 `.dmp` 转储可定期清理。
 
 ## 12. 维护本技能包（**任务中持续进行**）
 
