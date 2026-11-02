@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-01T12:40:55.642Z",
+  "updatedAt": "2026-11-02T05:20:52.281Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -7096,6 +7096,42 @@
       "confidence": "verified",
       "createdAt": "2026-11-01T12:40:55.642Z",
       "updatedAt": "2026-11-01T12:40:55.642Z"
+    },
+    {
+      "id": "kb-yxsre-xinyu-groups",
+      "kind": "pattern",
+      "title": "英雄杀RE 新宇前缀分组与共享辅助函数",
+      "body": "2026-11-02：还看今朝的67名武将按 xy_<分组>_ 前缀拆为12个独立 ESM 分组文件，连同技能、派生技能、翻译、简介、称号一起迁移。冰和太阳为空占位，jinzhao.js 保留空出口。入口必须同步 import、applyGroup、characterSort 和分组翻译，合并后再附加立绘。跨组共用的 xunlingLocked 放在 xinyu_shared.js，由金和火显式导入，避免拆分丢失词法依赖。详情见扩展 README 的新宇分组表。",
+      "keywords": [
+        "英雄杀RE",
+        "新宇分组",
+        "xy_metal",
+        "xy_free",
+        "xy_flash",
+        "xunlingLocked"
+      ],
+      "refs": [
+        "xy_jinchi @ apps/core/extension/英雄杀RE/character/skills/metal.js:1525-1540",
+        "xy_xunling @ apps/core/extension/英雄杀RE/character/skills/fire.js:855-877",
+        "apps/core/extension/英雄杀RE/README.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/metal.js",
+          "start": 1525,
+          "end": 1540,
+          "hash": "2302abc6169e"
+        },
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/fire.js",
+          "start": 855,
+          "end": 877,
+          "hash": "a29bb006e1bf"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-02T05:20:52.281Z",
+      "updatedAt": "2026-11-02T05:20:52.281Z"
     }
   ]
 }
