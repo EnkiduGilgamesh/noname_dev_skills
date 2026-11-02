@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-02T05:20:52.281Z",
+  "updatedAt": "2026-11-02T05:33:33.194Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -7101,18 +7101,19 @@
       "id": "kb-yxsre-xinyu-groups",
       "kind": "pattern",
       "title": "英雄杀RE 新宇前缀分组与共享辅助函数",
-      "body": "2026-11-02：还看今朝的67名武将按 xy_<分组>_ 前缀拆为12个独立 ESM 分组文件，连同技能、派生技能、翻译、简介、称号一起迁移。冰和太阳为空占位，jinzhao.js 保留空出口。入口必须同步 import、applyGroup、characterSort 和分组翻译，合并后再附加立绘。跨组共用的 xunlingLocked 放在 xinyu_shared.js，由金和火显式导入，避免拆分丢失词法依赖。详情见扩展 README 的新宇分组表。",
+      "body": "2026-11-02：还看今朝的67名武将按 xy_<分组>_ 前缀拆为12个独立 ESM 分组文件，连同技能、派生技能、翻译、简介、称号一起迁移；冰和太阳为空占位。随后将近现代并入还看今朝，分组键保留 xy_jinzhao，邓丽君及完整定义迁入 jinzhao.js，移除 jinxiandai.js 及其入口注册。入口须同步 import、applyGroup、characterSort 和分组翻译，合并后再附加立绘。跨组共用的 xunlingLocked 放在 xinyu_shared.js，由金和火显式导入。详情见扩展 README。",
       "keywords": [
         "英雄杀RE",
         "新宇分组",
-        "xy_metal",
-        "xy_free",
-        "xy_flash",
+        "还看今朝",
+        "近现代",
+        "xy_jinzhao",
         "xunlingLocked"
       ],
       "refs": [
         "xy_jinchi @ apps/core/extension/英雄杀RE/character/skills/metal.js:1525-1540",
         "xy_xunling @ apps/core/extension/英雄杀RE/character/skills/fire.js:855-877",
+        "xy_youyang @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:18-152",
         "apps/core/extension/英雄杀RE/README.md"
       ],
       "fingerprints": [
@@ -7127,11 +7128,17 @@
           "start": 855,
           "end": 877,
           "hash": "a29bb006e1bf"
+        },
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 18,
+          "end": 152,
+          "hash": "913344a3d9b8"
         }
       ],
       "confidence": "verified",
       "createdAt": "2026-11-02T05:20:52.281Z",
-      "updatedAt": "2026-11-02T05:20:52.281Z"
+      "updatedAt": "2026-11-02T05:33:33.194Z"
     }
   ]
 }
