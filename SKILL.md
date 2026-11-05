@@ -1,6 +1,6 @@
 ---
 name: noname-general-extension
-description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技、蓄力技、多势力技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、12 类技能模板与蓄力/多势力技开发范式、API 速查与三十大避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
+description: 开发《无名杀》武将扩展、编写武将技能，或在已有技能中查找参考实现。当用户要求新增/修改武将、编写技能（触发技、锁定技、主动技、视为技、限定技、觉醒技、转换技、蓄力技、多势力技、法则技）、创建扩展目录、定义 character/skill/translate、检索类似技能实现、沉淀开发结论、或调试"技能不触发/没效果"时使用。内含增量知识库（带源码指纹校验）、技能检索引擎（6700+ 个技能）、扩展骨架、13 类技能模板与蓄力/多势力技/法则技开发范式、API 速查与三十大避坑清单。任务中还应持续维护本技能包（更新 SKILL.md、沉淀知识库、开发新工具、更新 README），本地 commit 后经用户确认再 push。
 ---
 
 # 开发《无名杀》武将扩展
@@ -510,6 +510,7 @@ mypack_wusheng_info: "将一张红色牌当【杀】使用。",  // 技能描述
 | 限制每轮/每角色/每点数 | 维度限制技 | 轮次重置 + storage去重 + precontent | 见 §6.13 专章 |
 | 多势力/同时享用多势力特性 | 多势力技 | 动态切换 / 借壳Trigger / Hook isGroup | 见 §6.14 专章 |
 | 全员自顶向下查看牌堆/联机透视 | 牌堆预览技 | mark + intro + requestSkillData + sync | 见 §6.15 专章 |
+| 宏观事件树图论调控/全局物理法则 | 法则技 | 单存活代理 + 5类胶水清洗 + 三段式时序流水线 | 见 §6.17 专章 |
 
 路径前缀：`docs/YRD/templates/templates/`
 
@@ -1436,6 +1437,170 @@ lib.skill.kuizhen_mark = {
 - ⚠ `event.getParent(name)` 找不到返回 `{}`（truthy），必须 `getParent(name, true)`，否则 filter 恒 false。
 - ⚠ `ai.viewHandcard` 必须配 `skillTagFilter`，否则 `hasSkillTag` 每次打印整只 Player DOM。
 - 完整案例、事件树收集目标、调试脚本：`docs/YRD/19-target-filtering-and-skill-activation.md`。
+
+---
+
+### 6.17 法则技开发范式（Law Skill / Macro Rule Skill）
+
+#### 1. 概念定位与设计哲学
+常规无名杀技能（锁定技、触发技、主动技、使命技等）均为**单体角色技能**，依赖角色的生理存活、判定区、手牌或攻击范围。
+
+**法则技**是打破传统卡牌维度的全新范式：
+- 它将**无名杀底层虚拟机的事件流（`GameEvent`）、因果事件树拓扑深度（Depth $D$）与宏观生命周期**作为判定与调控对象；
+- 它如同对局上空的“物理规律”（如热力学、重力），超越单体武将距离与存活状态，持续监测全场连锁复杂度并施加宏观恩泽或天谴制裁。
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    法则技五大核心架构机制                        │
+├─────────────────────────────────────────────────────────────────┤
+│ 1. 单存活代理 (Single-Proxy) ── 首位存活角色代表全场单次执行      │
+│ 2. 图论深度度量 (Tree Depth) ── 回溯因果链路，度量实体动作复杂度  │
+│ 3. 5类胶水清洗 (Filter Matrix)── 剥离 _usecard 等系统钩子与胶水    │
+│ 4. 三段式时序管线 (Pipeline) ── firstDo 归底 ➔ 展开 ➔ lastDo 裁决 │
+│ 5. 回合状态隔离 (Lifecycle)  ── 阶段/回合限次锁，phaseAfter 销毁  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### 2. 五大底层工程规范与避坑原则
+
+##### 规范一：单存活代理模式（Single-Proxy Pattern）
+- **引擎陷阱**：挂载在全局（`lib.skill.global` 或 `trigger: { global: [...] }`）的技能，在事件发生时会被无名杀引擎按座次对全场**每一位存活角色都触发一次**。如果不做限制，全场 8 个人就会重复执行 8 遍恩泽/天谴判定！
+- **标准写法**：
+  ```javascript
+  filter: (event, player) => {
+      // 1. 严格只允许全场首位存活角色代理执行
+      if (player !== game.players[0]) return false;
+      // 2. 宏观轮次/阶段防重入状态锁
+      if (event.name === "roundStart" && event._law_round_settled) return false;
+      return true;
+  }
+  ```
+
+##### 规范二：事件树图论深度度量与 5 类非实体胶水过滤
+- **深度定义**：以对局永续根事件 `phaseLoop` 为基准，沿着事件父链（`parent`）向上回溯。
+- **5 类必须剔除的虚伪胶水节点**：
+  1. **系统级垃圾回收钩子（`name.startsWith("_")`）**：最典型的如 `_usecard`（每张卡牌生效后由全场角色按座次执行桌面 DOM 垃圾回收 `ui.clear()`）、`_discard` 等内核隐式动作；
+  2. **调度编排容器**：`arrangeTrigger`（时机编排器）、`trigger`（技能包装容器）、`createTrigger`、`*_cost` 等纯代码中间层；
+  3. **广播信号生命切片**：以 `Before`、`Begin`、`End`、`After`、`Start`、`Over` 结尾的虚信号节点；
+  4. **纯 UI 交互等待**：`chooseButton`、`chooseControl`、`chooseBool`、`delay` 等非对局因果实体；
+  5. **法则技自触发标桩**：法则技派生的子动作显式打上 `_is_law_action = true`，回溯时跳过，防止自身动作导致深度递归膨胀。
+
+##### 规范三：三段式时序调度流水线（Three-Stage Timing Pipeline）
+- **时序死锁矛盾**：在轮次启动（`roundStart`）时，新一轮的基底深度需要重置归底，玩家的主动/重放技能（如【溯理】）需要展开加深，法则最终需要仲裁深度。如果顺序混乱，新轮加深的深度会被归底重置冲刷，或者法则仲裁提前判定。
+- **调度流水线设计**：
+  $$\text{doingList} = [\text{firstDo}, \text{player}_0, \text{player}_1, \dots, \text{lastDo}]$$
+  1. **阶段一（归底初始化）**：挂载在独立子技能，声明 `firstDo: true, priority: Infinity`，抢占绝对先手重置基底深度；
+  2. **阶段二（动态衍生加深）**：常规或中间优先级（如 `priority: -100`），玩家技能发动，事件树向下衍生展开；
+  3. **阶段三（全局收尾仲裁）**：主技能声明 `lastDo: true, priority: -Infinity`，全场最后顺位登场，读取最终峰值深度 $D$ 实施奖惩，并在结算完毕后收尾归底。
+
+##### 规范四：回合状态隔离与生命周期安全
+- 针对当前回合角色的惩罚（如过度套娃弃牌、天谴伤害），通过 `_status.currentPhase` 绑定私有标记 `_law_turn_discarded` / `_law_turn_damaged` 实施一回合各限一次的硬性熔断；
+- 必须且只能在回合彻底结束的 `phaseAfter` 统一清理，严防状态跨回合泄漏污染。
+
+##### 规范五：HUD 仪表盘防御性 CSS
+- 若需向玩家呈现实时时序深度，DOM 严禁挂载在 `ui.arena` 下（会继承无名杀 `layout.css` 的 `div { position: absolute; transition: all 0.5s; }` 与 `-webkit-writing-mode: vertical-rl` 竖排竹简样式导致文字碎裂与拖拽延迟）；
+- 必须挂载至 `document.body`，并通过 `position: static !important; transition: none !important; writing-mode: horizontal-tb !important;` 进行强制样式沙盒重置。
+
+#### 3. 生产级法则技代码骨架
+
+```javascript
+// 1. 深度度量函数与 5 类胶水过滤矩阵
+function isLawInternalNode(evt) {
+    if (!evt || !evt.name) return true;
+    const name = evt.name;
+    // ① 系统系统钩子与调度容器
+    if (name.startsWith("_") || name === "trigger" || name === "arrangeTrigger" || name === "createTrigger" || name.endsWith("_cost")) return true;
+    // ② 广播生命切片
+    if (name.endsWith("Before") || name.endsWith("Begin") || name.endsWith("End") || name.endsWith("After") || name.endsWith("Start") || name.endsWith("Over")) return true;
+    // ③ 纯客户端交互
+    if ((name.startsWith("choose") && !name.startsWith("chooseTo")) || name === "delay") return true;
+    // ④ 自触发标桩
+    if (evt._is_law_action) return true;
+    return false;
+}
+
+function getActionDepthFromLoop(evt) {
+    let depth = 0;
+    let cur = evt;
+    while (cur) {
+        if (cur.name === "phaseLoop") break;
+        if (!isLawInternalNode(cur)) depth++;
+        cur = cur.parent;
+    }
+    return depth;
+}
+
+// 2. 阶段一：新轮次先手归底重置子技能
+lib.skill._law_round_reset = {
+    trigger: { global: "roundStart" },
+    forced: true,
+    popup: false,
+    silent: true,
+    firstDo: true,
+    priority: Infinity,
+    filter: (event, player) => player === game.players[0] && !event._law_reset_done,
+    content: async (event, trigger, player) => {
+        trigger._law_reset_done = true;
+        _status._law_peak_D = getActionDepthFromLoop(trigger);
+    }
+};
+
+// 3. 阶段三：全场收尾仲裁法则主技能
+lib.skill._law_arbitrator = {
+    trigger: {
+        global: ["roundStart", "phaseUseAfter", "phaseAfter"]
+    },
+    forced: true,
+    popup: false,
+    lastDo: true,
+    priority: -Infinity,
+    filter: (event, player) => {
+        // 单存活代理：全场仅首位存活角色代表全场执行单次判定
+        if (player !== game.players[0]) return false;
+        if (event.name === "roundStart" && event._law_round_settled) return false;
+        return true;
+    },
+    async content(event, trigger, player) {
+        const curPeak = _status._law_peak_D || 0;
+
+        // 轮首恩泽仲裁
+        if (trigger.name === "roundStart") {
+            trigger._law_round_settled = true;
+            if (curPeak > 4) {
+                game.log("【时空法则】检测到深度突破 4，降下全场恩泽！");
+                for (const p of game.filterPlayers()) {
+                    await p.recover(1);
+                    await p.draw(2);
+                }
+            }
+            _status._law_peak_D = getActionDepthFromLoop(trigger);
+        } else {
+            // 阶段/回合超载制裁（针对当前回合角色）
+            const curPlayer = _status.currentPhase;
+            if (curPlayer && curPlayer.isIn()) {
+                if (curPeak >= 12 && !curPlayer._law_turn_damaged) {
+                    curPlayer._law_turn_damaged = true;
+                    game.log(curPlayer, "因时序深度达到", get.cnNumber(curPeak), "触发法则天谴！");
+                    const dmg = curPlayer.damage(1, "nosource");
+                    dmg._is_law_action = true; // 打上标桩防回溯深度膨胀
+                    await dmg;
+                } else if (curPeak >= 8 && curPeak < 12 && !curPlayer._law_turn_discarded) {
+                    curPlayer._law_turn_discarded = true;
+                    game.log(curPlayer, "因时序深度超载，触发时空磨损！");
+                    await curPlayer.chooseToDiscard(1, "he", true);
+                }
+            }
+
+            // 回合彻底结束：彻底销毁私有标记并归底
+            if (trigger.name === "phaseAfter" && curPlayer) {
+                delete curPlayer._law_turn_damaged;
+                delete curPlayer._law_turn_discarded;
+                _status._law_peak_D = getActionDepthFromLoop(trigger);
+            }
+        }
+    }
+};
+```
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-02T05:33:33.194Z",
+  "updatedAt": "2026-11-05T15:26:18.842Z",
   "entries": [
     {
       "id": "kb-abafd679",
@@ -7098,6 +7098,167 @@
       "updatedAt": "2026-11-01T12:40:55.642Z"
     },
     {
+      "id": "kb-8a66b5a1",
+      "kind": "pitfall",
+      "title": "旧式step语法严禁使用非数字标识与牌名字数规范",
+      "body": "⚠ 陷阱：旧式 content 写法中若误写 'step A' 或跳号，StepCompiler 匹配不到连续数字序号会提前终止解析，把剩余代码打进 step 0 一次性同步跑完，导致异步弹窗（如 chooseBool）未完成时 result.bool 恒为 undefined 并直接触发 finish() 导致无法摸牌。★ 做法：一律重构为 async content 配合 await ...forResult()；计算牌名字数字数必须使用官方原生 get.cardNameLength(card, player)，避免手工正则切割属性杀出现字数偏差。",
+      "keywords": [
+        "step",
+        "StepCompiler",
+        "stepA",
+        "异步中断",
+        "cardNameLength",
+        "牌名字数",
+        "钦狂"
+      ],
+      "refs": [
+        "docs/YRD/appendix-c-pitfalls.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T12:43:28.733Z",
+      "updatedAt": "2026-11-01T12:43:28.733Z"
+    },
+    {
+      "id": "kb-b3d726b2",
+      "kind": "pattern",
+      "title": "牌堆定向寻牌的两大机制范式：静默检索 vs 逐张翻牌检视",
+      "body": "《无名杀》中从牌堆寻找特定类别牌有两种典型机制：1. 静默定位检索（荐言/宝箧流）：通过 get.cardPile(filter, 'cardPile', 'top') 直接定位牌堆顶第一张符合条件的牌，牌堆顶其他牌完全不公开、不改变位置；找到后直接获得或单一亮出；2. 逐张翻牌检视（寻牌/粉黛流）：通过 while 循环配合 [card] = get.cards(1)、await game.cardsGotoOrdering(card) 与 await player.showCards(card) 逐张亮开并送入处理区展示动画，若不符合条件推入 discards 数组，命中后跳出循环，角色 gain(targetCard)，最后通过 await game.cardsDiscard(discards) 将途中亮出的牌送入弃牌堆。前置需用 (!get.cardPile(filter) && !get.cardPile(filter, 'discardPile')) 检查做防死循环熔断保护。",
+      "keywords": [
+        "检索",
+        "寻牌",
+        "牌堆",
+        "showCards",
+        "cardsGotoOrdering",
+        "cardPile",
+        "washCard",
+        "静默检索",
+        "逐张翻牌"
+      ],
+      "refs": [
+        "xy_fendai @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:3047-3069",
+        "apps/core/extension/英雄杀RE/README.md"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 3047,
+          "end": 3069,
+          "hash": "3656a15ee138"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-01T16:01:12.306Z",
+      "updatedAt": "2026-11-01T16:01:12.306Z"
+    },
+    {
+      "id": "kb-7ce3135a",
+      "kind": "pattern",
+      "title": "多手牌转化杀与未造成伤害返还补偿技能范式",
+      "body": "转化技要求至少2张手牌当【杀】（selectCard: [2, Infinity]、position: 'h'、complexCard: true）并在未造成伤害时摸X-2张牌时：1. viewAs中附带storage标记并在onuse记录result.cards.length；2. 挂载useCardAfter子技能，通过event.cards.length或storage获取X；3. 检查!player.hasHistory('sourceDamage', evt => evt.card === event.card) && !game.hasPlayer2(p => p.hasHistory('damage', evt => evt.card === event.card))判定未造成伤害；4. 当X > 2时执行await player.draw(X - 2)。配合空手牌伤害+1的锁定技（damageBegin1判断!player.countCards('h')），可形成清空手牌搏高伤或失手补牌的闭环玩法。",
+      "keywords": [
+        "多牌转化",
+        "转化杀",
+        "未造成伤害",
+        "摸牌补偿",
+        "空手牌增伤"
+      ],
+      "refs": [
+        "xy_jinge @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:9122-9191"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 9122,
+          "end": 9191,
+          "hash": "c8478eda15e7"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-02T00:50:22.260Z",
+      "updatedAt": "2026-11-02T00:50:22.260Z"
+    },
+    {
+      "id": "kb-2c605cc6",
+      "kind": "pattern",
+      "title": "牌堆顶透视与虚拟手牌使用响应结算范式（荐血类）",
+      "body": "实现『无手牌时牌堆顶X张牌对你可见且可视为手牌使用或打出，回合内使用扣血』机制：1. 声明 enable: ['chooseToUse', 'chooseToRespond']，配合 hiddenCard 和 ai.skillTagFilter(respondSha/respondShan/save) 保证回合外能正常被引擎唤起响应；2. 声明 chooseButton 弹出牌堆顶卡牌，在 backup.precontent 中必须调用 game.cardsGotoOrdering([card]) 将卡牌移出 cardPile 进入处理区，防丢牌/错乱；3. 判断 _status.currentPhase === player 判定处于自己回合内并触发 loseHp(1)；4. mark/intro 视图中判断 player === game.me || player.isUnderControl() 脱敏展现卡面，对其他玩家隐藏以防联机透视卡牌泄漏。",
+      "keywords": [
+        "牌堆顶可见",
+        "视为手牌",
+        "牌堆顶使用",
+        "牌堆顶响应",
+        "隐秘展示"
+      ],
+      "refs": [
+        "xy_jianxue @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:9238-9345"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 9238,
+          "end": 9345,
+          "hash": "2baf2383d969"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-02T04:48:13.642Z",
+      "updatedAt": "2026-11-02T04:48:13.642Z"
+    },
+    {
+      "id": "kb-3a26739f",
+      "kind": "recipe",
+      "title": "拦截摸牌并动态重分配范式（馈赠）",
+      "body": "1. 拦截时机：trigger: { player: 'drawBefore' }，filter 判断 event.num > 0 且场上有其他角色；2. 取消摸牌：在 content 开头执行 trigger.cancel() 彻底阻止原本的摸牌流；3. 循环分配：保存 rest = trigger.num，在 while (rest > 0) 循环中调用 player.chooseTarget 让玩家依次指定一名其他角色摸1张牌（支持随时取消中断分配），目标执行 await target.draw() 且 rest--。",
+      "keywords": [
+        "drawBefore",
+        "摸牌拦截",
+        "分配摸牌",
+        "cancel"
+      ],
+      "refs": [
+        "xy_kuizeng @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:9407-9450"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 9407,
+          "end": 9450,
+          "hash": "2c9b6e13fcb0"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-02T05:11:37.495Z",
+      "updatedAt": "2026-11-02T05:11:37.495Z"
+    },
+    {
+      "id": "kb-6a337e12",
+      "kind": "recipe",
+      "title": "回合内摸牌状态跟踪、多目标控牌与颜色比对范式（神庥）",
+      "body": "1. 回合内摸牌感知：通过 subSkill 监听 global: 'drawAfter'，在 _status.currentPhase === player 时将 trigger.player 记录进 player.getStorage('xy_shenxiu_drawn')，在 phaseBegin/phaseAfter 时清空；2. 回合末触发与校验：trigger: { player: 'phaseEnd' }，filter 判断自身未在 drawn 列表中，且存在满足 countGainableCards > 0 的摸过牌角色；3. 多人批量拿牌：[1, drawn.length] 范围选择目标，遍历通过 await player.gainPlayerCard(target, 'he', true) 获取区域各一张牌；4. 展示与同色判定：询问 chooseBool 是否展示，展示后检查 every(c => get.color(c) === firstColor) 且颜色为 red 或 black，全同色时回复体力。",
+      "keywords": [
+        "phaseEnd",
+        "回合摸牌记录",
+        "批量抽牌",
+        "showCards",
+        "颜色判定"
+      ],
+      "refs": [
+        "xy_shenxiu @ apps/core/extension/英雄杀RE/character/skills/jinzhao.js:9455-9540"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/jinzhao.js",
+          "start": 9455,
+          "end": 9540,
+          "hash": "7e13e194a6b8"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-02T05:11:42.490Z",
+      "updatedAt": "2026-11-02T05:11:42.490Z"
+    },
+    {
       "id": "kb-yxsre-xinyu-groups",
       "kind": "pattern",
       "title": "英雄杀RE 新宇前缀分组与共享辅助函数",
@@ -7139,6 +7300,201 @@
       "confidence": "verified",
       "createdAt": "2026-11-02T05:20:52.281Z",
       "updatedAt": "2026-11-02T05:33:33.194Z"
+    },
+    {
+      "id": "kb-ec79b835",
+      "kind": "recipe",
+      "title": "回合中途跨角色插入阶段的完整执行范式",
+      "body": "在别人回合中途插入任意角色的阶段（如出牌阶段、弃牌阶段）时，不能直接裸调 player.phaseUse()。必须切换上下文焦点：1) 临时将 _status.currentPhase 设为目标执行角色并广播切换 glow_phase 高亮；2) 使用 const next = p[phaseName](); await next.forResult() 显式阻塞消费；3) 阶段执行完毕后还原原回合角色的 _status.currentPhase 和发光焦点；4) 弃牌阶段若 player.needsToDiscard() <= 0 原生会直接静默 finish，建议配合 popup('无需弃牌') 和日志提示避免静默跳过产生卡死错觉。",
+      "keywords": [
+        "阶段插入",
+        "插队",
+        "phaseUse",
+        "phaseDiscard",
+        "currentPhase",
+        "glow_phase",
+        "forResult"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-04T14:44:09.463Z",
+      "updatedAt": "2026-11-04T14:44:09.463Z"
+    },
+    {
+      "id": "kb-c95669cb",
+      "kind": "pitfall",
+      "title": "阶段统计栈 stat 结构完整性陷阱（triggerSkill 缺失导致崩溃）",
+      "body": "无名杀角色每回合的统计对象 stat 栈顶必须包含完整结构：{ card: {}, skill: {}, triggerSkill: {} }。在临时介入阶段或模拟环境时，切勿随意 push 残缺对象（如漏传 triggerSkill）或随意 pop 冲刷历史。否则当进入 phaseUseBegin 等时机检查带 usable 的触发技时，底层读取 player.getStat('triggerSkill')[skill] 会因 triggerSkill 为 undefined 抛出 Cannot read properties of undefined 导致崩溃。安全写法：优先复用当前顶层 stat 并用空值合并补全字段（stat.card ??= {}; stat.skill ??= {}; stat.triggerSkill ??= {};）。",
+      "keywords": [
+        "stat",
+        "getStat",
+        "triggerSkill",
+        "Cannot read properties of undefined",
+        "usable",
+        "崩溃"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-04T14:44:16.816Z",
+      "updatedAt": "2026-11-04T14:44:16.816Z"
+    },
+    {
+      "id": "kb-01221a56",
+      "kind": "pitfall",
+      "title": "弃牌阶段修改手牌上限时机陷阱（须用 phaseDiscardBefore）",
+      "body": "无名杀内核在进入 phaseDiscard 事件的第 0 步就立即调用 player.needsToDiscard() 计算待弃牌张数。如果手牌未超限（num <= 0）会直接 finish 退出阶段。因此若技能要在弃牌阶段临时将手牌上限改为无穷大（克己类）或增加上限，触发时机必须包含 phaseDiscardBefore（在计算弃牌张数之前触发），不能只写 phaseDiscardBegin 或 phaseDiscard，否则计算时手牌上限尚未修改，且手牌未超限时甚至完全不会进入后续时机。",
+      "keywords": [
+        "弃牌阶段",
+        "手牌上限",
+        "克己",
+        "phaseDiscardBefore",
+        "needsToDiscard",
+        "时机"
+      ],
+      "refs": [],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-04T14:44:28.674Z",
+      "updatedAt": "2026-11-04T14:44:28.674Z"
+    },
+    {
+      "id": "kb-2cb95742",
+      "kind": "pattern",
+      "title": "判定牌即时生效截断改判与指定角色下回合开始失效范式",
+      "body": "1. 判定牌立即生效：在 judge 事件中替换判定牌后调用 trigger.untrigger()，可阻断当前判定触发事件链中后续所有角色的改判时机，使新判定牌强制立即结算；2. 指定角色的下回合开始失效：将目标角色存入 storage（如 _status.currentPhase），通过 global: 'phaseBegin' 并 filter: (event, player) => event.player === player.storage.targetPhasePlayer 监听该角色再次开始回合的时机，实现精准移除状态。",
+      "keywords": [
+        "judge",
+        "改判",
+        "untrigger",
+        "立即生效",
+        "使命技",
+        "phaseBegin"
+      ],
+      "refs": [
+        "xy_myth_tianwen @ apps/core/extension/英雄杀RE/character/skills/myth.js:189-261"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/myth.js",
+          "start": 189,
+          "end": 261,
+          "hash": "ed8209c08103"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-04T14:46:48.296Z",
+      "updatedAt": "2026-11-04T14:46:48.296Z"
+    },
+    {
+      "id": "kb-0b34a92f",
+      "kind": "pattern",
+      "title": "隐匿技与登场/多时机触发优先级分层避免二选一弹窗范式",
+      "body": "同角色多个技能在同一时机（如 showCharacterAfter 登场）触发时，若 priority 相同且均非静默，arrangeTrigger 会弹窗让玩家二选一；通过给非关键/被动统计类技能配置 priority: -100 和 silent: true，使其低于隐匿技默认 priority(0)，引擎会自动分批按序执行最高优先级技能，彻底规避打扰玩家的二选一弹窗。",
+      "keywords": [
+        "priority",
+        "showCharacterAfter",
+        "隐匿技",
+        "二选一",
+        "silent"
+      ],
+      "refs": [
+        "xy_myth_kuiji @ apps/core/extension/英雄杀RE/character/skills/myth.js:86-179"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/myth.js",
+          "start": 86,
+          "end": 179,
+          "hash": "729593e28922"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-04T15:54:25.484Z",
+      "updatedAt": "2026-11-04T15:54:25.484Z"
+    },
+    {
+      "id": "kb-washcard-mechanism",
+      "kind": "pattern",
+      "title": "牌堆洗牌底层事件模型与washCard单一时机广播机制",
+      "body": "无名杀中局内摸牌堆耗尽洗牌并非独立的五段生命周期事件（不存在 washCardBefore/Begin/End/After），其底层真实事件节点为 cardsGotoPile（携带 washCard: true、_triggeronly: true 与 shuffleNumber 计数）；在 content.ts 的 cardsGotoPile 结算时直接通过 event.trigger('washCard') 向全场手动派发单一广播时机，并同步遍历执行 lib.onwash 回调队列，随后记录到全局 cardMove 历史。因此技能监听洗牌必须使用 trigger: { global: 'washCard' }，查询局内洗牌历史须使用 game.hasGlobalHistory('cardMove', evt => evt.washCard)；此外开局初始化牌堆（ui.create.cards）仅为同步数组乱序，不经过事件流也不触发 washCard。",
+      "keywords": [
+        "washCard",
+        "cardsGotoPile",
+        "洗牌",
+        "牌堆",
+        "onwash",
+        "shuffleNumber",
+        "cardMove"
+      ],
+      "refs": [
+        "game.washCard @ apps/core/noname/game/index.js:755-787",
+        "content.cardsGotoPile @ apps/core/noname/library/element/content.ts:3125-3136"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/noname/game/index.js",
+          "start": 755,
+          "end": 787,
+          "hash": "54d3073f9262"
+        },
+        {
+          "file": "apps/core/noname/library/element/content.ts",
+          "start": 3125,
+          "end": 3136,
+          "hash": "71350ff8c1e0"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-05T13:27:21.774Z",
+      "updatedAt": "2026-11-05T13:27:21.774Z"
+    },
+    {
+      "id": "kb-5a90027d",
+      "kind": "pattern",
+      "title": "身份局特殊胜利裁决与牌堆枯竭平局劫持规范",
+      "body": "★ 做法：1. 身份局特殊胜利：先调 game.showIdentity() 翻开全场暗置身份；设置 _status.winner 与 _status.loser 数组并通过 game.broadcastAll 分发以保证联机端一致；调用 game.over(winners.includes(game.me)) 终局，切勿写死 true 导致 AI 获胜时人类玩家视角也误显胜利。2. 平局劫持：牌堆枯竭平局的底层终点是 get.cards() 在 game.washCard() 返回 false 后调用 game.over('平局')。可在 init(player) 中 hook game.washCard 检查牌堆与弃牌堆皆无可用非 vanish 牌，或 hook game.over 拦截平局结果并转化为获胜。3. 持恒技规范：配置 persevereSkill: true，防断肠/焚心/巧变等技能夺取与替换。",
+      "keywords": [
+        "胜利",
+        "特殊胜利",
+        "平局",
+        "洗牌",
+        "牌堆枯竭",
+        "game.over",
+        "washCard",
+        "持恒技",
+        "persevereSkill",
+        "identity"
+      ],
+      "refs": [
+        "docs/YRD/21-victory-conditions-and-draw-hijacking.md"
+      ],
+      "fingerprints": [],
+      "confidence": "verified",
+      "createdAt": "2026-11-05T14:00:57.867Z",
+      "updatedAt": "2026-11-05T14:00:57.867Z"
+    },
+    {
+      "id": "kb-a854cac9",
+      "kind": "fact",
+      "title": "昂扬技与使命技复合联动范式（即时状态判定、单向锁死与昂扬重置）",
+      "body": "1. 昂扬技契约：标记 sunbenSkill: true。作为特殊限定技变体，通过 player.storage[skill + '_used'] 追踪限定消耗；2. 即时时机判定重置：重置检查不在外部使命完成时被动唤醒，而是在技能自身 content 执行完毕的发动后时机即时检测使命状态（player.storage.dutySkill === 'achieve'）。若满足则清除限定标记实现昂扬重置；3. 预先发动单向锁死：若在使命达成成功前提前发动，在发动后时机检测不通过，永久写入 used 标记，使命技能后续达成成功亦不予逆向恢复；4. 转换技双向轮转：每次发动后调用 player.changeZhuanhuanji() 翻转阴阳状态。",
+      "keywords": [],
+      "refs": [
+        "xy_myth_yuechuan @ apps/core/extension/英雄杀RE/character/skills/myth.js:815-1049"
+      ],
+      "fingerprints": [
+        {
+          "file": "apps/core/extension/英雄杀RE/character/skills/myth.js",
+          "start": 815,
+          "end": 1049,
+          "hash": "5a08d78956ef"
+        }
+      ],
+      "confidence": "verified",
+      "createdAt": "2026-11-05T15:26:14.203Z",
+      "updatedAt": "2026-11-05T15:26:14.203Z"
     }
   ]
 }
